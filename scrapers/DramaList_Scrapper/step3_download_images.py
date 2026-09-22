@@ -113,4 +113,4 @@ def download_images_from_csv(csv_path, output_folder, concurrency=100):
     print(f"\nAll missing images saved in '{output_folder}' folder.")
 
 # Example usage:
-download_images_from_csv("D:\\Projects\\Kdrama-recommendation\\data_scrapper\\DramaList_Scrapper\\dramalist_kdrama.xlsx", output_folder="D:\\Projects\\Kdrama-recommendation\\data_scrapper\\DramaList_Scrapper\\drama_image")
+download_images_from_csv("D:\\Projects\\SeoulMate\\scrapers\\DramaList_Scrapper\\dramalist_kdramas.xlsx", output_folder="D:\\Projects\\SeoulMate\\scrapers\\DramaList_Scrapper\\drama_image")

@@ -213,8 +213,8 @@ def process_folder(
 
 # Example usage
 process_folder(
-    r"D:\Projects\SeoulMate\data_scrapper\DramaList_Scrapper\dramas_html",
-    output_csv=r"D:\Projects\SeoulMate\data_scrapper\DramaList_Scrapper\dramalist_all_dramas.csv",
+    r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\dramas_html",
+    output_csv=r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\dramalist_all_dramas.csv",
     max_workers=None,
     skip_existing=True,
 )

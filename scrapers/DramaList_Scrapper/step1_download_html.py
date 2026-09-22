@@ -94,7 +94,7 @@
 # #  Main function — parallel downloads
 # # ===============================================
 # async def main():
-#     CSV_FILE = r"D:\Projects\Kdrama-recommendation\data_scrapper\mydramalist_data.csv"
+#     CSV_FILE = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\mydramalist_data.csv"
 #     OUTPUT_DIR = "dramas_html"
 #     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -229,7 +229,7 @@ async def download_page(i, url, context, output_dir, semaphore):
 # Main
 # -------------------------------------------
 async def main():
-    CSV_FILE = r"D:\Projects\Kdrama-recommendation\data_scrapper\mydramalist_data.csv"
+    CSV_FILE = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\mydramalist_data.csv"
     OUTPUT_DIR = "dramas_html"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
