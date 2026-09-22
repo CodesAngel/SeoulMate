@@ -1,58 +1,105 @@
 # DramaList Scrapper
 
-Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is three
-independent, numbered scripts — run them in order.
+Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is five
+numbered steps, each in its own script, plus `run_pipeline.py` which runs all of them in order
+with one command.
+
+## Folder layout
+
+- All step scripts live in `steps/`: `steps/step0a_download_listing_pages.py`, ...,
+  `steps/step3_download_images.py`. `run_pipeline.py` and `README.md` stay at the top level as
+  the single entry point.
+- Scraped/downloaded data lives under `output/`: `output/html_pages/`, `output/dramas_html/`,
+  `output/drama_image/`, `output/extra/`
+- Generated top-level datasets stay next to `run_pipeline.py`: `mydramalist_data.csv`,
+  `dramalist_all_dramas.csv`, `dramalist_kdramas.xlsx`
+
+## Quick start
+
+```bash
+python run_pipeline.py                                        # run all five steps, in order
+python run_pipeline.py --skip-listing --skip-urls --skip-html  # already have output/dramas_html/, just extract + get images
+python run_pipeline.py --only images                           # run just one step
+```
+
+Each step skips work it's already done (existing HTML files, CSV rows, downloaded images), so
+re-running `run_pipeline.py` after a partial or failed run just resumes.
+
+Each step script can still be run on its own if you want to run just that step manually, e.g.
+`python steps/step1_download_html.py` (run from the `DramaList_Scrapper/` folder).
 
 ## Pipeline
 
-### Step 1 — `step1_download_html.py` (downloader)
-Reads drama URLs from a CSV (`mydramalist_data.csv`, column `Title_URL`) and uses Playwright to
-visit each page and save the raw HTML into `dramas_html/`.
+### Step 0a — `steps/step0a_download_listing_pages.py` (listing downloader)
+Uses Playwright to fetch MyDramaList's popular-shows listing pages
+(`mydramalist.com/shows/popular?page=1..250`) and saves each rendered page's HTML.
 
-- **Input:** `mydramalist_data.csv` (not included in this repo — you must supply it)
-- **Output:** `dramas_html/*.html`
-- **Run:**
-  ```bash
-  python step1_download_html.py
-  ```
-- Skips URLs already saved (`dramas_html/<drama_id>.html` exists). Safe to re-run/resume.
+- **Input:** none (hits the live site)
+- **Output:** `output/html_pages/page_1.html` ... `page_250.html`
+- **Run:** `python steps/step0a_download_listing_pages.py`
+- Skips pages already saved. Safe to re-run/resume.
+
+### Step 0b — `steps/step0b_extract_drama_urls.py` (URL extractor)
+Parses every listing page in `output/html_pages/` with BeautifulSoup and pulls out one row per
+drama box: `Ranking, Title, Media_Info, Rating, Description, Title_URL, Image_URL`. `Title_URL` is
+what Step 1 needs.
+
+- **Input:** `output/html_pages/*.html`
+- **Output:** `mydramalist_data.csv`
+- **Run:** `python steps/step0b_extract_drama_urls.py`
+- Rewrites the whole CSV each run (not incremental) — re-run after Step 0a fetches new pages.
+
+### Step 1 — `steps/step1_download_html.py` (drama page downloader)
+Reads drama URLs from `mydramalist_data.csv` (column `Title_URL`) and uses Playwright to visit
+each drama's own page and save the raw HTML.
+
+- **Input:** `mydramalist_data.csv`
+- **Output:** `output/dramas_html/*.html`
+- **Run:** `python steps/step1_download_html.py`
+- Skips URLs already saved (`output/dramas_html/<drama_id>.html` exists). Safe to re-run/resume.
 - Hits the live site — be mindful of rate limiting before re-running on the full URL list.
 
-### Step 2 — `step2_extract_data.py` (extractor)
-Parses every HTML file in `dramas_html/` (JSON-LD + XPath) and extracts structured fields:
+### Step 2 — `steps/step2_extract_data.py` (data extractor)
+Parses every HTML file in `output/dramas_html/` (JSON-LD + XPath) and extracts structured fields:
 title, alternate names, description, genres, rating, actors, directors, screenwriters, episodes,
 aired dates, duration, ranking, watchers, content rating, popularity.
 
-- **Input:** `dramas_html/*.html`
+- **Input:** `output/dramas_html/*.html`
 - **Output:** `dramalist_all_dramas.csv`
-- **Run:**
-  ```bash
-  python step2_extract_data.py
-  ```
+- **Run:** `python steps/step2_extract_data.py`
 - Skips titles already present in the output CSV (`skip_existing=True`). Safe to re-run/resume.
 - Multithreaded (auto-detects CPU cores), uses `lxml` for speed.
 
-### Step 3 — `step3_download_images.py` (image downloader)
+### Step 3 — `steps/step3_download_images.py` (image downloader)
 Reads `title`/`image` columns from the CSV/Excel produced in Step 2 and downloads missing poster
 images asynchronously.
 
 - **Input:** `dramalist_kdramas.xlsx` (or any CSV/XLSX with `title` and `image` columns)
-- **Output:** `drama_image/<title>.jpg`
-- **Run:**
-  ```bash
-  python step3_download_images.py
-  ```
+- **Output:** `output/drama_image/<title>.jpg`
+- **Run:** `python steps/step3_download_images.py`
 - Only downloads images that are missing or corrupt (<1KB) locally. Safe to re-run/resume.
+
+## Full data flow
+
+```
+step0a  ->  output/html_pages/    (listing pages)
+step0b  ->  mydramalist_data.csv  (drama URLs, from output/html_pages/)
+step1   ->  output/dramas_html/   (each drama's own page, from mydramalist_data.csv)
+step2   ->  dramalist_all_dramas.csv (structured fields, from output/dramas_html/)
+step3   ->  output/drama_image/   (poster images, from dramalist_*.csv/xlsx)
+```
 
 ## Other files
 
 - `dramalist_all_dramas.csv`, `dramalist_kdramas.xlsx` — extracted dataset (output of Step 2)
-- `extra/` — earlier/backup extraction CSVs
-- `html_pages/` — an older/separate batch of saved HTML pages
+- `output/extra/mydramalist_data_raw.csv` — an earlier snapshot of Step 0b's output (5,932 rows)
+- `output/extra/dramalist_all_dramas.csv` — an earlier snapshot of Step 2's output
 
 ## Notes
 
-- All three scripts have their run call hardcoded at the bottom of the file (not gated behind
-  `if __name__ == "__main__":` in Steps 2 and 3) — importing them will trigger a full run.
+- Each step's run call sits behind `if __name__ == "__main__":`, so `run_pipeline.py` can import
+  all five modules without triggering a run on import.
 - All paths are hardcoded to `D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\...`; update them
   if you move the project.
+- Step 0b needs `beautifulsoup4` in addition to the other pipeline dependencies (`lxml`, `tqdm`,
+  `pandas`, `playwright`, `openpyxl`, `aiohttp`, `aiofiles`).
