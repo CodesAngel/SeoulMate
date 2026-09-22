@@ -160,6 +160,34 @@ python training-new\train_pipeline.py --mode train-reranker
 
 ---
 
+---
+
+## Verified Training Run Results (Colab T4 GPU)
+
+The complete 1-click pipeline (`train.py`) was executed and fully verified on a Google Colab T4 GPU instance:
+
+| Metric | Result | Notes |
+| :--- | :--- | :--- |
+| **Total Pipeline Duration** | **`45.7 minutes`** | All 6 stages executed end-to-end automatically |
+| **Hardware Used** | NVIDIA Tesla T4 GPU (16 GB VRAM) | PyTorch CUDA accelerated |
+| **Bi-Encoder Model** | `intfloat/multilingual-e5-base` | 768 dimensions (1,060.67 MB `model.safetensors`) |
+| **Bi-Encoder Eval Spearman** | **`0.6045`** | Solid semantic correlation (zero-shot trope evaluation) |
+| **Bi-Encoder Eval Pearson** | **`0.5092`** | Clean linear correlation (balanced positive/negative set, No `NaN`) |
+| **Bi-Encoder Final Train Loss** | **`2.819`** | MultipleNegativesRankingLoss + TripletLoss (Epoch 3) |
+| **Cross-Encoder Model** | `BAAI/bge-reranker-v2-m3` | Sequence classification regressor (2,165.86 MB) |
+| **Reranker Loss Progression** | **`0.0582` $\to$ `0.0064`** | Superb convergence (~10× loss reduction in 2 epochs; final step loss: `0.0031`) |
+| **FAISS Indices Generated** | 4 indices (768-d) | `index.faiss`, `genre_index.faiss`, `actor_index.faiss`, `theme_index.faiss` (5.34 MB each) |
+
+### Stage-by-Stage Telemetry:
+* **Step 1 (Data Generation):** `6.4s` | 14,776 training pairs, 176 hard negative triplets, 70 balanced eval pairs.
+* **Step 2 (Bi-Encoder Fine-Tuning):** `137.3s` (~2.3 min) | 1,385 optimizer steps, 138 warmup steps.
+* **Step 3 (FAISS Index Building):** `83.2s` | 1,823 dramas encoded across 4 vector indices + `meta.pkl`.
+* **Step 4 (Reranker Data Generation):** `27.3s` | 600 query variations against FAISS, 18,000 candidate labeled pairs.
+* **Step 5 (Cross-Encoder Fine-Tuning):** `2485.2s` (~41.4 min) | 10,000 training pairs, 2 epochs (1,250 steps/epoch).
+* **Step 6 (Verification):** All 8 model and index artifacts validated with healthy file sizes.
+
+---
+
 ## Deploying Outputs to the Backend
 
 Once training completes, the new model and index artifacts will be in:
@@ -171,6 +199,7 @@ To switch your live backend (`backend/app.py`) to these new models:
 1. Update `TRAINING_DIR` in `backend/app.py`:
    ```python
    TRAINING_DIR = PROJECT_DIR / "training-new"
+   CROSS_ENCODER_MODEL = str(TRAINING_DIR / "models" / "cross-encoder-finetuned")
    ```
 2. Run tests to confirm accuracy gains:
    ```powershell

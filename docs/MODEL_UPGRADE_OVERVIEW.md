@@ -49,3 +49,15 @@ A quick reference guide outlining the current model architecture, recommended dr
    - Point `CROSS_ENCODER_MODEL` in `backend/app.py` to `BAAI/bge-reranker-v2-m3`.
 5. **Step 5: Run Evaluation Benchmark**
    - Execute `tests/evaluation/evaluate_accuracy.py` to measure the new accuracy scores.
+
+---
+
+## 5. Verified Training Run Status
+
+The training pipeline was executed on a Google Colab T4 GPU instance in **45.7 minutes**:
+* **Bi-Encoder (`multilingual-e5-base`):** Evaluated with Spearman **`0.6045`** / Pearson **`0.5092`**, Loss: `2.819`.
+* **Cross-Encoder (`bge-reranker-v2-m3`):** MSE Loss plunged from **`0.0582` $\to$ `0.0064`** (~10× improvement).
+* **Artifacts:** All 4 FAISS indices (768-d) and both model safetensors successfully built.
+
+For full telemetry, see [training-new/README.md](../training-new/README.md#verified-training-run-results-colab-t4-gpu).
+

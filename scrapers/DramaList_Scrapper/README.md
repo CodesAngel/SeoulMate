@@ -37,6 +37,10 @@ Uses Playwright to fetch MyDramaList's popular-shows listing pages
 - **Input:** none (hits the live site)
 - **Output:** `output/html_pages/page_1.html` ... `page_250.html`
 - **Run:** `python steps/step0a_download_listing_pages.py`
+- `LAST_PAGE = 250` is **hardcoded on purpose** — 250 is MyDramaList's actual last page
+  for the popular-shows listing (`shows/popular?page=250` is the final real page; beyond
+  that the site has no more results). If MyDramaList ever adds more pages, bump
+  `LAST_PAGE` in the script to match.
 - Skips pages already saved. Safe to re-run/resume.
 
 ### Step 0b — `steps/step0b_extract_drama_urls.py` (URL extractor)

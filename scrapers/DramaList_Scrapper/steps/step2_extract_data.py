@@ -165,7 +165,7 @@ def process_folder(
     # Skip already processed titles
     processed_titles = set()
     if skip_existing and os.path.exists(output_csv):
-        with open(output_csv, encoding="utf-8", newline="") as f:
+        with open(output_csv, encoding="utf-8-sig", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 processed_titles.add(row["title"])
