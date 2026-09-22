@@ -66,8 +66,19 @@ SeoulMate/
 |   |   +-- fine_tune_cross_encoder.py
 |   |   +-- learning_to_rank.py
 |   +-- models/
+|   |   +-- sbert-finetuned-full/
+|   |   +-- cross-enc-excellent/
 |   +-- faiss_index/
 |   +-- training_data/
++-- training-new/
+|   +-- train_pipeline.py
+|   +-- fine_tune_kdrama_sbert.py
+|   +-- enhanced_index_builder.py
+|   +-- learning_to_rank.py
+|   +-- models/
+|   |   +-- sbert-kdrama-finetuned/
+|   +-- ltr_model/
+|   +-- faiss_index/
 +-- data/
 |   +-- final/
 |       +-- dramalist_kdramas.xlsx
@@ -99,7 +110,8 @@ SeoulMate/
 | `backend/` | FastAPI recommendation API and runtime logic |
 | `backend/ranking/` | Curated priors, generated ranking indexes, and index generation |
 | `frontend/` | Streamlit user interface |
-| `training/` | Model training, FAISS index building, and training artifacts |
+| `training/` | Production model training, FAISS index building, and active model artifacts |
+| `training-new/` | Experimental cloud training pipeline, lightweight MiniLM model, and LTR artifacts |
 | `data/final/` | Final dataset used by training and indexing scripts |
 | `scrapers/` | Data collection and scraping utilities |
 | `tests/evaluation/` | Accuracy evaluator and offline generated-index validation |
@@ -437,6 +449,34 @@ Curated ranking config lives at:
 ```text
 backend/ranking/config/curated_priors.json
 ```
+
+### Model Variants & Directory Differences (`training/models` vs `training-new/models`)
+
+The repository contains two model training setups representing different optimization goals:
+
+| Feature | `training/models/` (Production Default) | `training-new/models/` (Experimental / Lightweight) |
+| :--- | :--- | :--- |
+| **Directory Contents** | 1. `sbert-finetuned-full/`<br>2. `cross-enc-excellent/` | 1. `sbert-kdrama-finetuned/` |
+| **SBERT Base Architecture** | `paraphrase-multilingual-mpnet-base-v2` (`XLMRobertaModel`) | `paraphrase-multilingual-MiniLM-L12-v2` (`BertModel`) |
+| **Embedding Dimension** | **768 dimensions** | **384 dimensions** |
+| **SBERT Model Size** | **~1.11 GB** (`model.safetensors`) | **~470 MB** (`model.safetensors`) |
+| **Reranker Architecture** | **Neural Cross-Encoder** (`cross-enc-excellent/`, ~90 MB) | **LightGBM LTR Tree Model** (`training-new/ltr_model/`) |
+| **Backend Integration** | **Actively loaded** by `backend/app.py` | Experimental / standalone pipeline |
+
+#### Details:
+
+1. **`training/models/` (Current Production Backend)**:
+   - **`sbert-finetuned-full`**: Fine-tuned 768-dimensional multilingual MPNet model. Offers superior semantic nuance and multilingual understanding across titles, cast, and plot summaries. Matches the 768-dim FAISS index in `training/faiss_index/`.
+   - **`cross-enc-excellent`**: 6-layer sequence-pair classification model (`ms-marco-MiniLM-L-6-v2`) used as the live reranker in `backend/app.py`.
+
+2. **`training-new/models/` (Lightweight Cloud Studio Retraining)**:
+   - **`sbert-kdrama-finetuned`**: Fine-tuned 384-dimensional MiniLM-L12 model. Trained for lower CPU inference latency and a ~58% smaller memory footprint.
+   - **`ltr_model/`**: Replaces the neural cross-encoder with a tabular LightGBM LambdaMART ranker based on query-item features.
+
+> [!NOTE]
+> If you plan to switch the backend from `training/models` to `training-new/models`, you will need to re-encode the FAISS index because the vector dimensions differ (**768** vs **384**).
+>
+> For a detailed roadmap on upgrading to modern state-of-the-art models (E5-base + BGE-reranker) to reach 93–95% accuracy, see [docs/MODEL_UPGRADE_OVERVIEW.md](docs/MODEL_UPGRADE_OVERVIEW.md).
 
 ## Personalization
 
