@@ -4,9 +4,9 @@
   <img src="docs/assets/thumbs-up-welcome.gif" alt="K-drama thumbs up welcome" width="300">
 </p>
 
-Welcome to SeoulMate. You came here to find your next K-drama, and honestly, very good choice.
+You came here to find your next K-drama, honestly, very good choice.
 
-SeoulMate is an AI-powered Korean drama recommendation system built to understand natural language searches, rank dramas intelligently, and personalize recommendations from user behavior.
+Welcome to SeoulMate an AI-powered Korean drama recommendation system built to understand natural language searches, rank dramas intelligently, and personalize recommendations from user behavior.
 
 The system combines semantic search, lexical search, calibrated ranking indexes, a cross-encoder reranker, and user preference learning to help users discover relevant K-dramas from queries such as `romantic comedy`, `school bullying`, `contract marriage`, `hospital setting`, or `dramas like Crash Landing on You`.
 
