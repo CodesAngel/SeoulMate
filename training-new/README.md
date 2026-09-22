@@ -23,7 +23,8 @@ This folder contains the next-generation training pipeline designed to upgrade S
 
 ```text
 training-new/
-├── train_pipeline.py          # Master CLI and interactive runner
+├── train.py                   # 1-Click automated master training script
+├── train_pipeline.py          # Modular CLI and interactive runner
 ├── requirements.txt           # Python dependencies
 ├── steps/
 │   ├── generate_training_data.py   # Dataset & hard negative generator
@@ -50,11 +51,84 @@ pip install -r training-new\requirements.txt
 
 ### 2. Run the Pipeline
 
-#### Option A: Interactive Menu (Recommended)
-Run with no arguments to get an interactive numbered menu:
+#### 🚀 The 1-Click Complete Run (Zero Prompts, Full Pipeline)
+Just run this one file and everything is done automatically:
 ```powershell
-cd training-new
-python train_pipeline.py
+python training-new\train.py
+```
+
+---
+
+## Execution Order Followed by `train.py`
+
+When you run `python training-new\train.py`, it executes the following 6 stages sequentially without requiring any user input:
+
+```text
+[Dataset: dramalist_kdramas.xlsx]
+               │
+               ▼
+   [Step 1] Generate Training Data & Hard Negatives
+               │
+               ▼
+   [Step 2] Fine-Tune Bi-Encoder Model (E5 / SBERT)
+               │
+               ▼
+   [Step 3] Build FAISS Vector Indices (Main, Genre, Actor, Theme)
+               │
+               ▼
+   [Step 4] Generate Labeled Reranker Dataset
+               │
+               ▼
+   [Step 5] Fine-Tune Cross-Encoder Reranker
+               │
+               ▼
+   [Step 6] Verification & Artifact Health Smoke-Test
+```
+
+### Stage Details:
+1. **Step 1: Data Generation & Hard Negative Mining** (`steps/generate_training_data.py`)
+   - Reads `data/final/dramalist_kdramas.xlsx`.
+   - Generates title-description, genre, actor, and theme pairs.
+   - Mines BM25 false positives as hard negative triplets (e.g. separating true contract marriage from general romance).
+   - Generates a balanced validation split (scores 1.0 vs 0.0) so correlation metrics compute cleanly without `NaN`.
+   - Outputs: `training_data/training_pairs.json`, `training_data/training_triplets.json`, `training_data/eval_pairs.json`.
+2. **Step 2: Bi-Encoder Fine-Tuning** (`steps/fine_tune_kdrama_sbert.py`)
+   - Fine-tunes `intfloat/multilingual-e5-base` using **both** `MultipleNegativesRankingLoss` (on pairs) and `TripletLoss` (on hard negatives) for 3 epochs.
+   - Uses gradient accumulation for an effective batch size of 32.
+   - Outputs: `models/e5-kdrama-finetuned/model.safetensors` and tokenizer configs.
+3. **Step 3: FAISS Vector Index Building** (`steps/enhanced_index_builder.py`)
+   - Encodes all dramas into normalized vector embeddings using the model trained in Step 2.
+   - Builds 4 specialized FAISS indices: `index.faiss` (main), `genre_index.faiss`, `actor_index.faiss`, `theme_index.faiss`, plus `meta.pkl` and `index_manifest.json`.
+4. **Step 4: Reranker Dataset Generation** (`steps/generate_reranker_data.py`)
+   - Uses the FAISS index from Step 3 to retrieve candidate dramas for sample queries, creating labeled `(query, document_text, label)` pairs.
+   - Outputs: `reranker_train.csv`.
+5. **Step 5: Cross-Encoder Reranker Fine-Tuning** (`steps/fine_tune_cross_encoder.py`)
+   - Fine-tunes `BAAI/bge-reranker-v2-m3` using sequence-pair regression for 2 epochs.
+   - Outputs: `models/cross-encoder-finetuned/model.safetensors`.
+6. **Step 6: Verification Smoke-Test**
+   - Automatically inspects the filesystem to verify all 8 model weights, FAISS vector indices, and metadata files exist and have non-zero file sizes, printing a final summary report.
+
+---
+
+## Difference Between `train.py` and `train_pipeline.py`
+
+| Feature | `train.py` (1-Click Automated) | `train_pipeline.py` (Modular & Interactive) |
+| :--- | :--- | :--- |
+| **Philosophy** | **"Just run everything automatically"** | **"Let me choose what to run and configure"** |
+| **User Prompts** | **Zero prompts.** Starts immediately. | Shows an interactive terminal menu if run without flags. |
+| **CLI Arguments** | None needed. | Supports CLI flags (`--mode`, `--epochs`, `--base_model`, etc.). |
+| **Execution Scope** | Always runs the **full 6-step pipeline** from data generation to artifact verification. | Can run **individual steps** (e.g., only FAISS index, only reranker, or full). |
+| **How to Configure** | Edit the variables directly at the top of `train.py`. | Pass flags on the command line or choose from the interactive menu. |
+| **Verification Step** | Includes an automatic **file size & health smoke-test** at the end. | Exits after running the requested steps. |
+
+---
+
+### Alternative Ways to Run (`train_pipeline.py`)
+
+#### Option A: Interactive Menu
+If you want to pick specific individual stages or tweak epochs interactively:
+```powershell
+python training-new\train_pipeline.py
 ```
 
 #### Option B: Full Pipeline (End-to-End)

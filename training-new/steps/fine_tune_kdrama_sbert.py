@@ -115,8 +115,17 @@ def main():
     train_examples = load_pairs(args.data_dir, max_examples=args.max_examples)
     train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=args.batch_size)
 
-    # 3. Loss function: MultipleNegativesRankingLoss with cosine similarity
+    # 3. Loss functions
     train_loss = losses.MultipleNegativesRankingLoss(model=model)
+    train_objectives = [(train_dataloader, train_loss)]
+
+    # Also include hard negative triplets if available
+    train_triplets = load_triplets(args.data_dir, max_examples=4000)
+    if train_triplets:
+        triplet_dataloader = DataLoader(train_triplets, shuffle=True, batch_size=args.batch_size)
+        triplet_loss = losses.TripletLoss(model=model)
+        train_objectives.append((triplet_dataloader, triplet_loss))
+        print("✓ Enabled Hard Negative TripletLoss alongside MultipleNegativesRankingLoss!")
 
     # 4. Evaluator
     evaluator = build_evaluator(args.data_dir)
@@ -130,7 +139,7 @@ def main():
     print(f"\nStarting training ({total_steps} optimizer steps, {warmup_steps} warmup steps)...")
 
     model.fit(
-        train_objectives=[(train_dataloader, train_loss)],
+        train_objectives=train_objectives,
         evaluator=evaluator,
         epochs=args.epochs,
         evaluation_steps=max(50, len(train_dataloader) // 3),
