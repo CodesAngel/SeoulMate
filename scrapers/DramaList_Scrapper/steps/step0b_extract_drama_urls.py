@@ -88,20 +88,22 @@ def extract_drama_data_from_html(html_content):
 
 
 def extract_from_folder(folder_path, output_csv):
-    """Loops through all .html files in folder_path and writes one combined CSV."""
+    """Loops through all .html files under folder_path (including subfolders,
+    e.g. one per listing source) and writes one combined CSV."""
     all_data = []
 
-    for filename in os.listdir(folder_path):
-        if filename.lower().endswith(".html"):
-            file_path = os.path.join(folder_path, filename)
-            print(f"Processing file: {filename}")
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    html_content = f.read()
-                data = extract_drama_data_from_html(html_content)
-                all_data.extend(data)
-            except Exception as e:
-                print(f"Failed to process {filename}: {e}")
+    for root, _dirs, filenames in os.walk(folder_path):
+        for filename in filenames:
+            if filename.lower().endswith(".html"):
+                file_path = os.path.join(root, filename)
+                print(f"Processing file: {file_path}")
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        html_content = f.read()
+                    data = extract_drama_data_from_html(html_content)
+                    all_data.extend(data)
+                except Exception as e:
+                    print(f"Failed to process {file_path}: {e}")
 
     if all_data:
         keys = all_data[0].keys()

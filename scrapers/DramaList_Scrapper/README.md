@@ -31,24 +31,34 @@ Each step script can still be run on its own if you want to run just that step m
 ## Pipeline
 
 ### Step 0a — `steps/step0a_download_listing_pages.py` (listing downloader)
-Uses Playwright to fetch MyDramaList's popular-shows listing pages
-(`mydramalist.com/shows/popular?page=1..250`) and saves each rendered page's HTML.
+Uses Playwright to fetch MyDramaList's listing pages from **two sources**, defined in
+the `SOURCES` dict:
+- `popular` — `mydramalist.com/shows/popular?page=1..250`
+- `newest` — `mydramalist.com/shows/newest?page=1..250`
 
 - **Input:** none (hits the live site)
-- **Output:** `output/html_pages/page_1.html` ... `page_250.html`
+- **Output:** each source gets its own subfolder under `output/html_pages/`, so both can
+  reuse the same `page_N.html` naming without colliding:
+  - `output/html_pages/popular/page_1.html` ... `page_250.html`
+  - `output/html_pages/newest/page_1.html` ... `page_250.html`
 - **Run:** `python steps/step0a_download_listing_pages.py`
-- `LAST_PAGE = 250` is **hardcoded on purpose** — 250 is MyDramaList's actual last page
-  for the popular-shows listing (`shows/popular?page=250` is the final real page; beyond
-  that the site has no more results). If MyDramaList ever adds more pages, bump
-  `LAST_PAGE` in the script to match.
+- Each source's `last_page` is **hardcoded on purpose**, not auto-detected. `popular`'s
+  250 is confirmed as MyDramaList's actual last page. `newest`'s 250 is **unverified** —
+  check the run's output for repeated fetch errors/empty pages near the end and adjust
+  `SOURCES["newest"]["last_page"]` in the script accordingly.
+- To add another listing source later, add an entry to `SOURCES` with its own
+  `url_template` and `last_page` — it'll get its own subfolder named after the source key.
 - Skips pages already saved. Safe to re-run/resume.
 
 ### Step 0b — `steps/step0b_extract_drama_urls.py` (URL extractor)
-Parses every listing page in `output/html_pages/` with BeautifulSoup and pulls out one row per
-drama box: `Ranking, Title, Media_Info, Rating, Description, Title_URL, Image_URL`. `Title_URL` is
-what Step 1 needs.
+Parses every listing page under `output/html_pages/` (recursively, across all source
+subfolders) with BeautifulSoup and pulls out one row per drama box: `Ranking, Title,
+Media_Info, Rating, Description, Title_URL, Image_URL`. `Title_URL` is what Step 1 needs.
+Since `popular` and `newest` can list the same drama, `mydramalist_data.csv` may contain
+duplicate `Title_URL` rows — harmless, Step 1 skips a drama it's already downloaded
+regardless of which CSV row triggered it.
 
-- **Input:** `output/html_pages/*.html`
+- **Input:** `output/html_pages/**/*.html`
 - **Output:** `mydramalist_data.csv`
 - **Run:** `python steps/step0b_extract_drama_urls.py`
 - Rewrites the whole CSV each run (not incremental) — re-run after Step 0a fetches new pages.

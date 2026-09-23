@@ -1,8 +1,11 @@
-"""Step 0a: download MyDramaList's popular-shows listing pages.
+"""Step 0a: download MyDramaList's listing pages (popular + newest).
 
-Fetches https://mydramalist.com/shows/popular?page=1..250 with Playwright and
-saves the rendered HTML of each page into html_pages/. These listing pages are
-later parsed (Step 0b) to pull out each drama's title URL.
+Fetches https://mydramalist.com/shows/popular?page=1..250 and
+https://mydramalist.com/shows/newest?page=1..N with Playwright. Each source's pages
+are saved into their own subfolder under html_pages/ (html_pages/popular/,
+html_pages/newest/), so both sources can use the same page_N.html naming without
+colliding. These listing pages are later parsed (Step 0b) to pull out each drama's
+title URL.
 """
 
 import asyncio
@@ -20,9 +23,23 @@ USER_AGENTS = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
 ]
 
-BASE_URL = "https://mydramalist.com/shows/popular?page={}"
-OUTPUT_DIR = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\html_pages"
-LAST_PAGE = 250
+HTML_PAGES_DIR = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\html_pages"
+
+# Each listing source has its own URL pattern, its own subfolder (named after the
+# source) and its own hardcoded last page. MyDramaList doesn't expose a clean "total
+# pages" count, so last_page needs to be checked/updated manually after running.
+SOURCES = {
+    "popular": {
+        "url_template": "https://mydramalist.com/shows/popular?page={}",
+        "last_page": 250,
+    },
+    "newest": {
+        "url_template": "https://mydramalist.com/shows/newest?page={}",
+        # Not verified against the live site yet — check the actual last page once
+        # this runs (watch for repeated "Error fetching" / empty results) and adjust.
+        "last_page": 250,
+    },
+}
 
 
 async def block_images_and_fonts(route: Route):
@@ -67,18 +84,20 @@ async def fetch_rendered_html(url: str) -> Optional[str]:
         return None
 
 
-async def main():
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+async def download_source(source_name, url_template, last_page):
+    print(f"\n--- Source: {source_name} ---")
+    output_dir = os.path.join(HTML_PAGES_DIR, source_name)
+    os.makedirs(output_dir, exist_ok=True)
 
-    for page_num in range(1, LAST_PAGE + 1):
-        url = BASE_URL.format(page_num)
-        output_path = os.path.join(OUTPUT_DIR, f"page_{page_num}.html")
+    for page_num in range(1, last_page + 1):
+        url = url_template.format(page_num)
+        output_path = os.path.join(output_dir, f"page_{page_num}.html")
 
         if os.path.exists(output_path):
-            print(f"Page {page_num} already exists — skipping.")
+            print(f"[{source_name}] Page {page_num} already exists — skipping.")
             continue
 
-        print(f"\nStarting page {page_num}")
+        print(f"\n[{source_name}] Starting page {page_num}")
         html_source = await fetch_rendered_html(url)
 
         if html_source:
@@ -94,6 +113,13 @@ async def main():
         sleep_time = random.uniform(3, 6)
         print(f"Sleeping {sleep_time:.1f}s...\n")
         await asyncio.sleep(sleep_time)
+
+
+async def main():
+    os.makedirs(HTML_PAGES_DIR, exist_ok=True)
+
+    for source_name, cfg in SOURCES.items():
+        await download_source(source_name, cfg["url_template"], cfg["last_page"])
 
 
 if __name__ == "__main__":
