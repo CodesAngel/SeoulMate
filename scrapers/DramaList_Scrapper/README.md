@@ -1,6 +1,6 @@
 # DramaList Scrapper
 
-Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is five
+Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is six
 numbered steps, each in its own script, plus `run_pipeline.py` which runs all of them in order
 with one command.
 
@@ -16,7 +16,7 @@ with one command.
 ## Quick start
 
 ```bash
-python run_pipeline.py                                        # run all five steps, in order
+python run_pipeline.py                                        # run all six steps, in order
 python run_pipeline.py --skip-listing --skip-urls --skip-html  # already have output/dramas_html/, just extract + get images
 python run_pipeline.py --only images                           # run just one step
 ```
@@ -83,6 +83,17 @@ aired dates, duration, ranking, watchers, content rating, popularity.
 - Skips titles already present in the output CSV (`skip_existing=True`). Safe to re-run/resume.
 - Multithreaded (auto-detects CPU cores), uses `lxml` for speed.
 
+### Step 2b — `steps/step2b_dedupe_data.py` (dedup)
+Removes duplicate rows from `output/dramalist_all_dramas.csv`, keeping the first occurrence.
+Duplicates are identified by `url` (the true unique per-drama identifier), since Step 0b's
+`popular` and `newest` listing sources can list the same drama.
+
+- **Input:** `output/dramalist_all_dramas.csv`
+- **Output:** `output/dramalist_all_dramas.deduped.csv` — a **separate file**, does not overwrite
+  the original. Once you've checked the deduped result looks right, you can manually replace the
+  original with it.
+- **Run:** `python steps/step2b_dedupe_data.py`
+
 ### Step 3 — `steps/step3_download_images.py` (image downloader)
 Reads `title`/`image` columns from the CSV/Excel produced in Step 2 and downloads missing poster
 images asynchronously.
@@ -99,6 +110,7 @@ step0a  ->  output/html_pages/    (listing pages)
 step0b  ->  mydramalist_data.csv  (drama URLs, from output/html_pages/)
 step1   ->  output/dramas_html/   (each drama's own page, from mydramalist_data.csv)
 step2   ->  output/dramalist_all_dramas.csv (structured fields, from output/dramas_html/)
+step2b  ->  output/dramalist_all_dramas.deduped.csv (deduped copy, from output/dramalist_all_dramas.csv)
 step3   ->  output/drama_image/   (poster images, from dramalist_*.csv/xlsx)
 ```
 
