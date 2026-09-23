@@ -83,6 +83,17 @@ SeoulMate/
 |   +-- final/
 |       +-- dramalist_kdramas.xlsx
 +-- scrapers/
+|   +-- DramaList_Scrapper/
+|   |   +-- run_pipeline.py
+|   |   +-- steps/
+|   |   |   +-- step0a_download_listing_pages.py
+|   |   |   +-- step0b_extract_drama_urls.py
+|   |   |   +-- step1_download_html.py
+|   |   |   +-- step2_extract_data.py
+|   |   |   +-- step3_download_images.py
+|   |   +-- output/ (gitignored: html_pages/, dramas_html/, drama_image/, dramalist_all_dramas.csv)
+|   |   +-- mydramalist_data.csv
+|   +-- kdrama_dataset.csv
 +-- tests/
 |   +-- evaluate_accuracy.py
 |   +-- compare_ranking_modes.py
@@ -114,6 +125,7 @@ SeoulMate/
 | `training-new/` | Experimental cloud training pipeline, lightweight MiniLM model, and LTR artifacts |
 | `data/final/` | Final dataset used by training and indexing scripts |
 | `scrapers/` | Data collection and scraping utilities |
+| `scrapers/DramaList_Scrapper/` | MyDramaList scrape pipeline (5 steps, run via `run_pipeline.py`); see its own [README](scrapers/DramaList_Scrapper/README.md) |
 | `tests/evaluation/` | Accuracy evaluator and offline generated-index validation |
 | `tests/ranking/` | Ranking mode comparisons, prior experiments, weak-query reports, and audits |
 | `tests/debug/` | Single-query tracing and metadata inspection helpers |

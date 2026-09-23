@@ -214,7 +214,7 @@ def process_folder(
 if __name__ == "__main__":
     process_folder(
         r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\dramas_html",
-        output_csv=r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\dramalist_all_dramas.csv",
+        output_csv=r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\dramalist_all_dramas.csv",
         max_workers=None,
         skip_existing=True,
     )

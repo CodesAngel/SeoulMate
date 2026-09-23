@@ -3,7 +3,7 @@
   0a. step0a_download_listing_pages - download popular-shows listing pages -> html_pages/
   0b. step0b_extract_drama_urls     - extract each drama's URL to a CSV    -> mydramalist_data.csv
   1.  step1_download_html           - download each drama's own page      -> dramas_html/
-  2.  step2_extract_data            - extract fields to CSV               -> dramalist_all_dramas.csv
+  2.  step2_extract_data            - extract fields to CSV               -> output/dramalist_all_dramas.csv
   3.  step3_download_images         - download poster images              -> drama_image/
 
 Each step is independently resumable (skips work already done), so re-running
@@ -54,7 +54,7 @@ def run_data():
     print("\n=== Step 2/5: extracting data to CSV ===")
     step2_extract_data.process_folder(
         rf"{BASE}\output\dramas_html",
-        output_csv=rf"{BASE}\dramalist_all_dramas.csv",
+        output_csv=rf"{BASE}\output\dramalist_all_dramas.csv",
         max_workers=None,
         skip_existing=True,
     )

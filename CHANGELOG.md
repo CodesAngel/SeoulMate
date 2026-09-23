@@ -2,6 +2,23 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-09-23
+
+### DramaList Scrapper Pipeline Restructure
+
+- Consolidated the MyDramaList scraping scripts (previously `scrapper.py`, `scrapper_2.py`, `dramaImage.py`, and `html_extractor_and_reader.py`) into a single, ordered pipeline under `scrapers/DramaList_Scrapper/`.
+- Split the code into five numbered, single-purpose step scripts under `scrapers/DramaList_Scrapper/steps/`:
+  - `step0a_download_listing_pages.py` — downloads MyDramaList's `popular` and `newest` listing pages via Playwright, each source saved into its own subfolder (`output/html_pages/popular/`, `output/html_pages/newest/`)
+  - `step0b_extract_drama_urls.py` — parses listing pages (recursively across source subfolders) into `mydramalist_data.csv` with each drama's `Title_URL`
+  - `step1_download_html.py` — downloads each drama's own page into `output/dramas_html/`
+  - `step2_extract_data.py` — extracts structured fields (genres, cast, rating, episodes, etc.) into `dramalist_all_dramas.csv`
+  - `step3_download_images.py` — downloads poster images into `output/drama_image/`
+- Added `run_pipeline.py` as a single entry point that runs all five steps in order, with `--skip-*` and `--only <step>` flags; every step is independently resumable (skips work already done).
+- Fixed several stale hardcoded paths left over from the project's earlier name (`Kdrama-recommendation`/`data_scrapper`).
+- Fixed a `KeyError: 'title'` in Step 2's resume logic caused by reading its own BOM-prefixed output CSV with the wrong encoding (`utf-8` instead of `utf-8-sig`).
+- Moved all scraped/intermediate data (listing pages, drama HTML, poster images, backup CSVs) under `scrapers/DramaList_Scrapper/output/`, and excluded that folder from Git via `.gitignore` (previously tracked in Git; fixed a malformed absolute-path `.gitignore` entry that wasn't actually excluding it).
+- Added a `README.md` inside `scrapers/DramaList_Scrapper/` documenting the full pipeline, folder layout, and how to run/extend it.
+
 ## 2026-08-04
 
 ### Real-World Search QA

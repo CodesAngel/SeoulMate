@@ -10,9 +10,8 @@ with one command.
   `steps/step3_download_images.py`. `run_pipeline.py` and `README.md` stay at the top level as
   the single entry point.
 - Scraped/downloaded data lives under `output/`: `output/html_pages/`, `output/dramas_html/`,
-  `output/drama_image/`, `output/extra/`
-- Generated top-level datasets stay next to `run_pipeline.py`: `mydramalist_data.csv`,
-  `dramalist_all_dramas.csv`, `dramalist_kdramas.xlsx`
+  `output/drama_image/`, `output/extra/`, `output/dramalist_all_dramas.csv`
+- `mydramalist_data.csv` and `dramalist_kdramas.xlsx` stay next to `run_pipeline.py`
 
 ## Quick start
 
@@ -79,7 +78,7 @@ title, alternate names, description, genres, rating, actors, directors, screenwr
 aired dates, duration, ranking, watchers, content rating, popularity.
 
 - **Input:** `output/dramas_html/*.html`
-- **Output:** `dramalist_all_dramas.csv`
+- **Output:** `output/dramalist_all_dramas.csv`
 - **Run:** `python steps/step2_extract_data.py`
 - Skips titles already present in the output CSV (`skip_existing=True`). Safe to re-run/resume.
 - Multithreaded (auto-detects CPU cores), uses `lxml` for speed.
@@ -99,13 +98,14 @@ images asynchronously.
 step0a  ->  output/html_pages/    (listing pages)
 step0b  ->  mydramalist_data.csv  (drama URLs, from output/html_pages/)
 step1   ->  output/dramas_html/   (each drama's own page, from mydramalist_data.csv)
-step2   ->  dramalist_all_dramas.csv (structured fields, from output/dramas_html/)
+step2   ->  output/dramalist_all_dramas.csv (structured fields, from output/dramas_html/)
 step3   ->  output/drama_image/   (poster images, from dramalist_*.csv/xlsx)
 ```
 
 ## Other files
 
-- `dramalist_all_dramas.csv`, `dramalist_kdramas.xlsx` — extracted dataset (output of Step 2)
+- `output/dramalist_all_dramas.csv` — extracted dataset (output of Step 2)
+- `dramalist_kdramas.xlsx` — Excel version of the dataset, used as Step 3's input
 - `output/extra/mydramalist_data_raw.csv` — an earlier snapshot of Step 0b's output (5,932 rows)
 - `output/extra/dramalist_all_dramas.csv` — an earlier snapshot of Step 2's output
 
