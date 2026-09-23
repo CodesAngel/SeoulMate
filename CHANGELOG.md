@@ -19,6 +19,13 @@ Important project history reconstructed from Git commits and project documentati
 - Moved all scraped/intermediate data (listing pages, drama HTML, poster images, backup CSVs) under `scrapers/DramaList_Scrapper/output/`, and excluded that folder from Git via `.gitignore` (previously tracked in Git; fixed a malformed absolute-path `.gitignore` entry that wasn't actually excluding it).
 - Added a `README.md` inside `scrapers/DramaList_Scrapper/` documenting the full pipeline, folder layout, and how to run/extend it.
 
+### DramaList Scrapper: Dedup and Country Split
+
+- Added `steps/step2b_dedupe_data.py` — removes duplicate rows from `dramalist_all_dramas.csv` by `url` (the true unique per-drama identifier), needed because Step 0b's `popular` and `newest` listing sources can list the same drama. Writes to a separate `output/dramalist_all_dramas.deduped.csv` rather than overwriting the original.
+- Added `steps/step2c_split_by_country.py` — splits the deduped dataset by its `country` column into one CSV per country under `output/by_country/`, named `<prefix>drama_dataset.csv` using the industry-standard shorthand (`kdrama_dataset.csv` for South Korea, `cdrama_dataset.csv` for China, `jdrama_dataset.csv` for Japan, `tdrama_dataset.csv` for Thailand, `twdrama_dataset.csv` for Taiwan, `hkdrama_dataset.csv` for Hong Kong; Philippines and Singapore fall back to their first letter, `pdrama_dataset.csv`/`sdrama_dataset.csv`, with no established industry term).
+- Wired both into `run_pipeline.py` as steps `dedupe` and `split` (pipeline is now 7 steps total), each independently resumable and runnable on their own via `--only dedupe` / `--only split`.
+- Verified end-to-end: deduping cut the dataset from 61,944 rows (accumulated duplicates from earlier test runs) down to 4,720 unique dramas by url; the country split correctly produced all 8 expected files with matching row counts.
+
 ## 2026-08-04
 
 ### Real-World Search QA

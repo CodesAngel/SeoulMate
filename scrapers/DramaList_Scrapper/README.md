@@ -1,6 +1,6 @@
 # DramaList Scrapper
 
-Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is six
+Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is seven
 numbered steps, each in its own script, plus `run_pipeline.py` which runs all of them in order
 with one command.
 
@@ -16,7 +16,7 @@ with one command.
 ## Quick start
 
 ```bash
-python run_pipeline.py                                        # run all six steps, in order
+python run_pipeline.py                                        # run all seven steps, in order
 python run_pipeline.py --skip-listing --skip-urls --skip-html  # already have output/dramas_html/, just extract + get images
 python run_pipeline.py --only images                           # run just one step
 ```
@@ -94,6 +94,31 @@ Duplicates are identified by `url` (the true unique per-drama identifier), since
   original with it.
 - **Run:** `python steps/step2b_dedupe_data.py`
 
+### Step 2c — `steps/step2c_split_by_country.py` (country split)
+Reads the `country` column from `output/dramalist_all_dramas.deduped.csv` and splits it into one
+CSV per country, using the industry-standard shorthand for that country's dramas (e.g. South
+Korea's rows go to `kdrama_dataset.csv`). Countries with no established shorthand fall back to
+their first letter, printing a warning so it can be added to `COUNTRY_PREFIXES` if wrong.
+
+Current mapping (8 countries found in the dataset):
+
+| Country | Prefix | Output file |
+| --- | --- | --- |
+| South Korea | `k` | `kdrama_dataset.csv` |
+| China | `c` | `cdrama_dataset.csv` |
+| Thailand | `t` | `tdrama_dataset.csv` |
+| Japan | `j` | `jdrama_dataset.csv` |
+| Taiwan | `tw` | `twdrama_dataset.csv` |
+| Philippines | `p` (fallback) | `pdrama_dataset.csv` |
+| Hong Kong | `hk` | `hkdrama_dataset.csv` |
+| Singapore | `s` (fallback) | `sdrama_dataset.csv` |
+
+- **Input:** `output/dramalist_all_dramas.deduped.csv`
+- **Output:** `output/by_country/<prefix>drama_dataset.csv` (one file per country)
+- **Run:** `python steps/step2c_split_by_country.py`
+- Any new country not in `COUNTRY_PREFIXES` still gets a file (first-letter fallback), it just
+  logs a warning instead of failing.
+
 ### Step 3 — `steps/step3_download_images.py` (image downloader)
 Reads `title`/`image` columns from the CSV/Excel produced in Step 2 and downloads missing poster
 images asynchronously.
@@ -111,6 +136,7 @@ step0b  ->  mydramalist_data.csv  (drama URLs, from output/html_pages/)
 step1   ->  output/dramas_html/   (each drama's own page, from mydramalist_data.csv)
 step2   ->  output/dramalist_all_dramas.csv (structured fields, from output/dramas_html/)
 step2b  ->  output/dramalist_all_dramas.deduped.csv (deduped copy, from output/dramalist_all_dramas.csv)
+step2c  ->  output/by_country/<prefix>drama_dataset.csv (split by country, from the deduped CSV)
 step3   ->  output/drama_image/   (poster images, from dramalist_*.csv/xlsx)
 ```
 

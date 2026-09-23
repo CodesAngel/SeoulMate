@@ -83,7 +83,7 @@ def download_images_from_csv(csv_path, output_folder, concurrency=100):
     if csv_path.lower().endswith(('.xlsx', '.xls')):
         df = pd.read_excel(csv_path)
     else:
-        df = pd.read_csv(csv_path, sep=None, engine="python")
+        df = pd.read_csv(csv_path, sep=None, engine="python", encoding="utf-8-sig")
 
     if "title" not in df.columns or "image" not in df.columns:
         raise ValueError("The file must contain 'title' and 'image' columns.")
@@ -114,6 +114,6 @@ def download_images_from_csv(csv_path, output_folder, concurrency=100):
 
 if __name__ == "__main__":
     download_images_from_csv(
-        r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\dramalist_kdramas.xlsx",
+        r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\by_country\kdrama_dataset.csv",
         output_folder=r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\drama_image",
     )
