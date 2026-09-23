@@ -34,6 +34,22 @@ Important project history reconstructed from Git commits and project documentati
 - Added `training-new/output/` to `.gitignore` (previously untracked but not excluded, matching the existing pattern for `scrapers/DramaList_Scrapper/output/`).
 - Ran a full pipeline audit: verified every step's hardcoded path matches what the previous step actually produces on disk, syntax-checked all 7 step scripts plus `run_pipeline.py`, and confirmed `run_pipeline.py` imports cleanly. Found and fixed one gap: `mydramalist_data.csv` (Step 0b's output) was missing at its expected top-level path; regenerated it via `run_pipeline.py --only urls`. Noted the `newest` listing source is not yet fully downloaded (171/250 pages) — not an error, just incomplete, resumable via `--only listing`.
 
+### DramaList Scrapper: Media Type Extraction
+
+- Added `media_type` extraction to Step 2 (`step2_extract_data.py`) so the generated dataset can distinguish MyDramaList types such as `Drama`, `Movie`, `Special`, and `TV Show`.
+- The extractor reads the labeled `Type:` value from the page's Details section first, then falls back to the middle segment of the title subtitle (for example, `ごくせん 3 ‧ Drama ‧ 2008`) when the labeled field is unavailable.
+- Verified both the primary and fallback paths against `27-gokusen-3.html`; both returned `Drama`.
+- Updated the scraper README and documented that CSV files created before this field was added must be rebuilt instead of appended because their existing headers do not contain `media_type`.
+
+### Evaluated `training-new` (E5 + BGE Reranker) Against Production Baseline — Not Adopted
+
+- Added a reversible way to test an alternate training tree without touching production: `SEOULMATE_TRAINING_DIR` env var in `backend/app.py` (defaults to `training`, the current production model), plus generalized model-folder auto-discovery (previously hardcoded to `sbert-finetuned*`/`cross-enc-excellent`, now works with any folder name, e.g. `training-new`'s `e5-kdrama-finetuned`/`cross-encoder-finetuned`).
+- Added `query:`/`passage:` prefix support to `cached_encode()` for E5-family models (detected via `"e5" in model_path.lower()`), matching the asymmetric-encoding convention `training-new`'s index was built with. Branch-aware: query text gets `query:`, drama-metadata text (title-similarity mode, `similar_to` filter) gets `passage:`.
+- Ran `tests/evaluation/evaluate_accuracy.py` against the backend pointed at `training-new/output` (`intfloat/multilingual-e5-base` fine-tuned + `BAAI/bge-reranker-v2-m3` fine-tuned). Result: **72.59% overall accuracy**, well below the **88.50%** production baseline (Precision@3 43.83% vs 63.58%, Recall@10 70.99% vs 98.46%, MRR 0.626 vs 0.963).
+- Root cause: exact-title search collapsed (6.67% Precision@3) while genre/actor/theme search stayed reasonable (48-82%). Not a dataset-coverage gap — `training-new`'s 1,823-drama dataset is close in size to production's 1,922, and spot-checking confirmed most tested titles (Crash Landing on You, Squid Game, Business Proposal, Itaewon Class) are present in the source data. The new model's fine-tuning was trope/hard-negative-focused (per `training-new/README.md`), not tuned for exact-title retrieval.
+- Decision: keep production (`training/`) as the default. `training-new` is not switched to; the env var stays available for future retesting after further training work, but nothing in production changed.
+- Also hit and resolved a segfault when loading the ~2.2GB fine-tuned reranker under low available system memory (~1.4GB free) — not a code bug, confirmed by loading the same file successfully in isolation and again after more memory was free. Worth remembering if retesting: this reranker needs meaningfully more headroom than production's ~90MB `cross-enc-excellent`.
+
 ## 2026-08-04
 
 ### Real-World Search QA

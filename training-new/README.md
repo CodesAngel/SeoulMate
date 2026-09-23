@@ -2,6 +2,14 @@
 
 This folder contains the next-generation training pipeline designed to upgrade SeoulMate's search accuracy from **88.5% to 93–95%**.
 
+> **Status (2026-09-23): evaluated, NOT deployed.** The trained artifacts in `output/` were tested
+> against `tests/evaluation/evaluate_accuracy.py` and scored **72.59%** overall accuracy, below the
+> production baseline of **88.50%**. Exact-title search collapsed (6.67% Precision@3) while
+> genre/actor/theme search stayed reasonable. Not a data-coverage issue — the tested titles were
+> present in the source dataset. The fine-tuning here was trope/hard-negative focused, not tuned
+> for exact-title retrieval, which is the likely cause. Production still runs on `training/`. See
+> `CHANGELOG.md` (2026-09-23) for the full writeup before retraining or re-evaluating.
+
 ---
 
 ## What's Improved in This Pipeline
@@ -33,8 +41,9 @@ training-new/
 │   ├── generate_reranker_data.py   # Cross-encoder dataset builder
 │   └── fine_tune_cross_encoder.py  # Cross-encoder fine-tuner
 ├── training_data/             # Generated JSON datasets (pairs, triplets, eval)
-├── models/                    # Exported model weights
-└── faiss_index/               # Generated FAISS vector indexes (index.faiss, meta.pkl)
+└── output/
+    ├── models/                # Exported model weights
+    └── faiss_index/           # Generated FAISS vector indexes (index.faiss, meta.pkl)
 ```
 
 ---
@@ -95,7 +104,7 @@ When you run `python training-new\train.py`, it executes the following 6 stages 
 2. **Step 2: Bi-Encoder Fine-Tuning** (`steps/fine_tune_kdrama_sbert.py`)
    - Fine-tunes `intfloat/multilingual-e5-base` using **both** `MultipleNegativesRankingLoss` (on pairs) and `TripletLoss` (on hard negatives) for 3 epochs.
    - Uses gradient accumulation for an effective batch size of 32.
-   - Outputs: `models/e5-kdrama-finetuned/model.safetensors` and tokenizer configs.
+   - Outputs: `output/models/e5-kdrama-finetuned/model.safetensors` and tokenizer configs.
 3. **Step 3: FAISS Vector Index Building** (`steps/enhanced_index_builder.py`)
    - Encodes all dramas into normalized vector embeddings using the model trained in Step 2.
    - Builds 4 specialized FAISS indices: `index.faiss` (main), `genre_index.faiss`, `actor_index.faiss`, `theme_index.faiss`, plus `meta.pkl` and `index_manifest.json`.
@@ -104,7 +113,7 @@ When you run `python training-new\train.py`, it executes the following 6 stages 
    - Outputs: `reranker_train.csv`.
 5. **Step 5: Cross-Encoder Reranker Fine-Tuning** (`steps/fine_tune_cross_encoder.py`)
    - Fine-tunes `BAAI/bge-reranker-v2-m3` using sequence-pair regression for 2 epochs.
-   - Outputs: `models/cross-encoder-finetuned/model.safetensors`.
+   - Outputs: `output/models/cross-encoder-finetuned/model.safetensors`.
 6. **Step 6: Verification Smoke-Test**
    - Automatically inspects the filesystem to verify all 8 model weights, FAISS vector indices, and metadata files exist and have non-zero file sizes, printing a final summary report.
 
@@ -191,14 +200,14 @@ The complete 1-click pipeline (`train.py`) was executed and fully verified on a 
 ## Deploying Outputs to the Backend
 
 Once training completes, the new model and index artifacts will be in:
-* Model: `training-new/models/e5-kdrama-finetuned/`
-* FAISS Index: `training-new/faiss_index/`
-* Cross-Encoder: `training-new/models/cross-encoder-finetuned/`
+* Model: `training-new/output/models/e5-kdrama-finetuned/`
+* FAISS Index: `training-new/output/faiss_index/`
+* Cross-Encoder: `training-new/output/models/cross-encoder-finetuned/`
 
 To switch your live backend (`backend/app.py`) to these new models:
 1. Update `TRAINING_DIR` in `backend/app.py`:
    ```python
-   TRAINING_DIR = PROJECT_DIR / "training-new"
+   TRAINING_DIR = PROJECT_DIR / "training-new" / "output"
    CROSS_ENCODER_MODEL = str(TRAINING_DIR / "models" / "cross-encoder-finetuned")
    ```
 2. Run tests to confirm accuracy gains:

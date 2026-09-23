@@ -14,6 +14,30 @@ DESC_CLASS_RE = re.compile(
 )
 
 
+def extract_media_type(doc):
+    """Extract the displayed media type, using the subtitle as a fallback."""
+    type_nodes = doc.xpath(
+        "//li[b[normalize-space()='Type:']]/span[1]/text()"
+    )
+    if type_nodes:
+        media_type = type_nodes[0].strip()
+        if media_type:
+            return media_type
+
+    subtitle_nodes = doc.xpath(
+        "//div[contains(concat(' ', normalize-space(@class), ' '), "
+        "' film-subtitle ')]//span[1]"
+    )
+    if subtitle_nodes:
+        subtitle_parts = [
+            part.strip() for part in subtitle_nodes[0].text_content().split("‧")
+        ]
+        if len(subtitle_parts) >= 2 and subtitle_parts[1]:
+            return subtitle_parts[1]
+
+    return None
+
+
 def extract_mydramalist_data(file_path):
     """Ultra-fast extractor using lxml (no BeautifulSoup)."""
     try:
@@ -45,6 +69,7 @@ def extract_mydramalist_data(file_path):
     aggr = data.get("aggregateRating", {}) or {}
     drama_info = {
         "title": data.get("name"),
+        "media_type": extract_media_type(doc),
         "alternate_names": (
             ", ".join(data["alternateName"])
             if isinstance(data.get("alternateName"), list)

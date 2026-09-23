@@ -36,11 +36,12 @@ from personalization import get_personalization_engine
 MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
-TRAINING_DIR = PROJECT_DIR / "training"
+# Override to point the backend at an alternate training tree, e.g.
+# SEOULMATE_TRAINING_DIR="training-new/output" to test the training-new artifacts
+# without touching the production default.
+TRAINING_DIR = PROJECT_DIR / os.environ.get("SEOULMATE_TRAINING_DIR", "training")
 RANKING_DIR = BASE_DIR / "ranking"
 
-# Using fine-tuned cross-encoder trained on K-drama data.
-CROSS_ENCODER_MODEL = str(TRAINING_DIR / "models" / "cross-enc-excellent")
 MODEL_DIR = str(TRAINING_DIR / "models")
 INDEX_DIR = str(TRAINING_DIR / "faiss_index")
 GENERATED_INDEX_DIR = str(RANKING_DIR / "indexes")
@@ -68,24 +69,39 @@ app.add_middleware(
 # ======================================================
 print("Stage 1: Loading models and FAISS index...")
 
-# Try to load fine-tuned SBERT first, fallback to pretrained
-finetuned_models = (
-    [
-        d
-        for d in os.listdir(MODEL_DIR)
-        if os.path.isdir(os.path.join(MODEL_DIR, d)) and d.startswith("sbert-finetuned")
-    ]
+# Try to load a fine-tuned bi-encoder first, fallback to pretrained. Model folder
+# names vary across training trees (e.g. sbert-finetuned-full, e5-kdrama-finetuned),
+# so any subfolder that isn't a cross-encoder/reranker folder is treated as the
+# bi-encoder candidate.
+model_subdirs = (
+    [d for d in os.listdir(MODEL_DIR) if os.path.isdir(os.path.join(MODEL_DIR, d))]
     if os.path.exists(MODEL_DIR)
     else []
+)
+finetuned_models = [d for d in model_subdirs if "cross" not in d.lower()]
+cross_encoder_dirs = [d for d in model_subdirs if "cross" in d.lower()]
+
+# Using fine-tuned cross-encoder trained on K-drama data, if present.
+CROSS_ENCODER_MODEL = (
+    os.path.join(MODEL_DIR, cross_encoder_dirs[0])
+    if cross_encoder_dirs
+    else str(TRAINING_DIR / "models" / "cross-enc-excellent")
 )
 
 if finetuned_models:
     model_path = os.path.join(MODEL_DIR, finetuned_models[0])
-    print(f"Loading fine-tuned SBERT from: {model_path}")
+    print(f"Loading fine-tuned bi-encoder from: {model_path}")
     model = SentenceTransformer(model_path)
 else:
+    model_path = MODEL_NAME
     print(f"No fine-tuned model found, using pretrained: {MODEL_NAME}")
     model = SentenceTransformer(MODEL_NAME, cache_folder=MODEL_DIR)
+
+# E5 models expect "query: "/"passage: " prefixes on input text for correct
+# asymmetric retrieval; MPNet and other non-E5 models don't use this convention.
+IS_E5_MODEL = "e5" in model_path.lower()
+if IS_E5_MODEL:
+    print("Detected E5-family model — applying query:/passage: prefixes to encoded text.")
 
 index = faiss.read_index(os.path.join(INDEX_DIR, "index.faiss"))
 
@@ -189,9 +205,16 @@ def resolve_typo_title(user_input: str, candidates, threshold=74):
 
 
 @lru_cache(maxsize=128)
-def cached_encode(text: str):
-    """Cached embedding generation for speed."""
-    emb = model.encode([text], convert_to_numpy=True)
+def cached_encode(text: str, mode: str = "query"):
+    """Cached embedding generation for speed.
+
+    mode is "query" for genuine user search text, or "passage" for drama-metadata
+    text being embedded for document-to-document comparison (e.g. title-similarity
+    mode, similar_to). Only affects encoding when the loaded model is E5-family,
+    which requires this prefix convention for correct asymmetric retrieval.
+    """
+    encode_text = f"{mode}: {text}" if IS_E5_MODEL else text
+    emb = model.encode([encode_text], convert_to_numpy=True)
     faiss.normalize_L2(emb)
     return emb
 
@@ -1460,7 +1483,11 @@ def recommend(
         )
 
     # ---- Stage 4.3: FAISS Semantic Search on filtered corpus ----
-    query_emb = cached_encode(query_text)
+    # query_text is drama-metadata-derived (passage-like) whenever a seed drama was
+    # resolved (fuzzy title match or title-similarity mode); otherwise it's genuine
+    # user query text.
+    encode_mode = "passage" if drama else "query"
+    query_emb = cached_encode(query_text, mode=encode_mode)
     # Optimize search_k for better performance while maintaining accuracy
     # Only search within filtered corpus + small buffer
     search_k = min(
@@ -1985,7 +2012,7 @@ def recommend(
                 str(sim_drama.get(field, ""))
                 for field in ["Genre", "Description", "keywords", "Cast", "Director"]
             )
-            sim_emb = cached_encode(sim_query)
+            sim_emb = cached_encode(sim_query, mode="passage")
             D_sim, I_sim = index.search(sim_emb, len(filtered_metadata) + 20)
             # Only keep results that are in our filtered set
             sim_results = [

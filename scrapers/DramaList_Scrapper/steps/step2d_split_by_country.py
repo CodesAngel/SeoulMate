@@ -1,4 +1,4 @@
-"""Splits dramalist_all_dramas.deduped.csv into one CSV per country.
+"""Splits dramalist_all_dramas.deduped.cleantitle.csv into one CSV per country.
 
 Reads the 'country' column and writes each country's rows into its own file under
 output/by_country/, named <prefix>drama_dataset.csv using the industry-standard
@@ -11,7 +11,7 @@ import os
 
 import pandas as pd
 
-INPUT_CSV = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\dramalist_all_dramas.deduped.csv"
+INPUT_CSV = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\dramalist_all_dramas.deduped.cleantitle.csv"
 OUTPUT_DIR = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\by_country"
 
 COUNTRY_PREFIXES = {

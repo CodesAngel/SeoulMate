@@ -1,6 +1,6 @@
 # DramaList Scrapper
 
-Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is seven
+Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is eight
 numbered steps, each in its own script, plus `run_pipeline.py` which runs all of them in order
 with one command.
 
@@ -16,7 +16,7 @@ with one command.
 ## Quick start
 
 ```bash
-python run_pipeline.py                                        # run all seven steps, in order
+python run_pipeline.py                                        # run all eight steps, in order
 python run_pipeline.py --skip-listing --skip-urls --skip-html  # already have output/dramas_html/, just extract + get images
 python run_pipeline.py --only images                           # run just one step
 ```
@@ -74,14 +74,21 @@ each drama's own page and save the raw HTML.
 
 ### Step 2 — `steps/step2_extract_data.py` (data extractor)
 Parses every HTML file in `output/dramas_html/` (JSON-LD + XPath) and extracts structured fields:
-title, alternate names, description, genres, rating, actors, directors, screenwriters, episodes,
-aired dates, duration, ranking, watchers, content rating, popularity.
+title, media type, alternate names, description, genres, rating, actors, directors, screenwriters,
+episodes, aired dates, duration, ranking, watchers, content rating, popularity.
+
+The `media_type` field contains the title's displayed MyDramaList type, such as `Drama`, `Movie`,
+`Special`, or `TV Show`. Extraction first reads the labeled `Type:` entry in the page's Details
+section. If that entry is unavailable, it falls back to the middle segment of the subtitle (for
+example, `ごくせん 3 ‧ Drama ‧ 2008` produces `Drama`).
 
 - **Input:** `output/dramas_html/*.html`
 - **Output:** `output/dramalist_all_dramas.csv`
 - **Run:** `python steps/step2_extract_data.py`
 - Skips titles already present in the output CSV (`skip_existing=True`). Safe to re-run/resume.
 - Multithreaded (auto-detects CPU cores), uses `lxml` for speed.
+- If the output CSV was created before `media_type` was added, rebuild it instead of appending;
+  the existing CSV header does not contain the new column.
 
 ### Step 2b — `steps/step2b_dedupe_data.py` (dedup)
 Removes duplicate rows from `output/dramalist_all_dramas.csv`, keeping the first occurrence.
@@ -94,11 +101,21 @@ Duplicates are identified by `url` (the true unique per-drama identifier), since
   original with it.
 - **Run:** `python steps/step2b_dedupe_data.py`
 
-### Step 2c — `steps/step2c_split_by_country.py` (country split)
-Reads the `country` column from `output/dramalist_all_dramas.deduped.csv` and splits it into one
-CSV per country, using the industry-standard shorthand for that country's dramas (e.g. South
-Korea's rows go to `kdrama_dataset.csv`). Countries with no established shorthand fall back to
-their first letter, printing a warning so it can be added to `COUNTRY_PREFIXES` if wrong.
+### Step 2c — `steps/step2c_clean_titles.py` (title cleanup)
+Reads `output/dramalist_all_dramas.deduped.csv` and cleans up the `title` column: fixes HTML
+entities (e.g. `&amp;` -> `&`, `&quot;` -> `"`), then drops rows where the title contains
+"Special" or "BTS" (case-insensitive) — bonus/behind-the-scenes entries, not real dramas.
+
+- **Input:** `output/dramalist_all_dramas.deduped.csv`
+- **Output:** `output/dramalist_all_dramas.deduped.cleantitle.csv` — a **separate file**, does not
+  overwrite the input.
+- **Run:** `python steps/step2c_clean_titles.py`
+
+### Step 2d — `steps/step2d_split_by_country.py` (country split)
+Reads the `country` column from `output/dramalist_all_dramas.deduped.cleantitle.csv` and splits
+it into one CSV per country, using the industry-standard shorthand for that country's dramas (e.g.
+South Korea's rows go to `kdrama_dataset.csv`). Countries with no established shorthand fall back
+to their first letter, printing a warning so it can be added to `COUNTRY_PREFIXES` if wrong.
 
 Current mapping (8 countries found in the dataset):
 
@@ -113,26 +130,26 @@ Current mapping (8 countries found in the dataset):
 | Hong Kong | `hk` | `hkdrama_dataset.csv` |
 | Singapore | `s` (fallback) | `sdrama_dataset.csv` |
 
-- **Input:** `output/dramalist_all_dramas.deduped.csv`
+- **Input:** `output/dramalist_all_dramas.deduped.cleantitle.csv`
 - **Output:** `output/by_country/<prefix>drama_dataset.csv` (one file per country)
-- **Run:** `python steps/step2c_split_by_country.py`
+- **Run:** `python steps/step2d_split_by_country.py`
 - Any new country not in `COUNTRY_PREFIXES` still gets a file (first-letter fallback), it just
   logs a warning instead of failing.
 
 ### Step 3 — `steps/step3_download_images.py` (image downloader)
 Reads `title`/`image` columns from `output/by_country/kdrama_dataset.csv` and downloads missing
 poster images asynchronously (any CSV/XLSX with `title` and `image` columns works, e.g. you could
-point it at another country's file from Step 2c instead).
+point it at another country's file from Step 2d instead).
 
-- **Input:** `output/by_country/kdrama_dataset.csv` — **depends on Step 2c having run first**;
-  running Step 3 alone before Step 2c will fail since this file won't exist yet.
+- **Input:** `output/by_country/kdrama_dataset.csv` — **depends on Step 2d having run first**;
+  running Step 3 alone before Step 2d will fail since this file won't exist yet.
 - **Output:** `output/drama_image/<title>.jpg`
 - **Run:** `python steps/step3_download_images.py`
 - Only downloads images that are missing or corrupt (<1KB) locally. Safe to re-run/resume.
 - Matches existing files purely by filename (sanitized title + extension), not by comparing the
   image URL — if a drama's poster URL changes upstream but the title stays the same, the old
   image won't be re-downloaded.
-- CSV reads use `encoding="utf-8-sig"` to correctly strip the BOM that Step 2c's `to_csv` writes
+- CSV reads use `encoding="utf-8-sig"` to correctly strip the BOM that Step 2d's `to_csv` writes
   (a plain `utf-8` read would otherwise misread the `title` column, as `﻿title`, and crash).
 
 ## Full data flow
@@ -143,7 +160,8 @@ step0b  ->  mydramalist_data.csv  (drama URLs, from output/html_pages/)
 step1   ->  output/dramas_html/   (each drama's own page, from mydramalist_data.csv)
 step2   ->  output/dramalist_all_dramas.csv (structured fields, from output/dramas_html/)
 step2b  ->  output/dramalist_all_dramas.deduped.csv (deduped copy, from output/dramalist_all_dramas.csv)
-step2c  ->  output/by_country/<prefix>drama_dataset.csv (split by country, from the deduped CSV)
+step2c  ->  output/dramalist_all_dramas.deduped.cleantitle.csv (title cleanup, from the deduped CSV)
+step2d  ->  output/by_country/<prefix>drama_dataset.csv (split by country, from the cleaned CSV)
 step3   ->  output/drama_image/   (poster images, from output/by_country/kdrama_dataset.csv)
 ```
 
@@ -158,7 +176,7 @@ step3   ->  output/drama_image/   (poster images, from output/by_country/kdrama_
 ## Notes
 
 - Each step's run call sits behind `if __name__ == "__main__":`, so `run_pipeline.py` can import
-  all seven modules without triggering a run on import.
+  all eight modules without triggering a run on import.
 - All paths are hardcoded to `D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\...`; update them
   if you move the project.
 - Step 0b needs `beautifulsoup4` in addition to the other pipeline dependencies (`lxml`, `tqdm`,
