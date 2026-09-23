@@ -120,13 +120,20 @@ Current mapping (8 countries found in the dataset):
   logs a warning instead of failing.
 
 ### Step 3 — `steps/step3_download_images.py` (image downloader)
-Reads `title`/`image` columns from the CSV/Excel produced in Step 2 and downloads missing poster
-images asynchronously.
+Reads `title`/`image` columns from `output/by_country/kdrama_dataset.csv` and downloads missing
+poster images asynchronously (any CSV/XLSX with `title` and `image` columns works, e.g. you could
+point it at another country's file from Step 2c instead).
 
-- **Input:** `dramalist_kdramas.xlsx` (or any CSV/XLSX with `title` and `image` columns)
+- **Input:** `output/by_country/kdrama_dataset.csv` — **depends on Step 2c having run first**;
+  running Step 3 alone before Step 2c will fail since this file won't exist yet.
 - **Output:** `output/drama_image/<title>.jpg`
 - **Run:** `python steps/step3_download_images.py`
 - Only downloads images that are missing or corrupt (<1KB) locally. Safe to re-run/resume.
+- Matches existing files purely by filename (sanitized title + extension), not by comparing the
+  image URL — if a drama's poster URL changes upstream but the title stays the same, the old
+  image won't be re-downloaded.
+- CSV reads use `encoding="utf-8-sig"` to correctly strip the BOM that Step 2c's `to_csv` writes
+  (a plain `utf-8` read would otherwise misread the `title` column, as `﻿title`, and crash).
 
 ## Full data flow
 
@@ -137,20 +144,21 @@ step1   ->  output/dramas_html/   (each drama's own page, from mydramalist_data.
 step2   ->  output/dramalist_all_dramas.csv (structured fields, from output/dramas_html/)
 step2b  ->  output/dramalist_all_dramas.deduped.csv (deduped copy, from output/dramalist_all_dramas.csv)
 step2c  ->  output/by_country/<prefix>drama_dataset.csv (split by country, from the deduped CSV)
-step3   ->  output/drama_image/   (poster images, from dramalist_*.csv/xlsx)
+step3   ->  output/drama_image/   (poster images, from output/by_country/kdrama_dataset.csv)
 ```
 
 ## Other files
 
 - `output/dramalist_all_dramas.csv` — extracted dataset (output of Step 2)
-- `dramalist_kdramas.xlsx` — Excel version of the dataset, used as Step 3's input
+- `dramalist_kdramas.xlsx` — an older Excel export, no longer used by the pipeline (Step 3 now
+  reads `output/by_country/kdrama_dataset.csv` instead)
 - `output/extra/mydramalist_data_raw.csv` — an earlier snapshot of Step 0b's output (5,932 rows)
 - `output/extra/dramalist_all_dramas.csv` — an earlier snapshot of Step 2's output
 
 ## Notes
 
 - Each step's run call sits behind `if __name__ == "__main__":`, so `run_pipeline.py` can import
-  all five modules without triggering a run on import.
+  all seven modules without triggering a run on import.
 - All paths are hardcoded to `D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\...`; update them
   if you move the project.
 - Step 0b needs `beautifulsoup4` in addition to the other pipeline dependencies (`lxml`, `tqdm`,

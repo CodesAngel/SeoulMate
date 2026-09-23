@@ -26,6 +26,14 @@ Important project history reconstructed from Git commits and project documentati
 - Wired both into `run_pipeline.py` as steps `dedupe` and `split` (pipeline is now 7 steps total), each independently resumable and runnable on their own via `--only dedupe` / `--only split`.
 - Verified end-to-end: deduping cut the dataset from 61,944 rows (accumulated duplicates from earlier test runs) down to 4,720 unique dramas by url; the country split correctly produced all 8 expected files with matching row counts.
 
+### DramaList Scrapper: Point Image Downloads at Split Data, Full Pipeline Audit
+
+- Switched Step 3 (`step3_download_images.py`) to read from `output/by_country/kdrama_dataset.csv` (Step 2c's output) instead of the older standalone `dramalist_kdramas.xlsx`, so poster downloads now stay in sync with the deduped, split dataset.
+- Fixed a second BOM-related bug this change surfaced: `download_images_from_csv`'s CSV read path was missing `encoding="utf-8-sig"`, so it would have hit the same `title` column misread (`﻿title`) as the earlier Step 2 bug once fed a CSV instead of the `.xlsx` it previously used. Fixed and verified against the actual file.
+- Note: Step 3 now depends on Step 2c having already run (`output/by_country/kdrama_dataset.csv` must exist), since it's no longer a standalone input.
+- Added `training-new/output/` to `.gitignore` (previously untracked but not excluded, matching the existing pattern for `scrapers/DramaList_Scrapper/output/`).
+- Ran a full pipeline audit: verified every step's hardcoded path matches what the previous step actually produces on disk, syntax-checked all 7 step scripts plus `run_pipeline.py`, and confirmed `run_pipeline.py` imports cleanly. Found and fixed one gap: `mydramalist_data.csv` (Step 0b's output) was missing at its expected top-level path; regenerated it via `run_pipeline.py --only urls`. Noted the `newest` listing source is not yet fully downloaded (171/250 pages) — not an error, just incomplete, resumable via `--only listing`.
+
 ## 2026-08-04
 
 ### Real-World Search QA
