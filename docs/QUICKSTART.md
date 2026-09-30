@@ -10,7 +10,7 @@ The system is currently building the search index with **1,922 dramas**.
 
 ```bash
 cd d:\Projects\SeoulMate
-python training\steps\legacy_build_index.py
+python training\steps\step3_build_index.py
 ```
 
 **What this does:**

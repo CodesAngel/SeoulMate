@@ -66,7 +66,7 @@ SeoulMate/
 |   |   +-- step4_generate_reranker_data.py
 |   |   +-- step5_fine_tune_cross_encoder.py
 |   |   +-- step6_train_ltr.py
-|   |   +-- legacy_build_index.py       (not in train_pipeline.py; actually produces the live meta.pkl)
+|   |   +-- future_multi_index_builder.py  (not in train_pipeline.py; future multi-index upgrade)
 |   |   +-- standalone_fine_tune_sbert.py
 |   |   +-- standalone_eval_retrieval.py
 |   +-- models/

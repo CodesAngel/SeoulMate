@@ -19,21 +19,21 @@ python train_pipeline.py --mode build-index   # just one step
 | --- | --- | --- |
 | 1 | `steps/step1_generate_training_data.py` | Generates K-drama specific training pairs/triplets from `data/final/kdrama_dataset.csv` |
 | 2 | `steps/step2_fine_tune_sbert.py` | Fine-tunes SBERT on the generated training data |
-| 3 | `steps/step3_build_index.py` | Builds FAISS indices (main, genre, actor, theme) from the fine-tuned model |
+| 3 | `steps/step3_build_index.py` | Builds the FAISS index + metadata from the fine-tuned model — this is what's actually deployed |
 | 4 | `steps/step4_generate_reranker_data.py` | Generates labeled (query, doc, label) pairs for reranker training |
 | 5 | `steps/step5_fine_tune_cross_encoder.py` | Fine-tunes the cross-encoder reranker |
 | 6 | `steps/step6_train_ltr.py` | Trains the learning-to-rank model (run twice: `generate-data` then `train` mode) |
 
-## Standalone / legacy scripts (NOT called by `train_pipeline.py`)
+## Standalone / future scripts (NOT called by `train_pipeline.py`)
 
-These exist in `steps/` but aren't part of the numbered pipeline — kept for manual/ad-hoc use,
-not deleted, since removing them wasn't asked for:
+These exist in `steps/` but aren't part of the numbered pipeline — kept for manual/ad-hoc use or
+as a future upgrade path, not deleted:
 
-- **`steps/legacy_build_index.py`** — ⚠️ a simpler, older FAISS index builder. As of 2026-09-30,
-  this is the script that actually produced the `meta.pkl` the **live backend currently loads** —
-  not `step3_build_index.py`, the one the numbered pipeline calls. Before trusting
-  `step3_build_index.py`'s output in production, verify which one you actually want to deploy;
-  don't assume the numbered step is what's live.
+- **`steps/future_multi_index_builder.py`** — a richer, multi-index FAISS builder (separate
+  genre/actor/theme indices, full-dataframe metadata). This *used to be* `step3_build_index.py`
+  before 2026-09-30, when it was swapped out: `backend/app.py` only ever loads a single
+  `index.faiss` and has no code path to query separate per-genre/actor/theme indices, so adopting
+  this script's output would need backend changes first — not a drop-in replacement.
 - **`steps/standalone_fine_tune_sbert.py`** — a separate, simpler SBERT fine-tuner, distinct from
   `step2_fine_tune_sbert.py`.
 - **`steps/standalone_eval_retrieval.py`** — a manual retrieval evaluation/debug tool (Recall@K,

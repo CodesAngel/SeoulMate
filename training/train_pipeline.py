@@ -4,7 +4,7 @@ SeoulMate Model Training Pipeline
 This is the master script that runs the complete training pipeline:
 1. Generate K-drama specific training data
 2. Fine-tune SBERT on K-drama data
-3. Build enhanced FAISS indices
+3. Build FAISS index
 4. Generate reranker training data
 5. Fine-tune cross-encoder reranker
 6. Train learning-to-rank model
@@ -264,7 +264,7 @@ def main():
                 ["--epochs", str(args.epochs)],
                 "Fine-tune SBERT on K-drama data",
             ),
-            ("build_index", ["--mode", "full"], "Build enhanced FAISS indices"),
+            ("build_index", ["--mode", "full"], "Build FAISS index"),
         ]
 
         if not args.skip_reranker:
@@ -308,7 +308,7 @@ def main():
         # Quick mode - skip fine-tuning
         steps = [
             ("generate_data", [], "Generate K-drama training data"),
-            ("build_index", ["--mode", "full"], "Build enhanced FAISS indices"),
+            ("build_index", ["--mode", "full"], "Build FAISS index"),
         ]
 
         for script_key, script_args, description in steps:
