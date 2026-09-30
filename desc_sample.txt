@@ -1,0 +1,150 @@
+=== title ===
+dtype: object, nulls: 0 (0.0%)
+unique values: 2071
+  'My Fair Lady'
+  "Night Watchman's Journal"
+  'Plus Nine Boys'
+  'Which Star Are You From?'
+  'My Love Patzzi'
+  'Temptation'
+
+=== alternate_names ===
+dtype: object, nulls: 36 (1.7%)
+unique values: 2044
+  'Agasshireul Butakhae, Agassireul Butakhae, Agassireul Pputakae, Lady Castle, Mi bella dama, Minha Bela Dama, Take Care of Agassi, Take Care of My Lady'
+  'Annals of the Night Watchman, Chronicle of the Night Watchman, Diary of a Night Watchman, Journal of the Night Watchman, O Guardião da Noite, Records '
+  '9th boy, Age Ending in Nine Boy, Ahobsoo Sonyeon, Ahopsu Sonyeon, Boy Number 9, Garotos Com Idades Terminadas em Nove, Mais Nove Meninos, Nine Boy, Ni'
+  'De Qual Estrela Você É?, Neon Eoneu Byeoleseo Wassni?, Neon Eoneu Byeoleseo Watni, Neon Eoneu Byeoreseo Wattni?, What Planet Are You From?, What Star '
+  'Meu Amor, Patzzi, My Feisty Girl, My Love Cindy, Nae Sarang Patjwi, Nae-sarang patjwi'
+  'Tentação, Yoohok, Yuhok, 诱惑'
+
+=== description ===
+dtype: object, nulls: 0 (0.0%)
+unique values: 2081
+  "Of the high-rolling top 'hot celebrities' of the wealthy upper class in Korea's high society, Kang Hye Na is the one desired by the men, feared and ha"
+  'Young watchmen of the Joseon Dynasty fight demons in this "Ghostbusters"-like story. Set in the backdrop of the royal palace, the good guys vanquish d'
+  'At 39, Gu Gwang Soo is a fallen former PD of a top live music program, blamed for a scandal where an indie band flashed the nation during a live broad'
+  'Seung Hui, after losing his girlfriend in a tragic accident, left for 3 years. When he came back, he sought to make a film in a rural area. Someone ca'
+  'Song Yi is a girl with a pure heart but a bad temper. She was tricked and humiliated by her "best friend" Hee Won as a child. From then on, Hee Won ha'
+  'A melodrama about a married man who receives a huge sum of money from a woman to repay the huge debt he owes. Complications arise when the woman deman'
+
+=== publisher ===
+dtype: object, nulls: 485 (23.3%)
+unique values: 48
+  'KBS2'
+  'MBC'
+  'tvN'
+  'MBC'
+  'MBC'
+  'SBS'
+
+=== genres ===
+dtype: object, nulls: 35 (1.7%)
+unique values: 672
+  'Comedy, Romance'
+  'Action, Historical, Romance, Supernatural'
+  'Romance'
+  'Comedy, Romance, Life, Drama'
+  'Romance, Drama'
+  'Romance, Drama, Melodrama'
+
+=== rating_value ===
+dtype: float64, nulls: 111 (5.3%)
+unique values: 40
+  '7.2'
+  '7.2'
+  '7.8'
+  '7.4'
+  '6.9'
+  '7.0'
+
+=== rating_count ===
+dtype: float64, nulls: 111 (5.3%)
+unique values: 1798
+  '9739.0'
+  '3287.0'
+  '4328.0'
+  '1498.0'
+  '1264.0'
+  '1623.0'
+
+=== keywords ===
+dtype: object, nulls: 14 (0.7%)
+unique values: 1980
+  'Arrogant Female Lead, Love Triangle, Spoiled Female Lead, Rich Female Lead, Rich Woman/Poor Man, Hardworking Male Lead, Poor Male Lead, MDL Remake, Lo'
+  'Ghost-seeing Male Lead, Ghost, Joseon Dynasty, Supernatural Being, Historical Fiction, Flashback To Past'
+  'Male Chases Female First, Friends to Lovers, Multiple Couples, Male Centered Plot, Superstition, Love Triangle, Bromance, Workplace Setting, Workplace'
+  "Searching For A Child, Bickering Mains' Relationship, Identical Twin Female Lead, Car Accident, Hot-Tempered Male Lead, Eccentric Female Lead, Forbidd"
+  'Cardiovascular Disease, Amusement Park Setting, Sabotage, Sassy Female Lead, Miniseries, Love Triangle, Friendship'
+  'Rich Woman/Poor Man, Stubborn Female Lead, Hardworking Male Lead, Power Struggle, Heartbreak, Vengeful Female Lead, Successful Female Lead, Female Riv'
+
+=== actors ===
+dtype: object, nulls: 45 (2.2%)
+unique values: 2017
+  'Yoon Eun Hye, Yoon Sang Hyun, Moon Chae Won, Jung Il Woo, Kwon Ki Sun, Heo Tae Hee'
+  'Jung Il Woo, Go Sung Hee, U-Know, Seo Yea Ji, Yoon Tae Young, Kim Heung Soo'
+  'Kim Young Kwang, Oh Jung Se, Yook Sung Jae, Choi Ro Woon, Gyeong Su Jin, Yoo Da In'
+  'Kim Rae Won, Jung Ryeo Won, Park Si Hoo, Kim Ha Kyun, Song Jae Ho, Lee Bo Hee'
+  'Jang Na Ra, Kim Rae Won, Kim Jae Won, Hong Eun Hee, Kim Gyung Shik, Kang Rae Yeon'
+  'Choi Ji Woo, Kwon Sang Woo, Park Ha Sun, Lee Jung Jin, Chae So Young, Ahn Se Ha'
+
+=== directors ===
+dtype: object, nulls: 439 (21.1%)
+unique values: 892
+  'Ji Young Soo'
+  'Lee Joo Hwan, Yoon Ji Hoon'
+  'Yoo Hak Chan'
+  'Pyo Min Soo'
+  'Lee Jin Suk'
+  'Park Young Soo'
+
+=== screenwriters ===
+dtype: object, nulls: 576 (27.7%)
+unique values: 830
+  'Kim Eun Hee, Yoon Eun Kyung'
+  'Yoo Dong Yoon, Kim Sun Hee, Bang Ji Young'
+  'Jung Yoo Kyung'
+  'Kim Yi Young'
+  'Han Ji Hoon, Park Jin U'
+  'Song Jae Jung'
+
+=== episodes ===
+dtype: int64, nulls: 0 (0.0%)
+unique values: 97
+  '16'
+  '24'
+  '14'
+  '16'
+  '10'
+  '20'
+
+=== aired ===
+dtype: object, nulls: 2 (0.1%)
+unique values: 1971
+  'Aug 19, 2009 - Oct  8, 2009'
+  'Aug  4, 2014 - Oct 21, 2014'
+  'Aug 29, 2014 - Oct 11, 2014'
+  'Mar 13, 2006 - May  2, 2006'
+  'Aug 26, 2002 - Sep 24, 2002'
+  'Jul 14, 2014 - Sep 16, 2014'
+
+=== duration ===
+dtype: object, nulls: 10 (0.5%)
+unique values: 88
+  '1 hr. 10 min.'
+  '59 min.'
+  '1 hr. 7 min.'
+  '1 hr. 5 min.'
+  '1 hr. 5 min.'
+  '60 min.'
+
+=== watchers ===
+dtype: object, nulls: 0 (0.0%)
+unique values: 1971
+  '19,032'
+  '9,539'
+  '12,119'
+  '3,594'
+  '2,553'
+  '4,265'
+

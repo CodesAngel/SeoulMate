@@ -32,7 +32,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAINING_ROOT = os.path.dirname(SCRIPT_DIR)
 PROJECT_ROOT = os.path.dirname(TRAINING_ROOT)
 
-DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "dramalist_kdramas.xlsx")
+DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
 OUTPUT_DIR = os.path.join(TRAINING_ROOT, "training_data")
 
 # Theme definitions (same as enhanced_index_builder.py)
@@ -75,7 +75,10 @@ THEME_DEFINITIONS = {
 
 def load_dataset(path: str) -> pd.DataFrame:
     """Load and preprocess dataset."""
-    df = pd.read_excel(path)
+    if path.lower().endswith((".xlsx", ".xls")):
+        df = pd.read_excel(path)
+    else:
+        df = pd.read_csv(path, encoding="utf-8-sig")
     df.fillna("", inplace=True)
 
     # Standardize columns

@@ -1,6 +1,6 @@
 # DramaList Scrapper
 
-Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is eight
+Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is nine
 numbered steps, each in its own script, plus `run_pipeline.py` which runs all of them in order
 with one command.
 
@@ -16,7 +16,7 @@ with one command.
 ## Quick start
 
 ```bash
-python run_pipeline.py                                        # run all eight steps, in order
+python run_pipeline.py                                        # run all nine steps, in order
 python run_pipeline.py --skip-listing --skip-urls --skip-html  # already have output/dramas_html/, just extract + get images
 python run_pipeline.py --only images                           # run just one step
 ```
@@ -138,13 +138,31 @@ Current mapping (8 countries found in the dataset):
 - Any new country not in `COUNTRY_PREFIXES` still gets a file (first-letter fallback), it just
   logs a warning instead of failing.
 
-### Step 3 — `steps/step3_download_images.py` (image downloader)
-Reads `title`/`image` columns from `output/by_country/kdrama_dataset.csv` and downloads missing
-poster images asynchronously (any CSV/XLSX with `title` and `image` columns works, e.g. you could
-point it at another country's file from Step 2d instead).
+### Step 2e — `steps/step2e_clean_country_datasets.py` (per-country cleanup)
+Applies the same cleanup developed for `data/final/kdrama_dataset.csv` to **every** file in
+`output/by_country/`:
+- Drops low-value/redundant columns: `url`, `country` (constant within a single-country file),
+  `media_type`, `date_published`, `content_rating`, `ranked`, `score`, `popularity`. Unlike
+  `data/final`'s copy, `image` is **kept** here — Step 3 reads it from this file's output.
+- Cleans `description`: strips MyDramaList's "Edit Translation" UI text, strips
+  `(Source: ...)`/`(Sources: ...)` attribution tags (case-insensitive, handles missing colons and
+  malformed brackets), collapses repeated whitespace. Drops rows with an empty/missing description.
+- `watchers`: strips comma thousands-separators, converts to a real integer.
+- `rating_count`: converted to a nullable integer (no trailing `.0`).
+- `aired`: fixes the double-space bug before single-digit days.
 
-- **Input:** `output/by_country/kdrama_dataset.csv` — **depends on Step 2d having run first**;
-  running Step 3 alone before Step 2d will fail since this file won't exist yet.
+- **Input:** every `output/by_country/*.csv` file
+- **Output:** `output/by_country/cleaned/<prefix>drama_dataset.csv` — same filename as the input,
+  in a new subfolder; the raw `output/by_country/*.csv` files are never modified.
+- **Run:** `python steps/step2e_clean_country_datasets.py`
+
+### Step 3 — `steps/step3_download_images.py` (image downloader)
+Reads `title`/`image` columns from `output/by_country/cleaned/kdrama_dataset.csv` and downloads
+missing poster images asynchronously (any CSV/XLSX with `title` and `image` columns works, e.g.
+you could point it at another country's cleaned file from Step 2e instead).
+
+- **Input:** `output/by_country/cleaned/kdrama_dataset.csv` — **depends on Step 2e having run
+  first**; running Step 3 alone before Step 2e will fail since this file won't exist yet.
 - **Output:** `output/drama_image/<title>.jpg`
 - **Run:** `python steps/step3_download_images.py`
 - Only downloads images that are missing or corrupt (<1KB) locally. Safe to re-run/resume.

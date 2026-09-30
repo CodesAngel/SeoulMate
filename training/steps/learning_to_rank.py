@@ -63,7 +63,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAINING_ROOT = os.path.dirname(SCRIPT_DIR)
 PROJECT_ROOT = os.path.dirname(TRAINING_ROOT)
 
-DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "dramalist_kdramas.xlsx")
+DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
 MODEL_DIR = os.path.join(TRAINING_ROOT, "models")
 LTR_DIR = os.path.join(TRAINING_ROOT, "ltr_model")
 
@@ -485,7 +485,10 @@ def main():
     os.makedirs(args.output, exist_ok=True)
 
     # Load metadata
-    df = pd.read_excel(args.data)
+    if args.data.lower().endswith((".xlsx", ".xls")):
+        df = pd.read_excel(args.data)
+    else:
+        df = pd.read_csv(args.data, encoding="utf-8-sig")
     df.fillna("", inplace=True)
 
     # Standardize columns

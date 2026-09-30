@@ -28,7 +28,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAINING_ROOT = os.path.dirname(SCRIPT_DIR)
 PROJECT_ROOT = os.path.dirname(TRAINING_ROOT)
 
-DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "dramalist_kdramas.xlsx")
+DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
 MODEL_DIR = os.path.join(TRAINING_ROOT, "models")
 INDEX_DIR = os.path.join(TRAINING_ROOT, "faiss_index")
 
@@ -284,7 +284,10 @@ GENRE_SYNONYMS = {
 def load_dataset(path: str) -> pd.DataFrame:
     """Load and preprocess the drama dataset."""
     print(f"Loading dataset from {path}...")
-    df = pd.read_excel(path)
+    if path.lower().endswith((".xlsx", ".xls")):
+        df = pd.read_excel(path)
+    else:
+        df = pd.read_csv(path, encoding="utf-8-sig")
     df.fillna("", inplace=True)
 
     # Standardize column names

@@ -11,7 +11,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAINING_ROOT = os.path.dirname(SCRIPT_DIR)
 PROJECT_ROOT = os.path.dirname(TRAINING_ROOT)
 
-DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "dramalist_kdramas.xlsx")
+DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
 MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 MODEL_DIR = os.path.join(TRAINING_ROOT, "models")
 INDEX_DIR = os.path.join(TRAINING_ROOT, "faiss_index")
@@ -27,7 +27,10 @@ FINETUNED_PREFIX = "sbert-finetuned"
 # 2. Load and Prepare Dataset
 # ======================================================
 print("Loading dataset...")
-df = pd.read_excel(DATA_PATH)
+if DATA_PATH.lower().endswith((".xlsx", ".xls")):
+    df = pd.read_excel(DATA_PATH)
+else:
+    df = pd.read_csv(DATA_PATH, encoding="utf-8-sig")
 df.fillna("", inplace=True)
 
 # Map column names to standardized format
