@@ -10,7 +10,7 @@ Heuristics used:
 Output: CSV with columns: query,doc_text,label,true_id,candidate_id
 
 Usage:
-  python generate_reranker_data.py --index training/faiss_index/index.faiss --meta training/faiss_index/meta.pkl --output reranker_train.csv --topk 50 --num_queries 500
+  python step4_generate_reranker_data.py --index training/faiss_index/index.faiss --meta training/faiss_index/meta.pkl --output reranker_train.csv --topk 50 --num_queries 500
 
 """
 

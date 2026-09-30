@@ -1,8 +1,12 @@
 r"""
+STANDALONE — not called by train_pipeline.py. The pipeline's SBERT fine-tuner
+is step2_fine_tune_sbert.py; this is a separate, simpler alternative kept for
+manual/ad-hoc use.
+
 Fine-tune SentenceTransformer on SeoulMate dataset.
 
 Usage:
-    python fine_tune_sbert.py --data d:\Projects\SeoulMate\data\final\dramalist_kdramas.xlsx \
+    python standalone_fine_tune_sbert.py --data d:\Projects\SeoulMate\data\final\kdrama_dataset.csv \
         --model paraphrase-multilingual-mpnet-base-v2 --output d:\Projects\SeoulMate\training\models\sbert-finetuned
 
 Notes:

@@ -18,13 +18,13 @@ optimal feature weights for ranking.
 
 Usage:
     # Generate training data from logs
-    python learning_to_rank.py --mode generate-data
+    python step6_train_ltr.py --mode generate-data
 
     # Train the model
-    python learning_to_rank.py --mode train --epochs 50
+    python step6_train_ltr.py --mode train --epochs 50
 
     # Evaluate
-    python learning_to_rank.py --mode evaluate
+    python step6_train_ltr.py --mode evaluate
 """
 
 import os

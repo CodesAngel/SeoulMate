@@ -13,8 +13,8 @@ This produces embeddings that understand:
 - Theme-based queries
 
 Usage:
-    python fine_tune_kdrama_sbert.py --epochs 3 --batch_size 8
-    python fine_tune_kdrama_sbert.py --epochs 1 --batch_size 4 --max_examples 2000  # Quick test
+    python step2_fine_tune_sbert.py --epochs 3 --batch_size 8
+    python step2_fine_tune_sbert.py --epochs 1 --batch_size 4 --max_examples 2000  # Quick test
 """
 
 import os
@@ -54,7 +54,7 @@ def load_training_pairs(data_dir: str) -> List[InputExample]:
     if not os.path.exists(pairs_path):
         raise FileNotFoundError(
             f"Training data not found at {pairs_path}. "
-            "Run generate_training_data.py first."
+            "Run step1_generate_training_data.py first."
         )
 
     with open(pairs_path, "r", encoding="utf-8") as f:
@@ -232,7 +232,7 @@ def main():
     print(f"\n✅ Fine-tuned model saved to {args.output}")
     print("\nNext steps:")
     print("1. Rebuild FAISS index with new model:")
-    print(f"   python enhanced_index_builder.py --mode full")
+    print(f"   python step3_build_index.py --mode full")
     print("2. Update backend/app.py to use new model")
     print("3. Run evaluation: python tests/evaluate_accuracy.py")
 

@@ -1,8 +1,11 @@
 r"""
+STANDALONE — not called by train_pipeline.py. A manual evaluation/debug tool,
+not part of the numbered pipeline.
+
 Evaluate retrieval performance (Recall@K, NDCG@K) for a FAISS index and encoder.
 
 Usage examples:
-  python eval_retrieval.py --model d:\Projects\SeoulMate\training\models\sbert-finetuned --index d:\Projects\SeoulMate\training\faiss_index\index.faiss
+  python standalone_eval_retrieval.py --model d:\Projects\SeoulMate\training\models\sbert-finetuned --index d:\Projects\SeoulMate\training\faiss_index\index.faiss
 
 If --test_csv is not provided, the script will create a simple test set using the first N rows of metadata (query=Title).
 """

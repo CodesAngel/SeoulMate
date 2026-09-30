@@ -57,14 +57,18 @@ SeoulMate/
 |   +-- requirements.txt
 |   +-- TEST_FRONTEND.md
 +-- training/
+|   +-- README.md
 |   +-- train_pipeline.py
 |   +-- steps/
-|   |   +-- build_index.py
-|   |   +-- enhanced_index_builder.py
-|   |   +-- generate_training_data.py
-|   |   +-- fine_tune_kdrama_sbert.py
-|   |   +-- fine_tune_cross_encoder.py
-|   |   +-- learning_to_rank.py
+|   |   +-- step1_generate_training_data.py
+|   |   +-- step2_fine_tune_sbert.py
+|   |   +-- step3_build_index.py
+|   |   +-- step4_generate_reranker_data.py
+|   |   +-- step5_fine_tune_cross_encoder.py
+|   |   +-- step6_train_ltr.py
+|   |   +-- legacy_build_index.py       (not in train_pipeline.py; actually produces the live meta.pkl)
+|   |   +-- standalone_fine_tune_sbert.py
+|   |   +-- standalone_eval_retrieval.py
 |   +-- models/
 |   |   +-- sbert-finetuned-full/
 |   |   +-- cross-enc-excellent/
@@ -81,7 +85,7 @@ SeoulMate/
 |   +-- faiss_index/
 +-- data/
 |   +-- final/
-|       +-- dramalist_kdramas.xlsx
+|       +-- kdrama_dataset.csv
 +-- scrapers/
 |   +-- DramaList_Scrapper/
 |   |   +-- run_pipeline.py
@@ -441,7 +445,7 @@ Rebuild the FAISS index:
 
 ```powershell
 cd training
-python training\steps\enhanced_index_builder.py --mode full
+python steps\step3_build_index.py --mode full
 ```
 
 Regenerate backend ranking indexes:

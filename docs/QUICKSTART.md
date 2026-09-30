@@ -10,12 +10,12 @@ The system is currently building the search index with **1,922 dramas**.
 
 ```bash
 cd d:\Projects\SeoulMate
-python training\steps\build_index.py
+python training\steps\legacy_build_index.py
 ```
 
 **What this does:**
 
-- Loads `dataset/dramalist_kdramas.xlsx`
+- Loads `data/final/kdrama_dataset.csv`
 - Generates semantic embeddings for all 1,922 dramas
 - Creates FAISS index for fast similarity search
 - Saves metadata for recommendations

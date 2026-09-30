@@ -5,7 +5,7 @@ The script trains a sequence-pair regressor with MSE loss (labels can be 0/1 or 
 Designed to work on CPU (small batches) but will use GPU if available.
 
 Usage:
-  python fine_tune_cross_encoder.py --data reranker_train.csv --model cross-encoder/ms-marco-MiniLM-L-6-v2 --output models/cross-enc-small --epochs 2 --batch_size 8
+  python step5_fine_tune_cross_encoder.py --data reranker_train.csv --model cross-encoder/ms-marco-MiniLM-L-6-v2 --output models/cross-enc-small --epochs 2 --batch_size 8
 
 """
 

@@ -11,7 +11,7 @@ specifically on K-drama content patterns:
 5. Hard negatives (dramas that look similar but are different)
 
 Usage:
-    python generate_training_data.py --output training_data.json --mode full
+    python step1_generate_training_data.py --output training_data.json --mode full
 """
 
 import os
@@ -35,7 +35,7 @@ PROJECT_ROOT = os.path.dirname(TRAINING_ROOT)
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
 OUTPUT_DIR = os.path.join(TRAINING_ROOT, "training_data")
 
-# Theme definitions (same as enhanced_index_builder.py)
+# Theme definitions (same as step3_build_index.py)
 THEME_DEFINITIONS = {
     "time_travel": {
         "keywords": ["time travel", "time slip", "time loop", "past life", "future"],
@@ -560,8 +560,8 @@ def main():
     print("TRAINING DATA GENERATION COMPLETE")
     print("=" * 60)
     print(f"\nNext steps:")
-    print("1. Fine-tune model: python fine_tune_kdrama_sbert.py")
-    print("2. Rebuild index: python enhanced_index_builder.py")
+    print("1. Fine-tune model: python step2_fine_tune_sbert.py")
+    print("2. Rebuild index: python step3_build_index.py")
 
 
 if __name__ == "__main__":

@@ -7,8 +7,8 @@ This script builds a better FAISS index by:
 3. Adding theme-based embeddings
 
 Usage:
-    python enhanced_index_builder.py --mode full
-    python enhanced_index_builder.py --mode themes-only
+    python step3_build_index.py --mode full
+    python step3_build_index.py --mode themes-only
 """
 
 import os

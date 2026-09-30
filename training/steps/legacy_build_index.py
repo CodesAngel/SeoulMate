@@ -1,3 +1,14 @@
+"""LEGACY, but currently what's actually deployed.
+
+Simpler FAISS index builder, NOT called by train_pipeline.py (which calls
+step3_build_index.py instead). As of 2026-09-30 this is the script that
+produced the meta.pkl the live backend actually loads — the "official"
+pipeline step (step3_build_index.py) is not what's in production.
+
+Before relying on step3_build_index.py's output in production, verify which
+one you actually want; don't assume the numbered pipeline step is current.
+"""
+
 import os
 import pandas as pd
 import pickle
