@@ -1263,7 +1263,7 @@ def recommend(
             filtered_metadata = [
                 r
                 for r in filtered_metadata
-                if float(r.get("rating_value", r.get("score", 0))) >= rating_value_val
+                if float(r.get("rating_value", r.get("score", 0)) or 0) >= rating_value_val
             ]
         except Exception:
             pass
@@ -1273,7 +1273,7 @@ def recommend(
             filtered_metadata = [
                 r
                 for r in filtered_metadata
-                if float(r.get("rating_count", 0)) >= rating_count_val
+                if float(r.get("rating_count", 0) or 0) >= rating_count_val
             ]
         except Exception:
             pass
@@ -2065,7 +2065,7 @@ def recommend(
     elif top_rated:
         filtered = sorted(
             filtered,
-            key=lambda r: float(r.get("rating_value", r.get("score", 0))),
+            key=lambda r: float(r.get("rating_value", r.get("score", 0)) or 0),
             reverse=True,
         )
 

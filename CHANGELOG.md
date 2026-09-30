@@ -2,6 +2,14 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-01
+
+### Production Switched to the 2,081-Drama Index
+
+- `training/faiss_index` now holds the index rebuilt from `data/final/kdrama_dataset.csv` (2,081 dramas, 78.35% on `evaluate_accuracy.py`), used with the existing production models (`sbert-finetuned-full` + `cross-enc-excellent`). No backend code change was needed.
+- Chosen over `training-new` (78.75%): the 0.4-point difference is within noise, and production's 88 MB reranker is far lighter than training-new's 2.2 GB one.
+- Previous 1,922-drama index kept in `training/faiss_index.bak` for rollback.
+
 ## 2026-09-30
 
 ### Model and Index Accuracy Comparison
@@ -12,6 +20,8 @@ Important project history reconstructed from Git commits and project documentati
   - Current production (`training/`, old index): **79.31%**
   - Production models + rebuilt index: **74.60%** (failed the rating ≥ 8.5 filter test; typo precision dropped)
   - `training-new` (E5 + bge reranker): **79.03%** — effectively tied with production
+- Rebuilt `training-new`'s four indexes from `data/final/kdrama_dataset.csv` (2,081 dramas) with the existing fine-tuned E5 model; `training-new/steps/enhanced_index_builder.py` now reads CSV and defaults to `training-new/output/` paths. Scored **78.75%** (old index backed up in `training-new/output/faiss_index.bak`).
+- Fixed the backend's rating filters and `top_rated` sort silently failing on dramas with an empty `rating_value`/`rating_count` (111 upcoming dramas in the new dataset). This lifted the production-models + rebuilt-index setup from 74.60% to **78.35%**.
 - Production stays live; no model or index switched.
 - Fixed `backend/app.py` model auto-discovery picking up Hugging Face's hidden `.locks` folder as a model; it now only considers folders containing a `config.json`.
 

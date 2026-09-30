@@ -2,6 +2,17 @@
 
 Measured with `tests/evaluation/evaluate_accuracy.py` against the same backend code, each setup on a fresh backend (`SEOULMATE_RELOAD=0`, port 8003).
 
+## Summary (final, after the rating-filter fix)
+
+| Setup | Accuracy |
+|---|---|
+| Production (old index, 1,922 dramas) | 79.31% |
+| training-new, old index (1,823 dramas) | 79.03% |
+| training-new, new index (2,081 dramas) | 78.75% |
+| Production models + new index (2,081 dramas) | 78.35% |
+
+**Decision (2026-10-01):** production now runs the production models (`sbert-finetuned-full` + `cross-enc-excellent`, 88 MB reranker) with the new 2,081-drama index. training-new scored 0.4 points higher, which is within noise for ~80 test queries, but needs a 2.2 GB reranker. The old 1,922-drama index is kept in `training/faiss_index.bak`. Details and the before/after-fix numbers are below.
+
 ## Setups
 
 | ID | Bi-encoder | Reranker | FAISS index | Dramas indexed |
@@ -43,6 +54,22 @@ Precision@3 by category:
 - **B's typo drop:** typo queries fell from 20% to 6.67% with the larger index.
 - The `year=2020` filter test fails in all three setups.
 
-## Decision
+## Decision (first pass)
 
 A (current production) stays live. C is effectively tied with A, not worse as first reported under the stale evaluator. B (rebuilt index) is not adopted until its rating-filter and typo regressions are understood.
+
+## Follow-up: training-new index rebuilt on 2,081 dramas + rating-filter fix
+
+- Rebuilt training-new's four indexes (main, genre, actor, theme) from `data/final/kdrama_dataset.csv` with the existing fine-tuned E5 model — no retraining. `training-new/steps/enhanced_index_builder.py` now reads CSV and defaults to the `output/` paths. Old index kept in `training-new/output/faiss_index.bak`.
+- **Root cause of the filter drop in B:** 111 dramas in the new dataset have an empty `rating_value`/`rating_count` (mostly upcoming shows). The backend's rating filter did `float("")`, which raised inside a `try/except` that silently skipped the whole filter. Fixed in `backend/app.py` (rating-value filter, rating-count filter and the `top_rated` sort) by treating an empty value as 0.
+
+| Setup | Before fix | After fix |
+|---|---|---|
+| A — production (old index, 1,922) | 79.31% | 79.31% (unaffected — no empty ratings) |
+| B — production models + rebuilt index (2,081) | 74.60% | **78.35%** |
+| C — training-new, old index (1,823) | 79.03% | 79.03% (unaffected) |
+| D — training-new, rebuilt index (2,081) | 75.00% | **78.75%** |
+
+D after the fix: Precision@3 50.62%, Recall@10 89.51%, MRR 0.823, NDCG@10 0.866, filter success 75%, avg response 97 ms.
+
+The remaining ~0.5-point gap between old and rebuilt indexes comes from NDCG/typo queries: the ~160–260 extra dramas add more candidates that compete with the expected results.
