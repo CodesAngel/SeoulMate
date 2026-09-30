@@ -102,9 +102,11 @@ Duplicates are identified by `url` (the true unique per-drama identifier), since
 - **Run:** `python steps/step2b_dedupe_data.py`
 
 ### Step 2c — `steps/step2c_clean_titles.py` (title cleanup)
-Reads `output/dramalist_all_dramas.deduped.csv` and cleans up the `title` column: fixes HTML
-entities (e.g. `&amp;` -> `&`, `&quot;` -> `"`), then drops rows where the title contains
-"Special" or "BTS" (case-insensitive) — bonus/behind-the-scenes entries, not real dramas.
+Reads `output/dramalist_all_dramas.deduped.csv` and cleans up the dataset:
+1. Fixes HTML entities in the `title` column (e.g. `&amp;` -> `&`, `&quot;` -> `"`).
+2. Drops rows where the title contains "Special" or "BTS" (case-insensitive) —
+   bonus/behind-the-scenes entries, not real dramas.
+3. Drops rows where `media_type` is "TV Program" (case-insensitive) — not a drama.
 
 - **Input:** `output/dramalist_all_dramas.deduped.csv`
 - **Output:** `output/dramalist_all_dramas.deduped.cleantitle.csv` — a **separate file**, does not
