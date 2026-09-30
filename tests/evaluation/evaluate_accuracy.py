@@ -226,9 +226,13 @@ def evaluate_search_accuracy():
 
     for query, expected, category in SEARCH_TEST_CASES:
         try:
-            response = requests.get(
-                f"{BASE_URL}/recommend", params={"title": query, "top_n": 10}
-            )
+            params = {"title": query, "top_n": 10}
+            if category == "specific_title":
+                # Title searches run in title_similarity mode: the backend resolves the
+                # searched drama and lists *similar* dramas, excluding the drama itself.
+                # debug exposes the resolved title so we can score the lookup.
+                params["debug"] = "true"
+            response = requests.get(f"{BASE_URL}/recommend", params=params)
             if response.status_code == 200:
                 data = response.json()
 
@@ -241,6 +245,12 @@ def evaluate_search_accuracy():
                     continue
 
                 titles = [r["Title"] for r in results]
+
+                if category == "specific_title":
+                    resolved = (data.get("debug") or {}).get("resolved_title")
+                    if resolved and resolved not in titles:
+                        # Treat the resolved drama as the top hit, similar dramas after it.
+                        titles = [resolved] + titles
 
                 if expected:
                     precision = calculate_precision_at_k(titles, expected, k=3)

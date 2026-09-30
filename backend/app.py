@@ -74,7 +74,12 @@ print("Stage 1: Loading models and FAISS index...")
 # so any subfolder that isn't a cross-encoder/reranker folder is treated as the
 # bi-encoder candidate.
 model_subdirs = (
-    [d for d in os.listdir(MODEL_DIR) if os.path.isdir(os.path.join(MODEL_DIR, d))]
+    sorted(
+        d
+        for d in os.listdir(MODEL_DIR)
+        if not d.startswith(".")  # skip HF cache dirs like .locks
+        and os.path.isfile(os.path.join(MODEL_DIR, d, "config.json"))
+    )
     if os.path.exists(MODEL_DIR)
     else []
 )

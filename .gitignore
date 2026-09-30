@@ -35,3 +35,8 @@ training-new/output/
 scrapers/DramaList_Scrapper.7z
 scrapers/extra/DramaList_Scrapper.7z
 .claude/
+training/faiss_index.bak/index.faiss
+training/faiss_index.bak/meta.pkl
+.gitignore
+training/faiss_index.new/index.faiss
+training/faiss_index.new/meta.pkl

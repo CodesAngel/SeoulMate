@@ -2,6 +2,19 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-09-30
+
+### Model and Index Accuracy Comparison
+
+- Fixed `tests/evaluation/evaluate_accuracy.py` for title searches: since the 2026-07-24 title-search changes, an exact title query returns *similar* dramas and excludes the title itself, so every title test scored 0 and the old 88.5% baseline was no longer reproducible. The evaluator now reads the backend's `debug.resolved_title` and counts the resolved drama as the top hit.
+- Rebuilt the FAISS index from `data/final/kdrama_dataset.csv` (2,081 dramas) into `training/faiss_index.new`; production index kept in `training/faiss_index` (backup in `training/faiss_index.bak`).
+- Compared three setups on the same backend code (full results in `tests/reports/model_comparison_2026-09-30.md`):
+  - Current production (`training/`, old index): **79.31%**
+  - Production models + rebuilt index: **74.60%** (failed the rating ≥ 8.5 filter test; typo precision dropped)
+  - `training-new` (E5 + bge reranker): **79.03%** — effectively tied with production
+- Production stays live; no model or index switched.
+- Fixed `backend/app.py` model auto-discovery picking up Hugging Face's hidden `.locks` folder as a model; it now only considers folders containing a `config.json`.
+
 ## 2026-09-23
 
 ### DramaList Scrapper Pipeline Restructure

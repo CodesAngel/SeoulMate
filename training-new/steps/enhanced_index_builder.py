@@ -21,10 +21,12 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAINING_ROOT = os.path.dirname(SCRIPT_DIR)
 PROJECT_ROOT = os.path.dirname(TRAINING_ROOT)
 
-DEFAULT_DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "dramalist_kdramas.xlsx")
-DEFAULT_MODEL_DIR = os.path.join(TRAINING_ROOT, "models", "e5-kdrama-finetuned")
+OUTPUT_ROOT = os.path.join(TRAINING_ROOT, "output")
+
+DEFAULT_DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
+DEFAULT_MODEL_DIR = os.path.join(OUTPUT_ROOT, "models", "e5-kdrama-finetuned")
 FALLBACK_BASE_MODEL = "intfloat/multilingual-e5-base"
-DEFAULT_INDEX_DIR = os.path.join(TRAINING_ROOT, "faiss_index")
+DEFAULT_INDEX_DIR = os.path.join(OUTPUT_ROOT, "faiss_index")
 
 THEME_KEYWORDS = {
     "time_travel": ["time travel", "time slip", "time loop", "past life", "future"],
@@ -40,7 +42,11 @@ THEME_KEYWORDS = {
 
 
 def load_dataset(path: str) -> pd.DataFrame:
-    df = pd.read_excel(path)
+    if path.lower().endswith((".xlsx", ".xls")):
+        df = pd.read_excel(path)
+    else:
+        # dtype=str keeps metadata values as strings, matching the existing meta.pkl
+        df = pd.read_csv(path, encoding="utf-8-sig", dtype=str)
     df.fillna("", inplace=True)
     column_mapping = {
         "title": "Title",
@@ -69,7 +75,7 @@ def build_faiss_l2_norm(embeddings: np.ndarray) -> faiss.IndexFlatIP:
 
 def main():
     parser = argparse.ArgumentParser(description="Build FAISS vector indexes")
-    parser.add_argument("--data", default=DEFAULT_DATA_PATH, help="Path to dramalist_kdramas.xlsx")
+    parser.add_argument("--data", default=DEFAULT_DATA_PATH, help="Path to dataset (.csv or .xlsx)")
     parser.add_argument("--model", default=DEFAULT_MODEL_DIR, help="Path to fine-tuned model (or base model name)")
     parser.add_argument("--output_dir", default=DEFAULT_INDEX_DIR, help="Output index directory")
     parser.add_argument("--batch_size", type=int, default=64, help="Inference batch size")
