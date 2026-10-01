@@ -12,19 +12,19 @@ The system combines semantic search, lexical search, calibrated ranking indexes,
 
 ## Current Performance
 
-Latest live backend reference (2026-10-01; production models with the 2,081-drama index):
+Latest live backend reference (2026-10-01; production models with the 2,081-drama index; 61-search test set):
 
 | Metric | Score |
 | --- | ---: |
-| Overall Accuracy | `86.24%` |
-| Precision@3 | `55.56%` |
-| Recall@10 | `99.38%` |
-| MRR | `0.969` |
-| NDCG@10 | `0.979` |
+| Overall Accuracy | `87.92%` |
+| Precision@3 | `62.30%` |
+| Recall@10 | `95.63%` |
+| MRR | `0.992` |
+| NDCG@10 | `0.961` |
 | Filter Success Rate | `100%` |
-| Avg Response Time (uncached) | `77 ms` |
+| Avg Response Time (uncached) | `28 ms` |
 
-Precision@3 can reach at most 61.7% on this test set, because many tests list only one or two expected titles. The earlier `88.50%` figure predates the 2026-07-24 title-search changes and the evaluator fix, so it is not directly comparable. Full comparison: [tests/reports/model_comparison_2026-09-30.md](tests/reports/model_comparison_2026-09-30.md).
+Precision@3 can reach at most 68.3% on this test set, because title and typo tests have a single expected answer. The earlier `88.50%` figure predates the 2026-07-24 title-search changes and the evaluator fix, so it is not directly comparable. Full comparison: [tests/reports/model_comparison_2026-09-30.md](tests/reports/model_comparison_2026-09-30.md).
 
 The default backend uses curated ranking priors with calibrated generated fallback support. Generated-only replacement is still experimental and is not the production default.
 

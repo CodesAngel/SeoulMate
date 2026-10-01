@@ -54,15 +54,24 @@ SEARCH_TEST_CASES = [
     ("Reply 1988", ["Reply 1988"], "specific_title"),
     ("Flower of Evil", ["Flower of Evil"], "specific_title"),
     ("Alchemy of Souls", ["Alchemy of Souls"], "specific_title"),
-    # Genre searches (should return dramas in that genre)
-    ("medical drama", ["Hospital Playlist", "Doctor Cha", "Good Doctor"], "genre"),
-    ("doctor hospital drama", ["Hospital Playlist", "Doctor Cha", "Good Doctor"], "genre"),
+    # Dramas added with the 2,081-drama index (2026 releases)
+    ("Teach You a Lesson", ["Teach You a Lesson"], "specific_title"),
+    ("Agent Kim Reactivated", ["Agent Kim Reactivated"], "specific_title"),
+    ("Yumi's Cells Season 3", ["Yumi's Cells Season 3"], "specific_title"),
+    ("The Legend of Kitchen Soldier", ["The Legend of Kitchen Soldier"], "specific_title"),
+    ("Phantom Lawyer", ["Phantom Lawyer"], "specific_title"),
+    # Genre searches (should return dramas in that genre).
+    # Each list holds 4-5 well-known dramas whose dataset genre/keywords fit the query.
+    ("medical drama", ["Hospital Playlist", "Doctor Cha", "Good Doctor", "Dr. Romantic", "Doctors"], "genre"),
+    ("doctor hospital drama", ["Hospital Playlist", "Doctor Cha", "Good Doctor", "Dr. Romantic", "Doctors"], "genre"),
     (
         "romantic comedy",
         [
             "Business Proposal",
             "What's Wrong with Secretary Kim",
             "Strong Woman Do Bong Soon",
+            "Fight for My Way",
+            "Her Private Life",
         ],
         "genre",
     ),
@@ -72,47 +81,61 @@ SEARCH_TEST_CASES = [
             "Business Proposal",
             "What's Wrong with Secretary Kim",
             "Romance Is a Bonus Book",
+            "Her Private Life",
+            "King the Land",
         ],
         "genre",
     ),
-    ("thriller", ["Squid Game", "Signal", "Stranger"], "genre"),
-    ("crime thriller", ["Signal", "Stranger", "Beyond Evil"], "genre"),
-    ("historical", ["Mr. Sunshine", "Kingdom", "The Red Sleeve"], "genre"),
-    ("sageuk royal drama", ["The Red Sleeve", "Empress Ki", "Kingdom"], "genre"),
-    ("legal drama", ["Extraordinary Attorney Woo", "Law School", "Vincenzo"], "genre"),
-    ("school drama", ["True Beauty", "Dream High", "Extraordinary You"], "genre"),
-    ("fantasy romance", ["Guardian: The Lonely and Great God", "Hotel Del Luna", "Alchemy of Souls"], "genre"),
+    ("thriller", ["Squid Game", "Signal", "Stranger", "Beyond Evil", "Mouse"], "genre"),
+    ("crime thriller", ["Signal", "Stranger", "Beyond Evil", "Mouse", "Tunnel"], "genre"),
+    ("historical", ["Mr. Sunshine", "Kingdom", "The Red Sleeve", "Empress Ki", "Moon Lovers: Scarlet Heart Ryeo"], "genre"),
+    ("sageuk royal drama", ["The Red Sleeve", "Empress Ki", "Kingdom", "Moon Embracing the Sun", "Under the Queen's Umbrella"], "genre"),
+    ("legal drama", ["Extraordinary Attorney Woo", "Law School", "Vincenzo", "Lawless Lawyer", "Juvenile Justice"], "genre"),
+    ("school drama", ["True Beauty", "Dream High", "Extraordinary You", "Weak Hero Class 1", "School 2013"], "genre"),
+    (
+        "fantasy romance",
+        [
+            "Guardian: The Lonely and Great God",
+            "Hotel Del Luna",
+            "Alchemy of Souls",
+            "My Love from the Star",
+            "Tale of the Nine-Tailed",
+        ],
+        "genre",
+    ),
     ("zombie drama", ["All of Us Are Dead", "Kingdom", "Happiness"], "genre"),
-    ("revenge drama", ["The Glory", "Penthouse", "Eve"], "genre"),
+    ("revenge drama", ["The Glory", "Penthouse", "Eve", "Revenge of Others", "My Name"], "genre"),
     # Theme searches
-    ("north korea", ["Crash Landing on You"], "theme"),
-    ("restaurant food", ["Itaewon Class", "Wok of Love"], "theme"),
-    ("time travel", ["Signal", "Tomorrow with You"], "theme"),
-    ("contract marriage", ["Because This Is My First Life", "Marriage Contract"], "theme"),
-    ("rich CEO romance", ["Business Proposal", "What's Wrong with Secretary Kim"], "theme"),
-    ("school bullying revenge", ["The Glory"], "theme"),
-    ("law firm corruption", ["Vincenzo", "Law School", "Extraordinary Attorney Woo"], "theme"),
+    ("north korea", ["Crash Landing on You", "King2Hearts", "Snowdrop"], "theme"),
+    ("restaurant food", ["Itaewon Class", "Wok of Love", "Pasta", "Let's Eat"], "theme"),
+    ("time travel", ["Signal", "Tomorrow with You", "Nine: Nine Times Time Travel", "Rooftop Prince"], "theme"),
+    ("contract marriage", ["Because This Is My First Life", "Marriage Contract", "Love in Contract", "Full House"], "theme"),
+    ("rich CEO romance", ["Business Proposal", "What's Wrong with Secretary Kim", "Her Private Life", "King the Land"], "theme"),
+    ("school bullying revenge", ["The Glory", "Weak Hero Class 1", "Revenge of Others"], "theme"),
+    ("law firm corruption", ["Vincenzo", "Law School", "Extraordinary Attorney Woo", "Lawless Lawyer", "Hyena"], "theme"),
     ("ghost supernatural hotel", ["Hotel Del Luna", "The Master's Sun"], "theme"),
     ("survival game", ["Squid Game"], "theme"),
     ("workplace startup", ["Start-Up", "Misaeng"], "theme"),
-    ("healing slice of life", ["Hospital Playlist", "Our Blues", "My Mister"], "theme"),
+    ("healing slice of life", ["Hospital Playlist", "Our Blues", "My Mister", "Welcome to Samdal-ri", "Hometown Cha-Cha-Cha"], "theme"),
     # Actor searches
-    ("Hyun Bin", ["Crash Landing on You", "Memories of the Alhambra"], "actor"),
-    ("Park Seo Joon", ["Itaewon Class", "What's Wrong with Secretary Kim"], "actor"),
-    ("Song Joong Ki", ["Vincenzo", "Descendants of the Sun"], "actor"),
-    ("Kim Soo Hyun", ["My Love from the Star", "It's Okay to Not Be Okay"], "actor"),
-    ("Lee Min Ho", ["The Heirs", "The King: Eternal Monarch"], "actor"),
-    ("Ji Chang Wook", ["Healer", "Suspicious Partner"], "actor"),
-    ("IU", ["Hotel Del Luna", "My Mister"], "actor"),
-    ("Park Min Young", ["What's Wrong with Secretary Kim", "Her Private Life"], "actor"),
-    ("Song Hye Kyo", ["Descendants of the Sun", "The Glory"], "actor"),
-    ("Gong Yoo", ["Guardian: The Lonely and Great God", "Coffee Prince"], "actor"),
+    ("Hyun Bin", ["Crash Landing on You", "Memories of the Alhambra", "Secret Garden"], "actor"),
+    ("Park Seo Joon", ["Itaewon Class", "What's Wrong with Secretary Kim", "Fight for My Way"], "actor"),
+    ("Song Joong Ki", ["Vincenzo", "Descendants of the Sun", "Reborn Rich"], "actor"),
+    ("Kim Soo Hyun", ["My Love from the Star", "It's Okay to Not Be Okay", "Queen of Tears"], "actor"),
+    ("Lee Min Ho", ["The Heirs", "The King: Eternal Monarch", "Boys over Flowers"], "actor"),
+    ("Ji Chang Wook", ["Healer", "Suspicious Partner", "The K2"], "actor"),
+    ("IU", ["Hotel Del Luna", "My Mister", "Moon Lovers: Scarlet Heart Ryeo"], "actor"),
+    ("Park Min Young", ["What's Wrong with Secretary Kim", "Her Private Life", "Marry My Husband"], "actor"),
+    ("Song Hye Kyo", ["Descendants of the Sun", "The Glory", "Encounter"], "actor"),
+    ("Gong Yoo", ["Guardian: The Lonely and Great God", "Coffee Prince", "Big"], "actor"),
     # Typo / fuzzy title searches
     ("Crash Landng on You", ["Crash Landing on You"], "typo"),
     ("Hospitl Playlist", ["Hospital Playlist"], "typo"),
     ("Buisness Proposal", ["Business Proposal"], "typo"),
     ("Extraordinary Atorney Woo", ["Extraordinary Attorney Woo"], "typo"),
     ("Descendents of the Sun", ["Descendants of the Sun"], "typo"),
+    ("Agent Kim Reactivatd", ["Agent Kim Reactivated"], "typo"),
+    ("Phantom Lawer", ["Phantom Lawyer"], "typo"),
     # Vague queries (should return popular/relevant results)
     ("good drama", None, "vague"),  # Should return high-rated dramas
     ("best korean series", None, "vague"),
@@ -224,6 +247,10 @@ def evaluate_search_accuracy():
     results_by_category = defaultdict(
         lambda: {"precision": [], "recall": [], "mrr": [], "ndcg": []}
     )
+    # Regression check: a title search lists *similar* dramas, so the searched drama
+    # itself must never appear in its own results.
+    self_listing_checked = 0
+    self_listed = []
 
     for query, expected, category in SEARCH_TEST_CASES:
         try:
@@ -250,6 +277,10 @@ def evaluate_search_accuracy():
                 if category in ("specific_title", "typo"):
                     resolved =(data.get("debug") or {}).get("resolved_title")
                     if resolved:
+                        self_listing_checked += 1
+                        if resolved in titles:
+                            self_listed.append(query)
+                            print(f"\n✗ Query: '{query}' lists the searched drama '{resolved}' among its own similar results")
                         # Treat the resolved drama as the top hit, similar dramas after it.
                         titles = [resolved] + [t for t in titles if t != resolved]
 
@@ -280,6 +311,13 @@ def evaluate_search_accuracy():
                 f"\n✗ Query: '{query}' - Error: {e}"
             )  # Calculate average metrics per category
     print("\n" + "-" * 60)
+    print(
+        f"TITLE SELF-EXCLUSION: {self_listing_checked - len(self_listed)}/{self_listing_checked} "
+        "title searches keep the searched drama out of its own similar list"
+    )
+    if self_listed:
+        print(f"  ✗ Self-listed: {self_listed}")
+    print("-" * 60)
     print("SEARCH ACCURACY BY CATEGORY:")
     print("-" * 60)
 

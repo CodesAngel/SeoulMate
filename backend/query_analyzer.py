@@ -57,6 +57,7 @@ SYNONYMS = {
     "mystery": ["detective", "crime", "whodunit", "investigation"],
     "family": ["wholesome", "heartwarming", "slice of life", "warm"],
     "office": ["workplace", "career", "business", "corporate"],
+    "workplace": ["office", "career", "corporate"],
     "school": ["youth", "high school", "college", "campus", "student"],
     "medical": ["doctor", "hospital", "healthcare", "surgeon"],
     "law": ["legal", "lawyer", "attorney", "court", "justice"],

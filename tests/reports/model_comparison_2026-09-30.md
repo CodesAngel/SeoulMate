@@ -13,6 +13,7 @@ Measured with `tests/evaluation/evaluate_accuracy.py` against the same backend c
 | Live system after year-filter, typo-scoring and typo-resolution fixes (2026-10-01) | 84.32% |
 | Live system after seed-drama fix + evaluator label fixes (2026-10-01) | 85.95% |
 | Live system after curated-title name matching (2026-10-01) | **86.24%** |
+| Same system, expanded test set (61 scored searches, 2026-10-01) | **87.92%** |
 
 **Decision (2026-10-01):** production now runs the production models (`sbert-finetuned-full` + `cross-enc-excellent`, 88 MB reranker) with the new 2,081-drama index. training-new scored 0.4 points higher, which is within noise for ~80 test queries, but needs a 2.2 GB reranker. The old 1,922-drama index is kept in `training/faiss_index.bak`. Details and the before/after-fix numbers are below.
 
@@ -160,3 +161,34 @@ Title and typo tests are now at their ceiling. The remaining gap is genre/theme/
 | Avg response time | 69 ms | 77 ms |
 
 Misaeng now ranks #3 for "workplace startup" and #4 for "office life". Still open: "workplace drama" doesn't surface it, because "drama" is detected as a genre and the query never reaches the office/workplace priors.
+
+## Follow-up (2026-10-01): expanded test set + "drama" genre experiment
+
+### Expanded test set (`tests/evaluation/evaluate_accuracy.py`)
+
+- **Wider expected lists:** genre tests now accept 4–5 dramas, theme tests 3–5, actor tests 3. Added titles were chosen as well-known dramas that fit the query and checked against the dataset's genre/keywords (or cast, for actors) — not taken from the system's output. E.g. "medical drama" adds *Dr. Romantic* and *Doctors*; "time travel" adds *Nine: Nine Times Time Travel* and *Rooftop Prince*; Gong Yoo adds *Big*.
+- **New dramas covered:** title tests for five 2026 dramas from the new index (*Teach You a Lesson*, *Agent Kim Reactivated*, *Yumi's Cells Season 3*, *The Legend of Kitchen Soldier*, *Phantom Lawyer*) and two typo tests ("Agent Kim Reactivatd", "Phantom Lawer"). All resolve correctly.
+- **Self-listing regression check:** every title search verifies that the searched drama doesn't appear in its own similar list (the bug fixed earlier today). Currently 27/27 pass. Reported separately; not part of the overall score.
+- Scored searches: 54 → 61. Best achievable Precision@3: 61.7% → 68.3%.
+
+Same backend, both test sets:
+
+| Metric | Old set (54) | New set (61) |
+|---|---|---|
+| **Overall accuracy** | 86.24% | **87.92%** |
+| Precision@3 | 55.56% | 62.30% |
+| Recall@10 | 99.38% | 95.63% |
+| MRR | 0.969 | 0.992 |
+| NDCG@10 | 0.979 | 0.961 |
+
+Scores from the two sets aren't comparable with each other; from here on, figures use the new set.
+
+### "Drama" as a genre — tried and reverted
+
+Queries like "workplace drama" detect the genres Business **and** Drama. The genre filter uses OR logic, and ~1,200 of 2,081 dramas carry the Drama tag, so it barely filters. Experiment: ignore "Drama" for filtering/boosting whenever a more specific genre is detected. Result: **worse** — old set 86.24% → 85.73%, new set 87.92% → 87.31%, genre Precision@3 92.3% → 84.6% (e.g. "doctor hospital drama" lost *Doctor Cha* and *Dr. Romantic* for *Hospital Ship* and *Doctor Prisoner*; "sad emotional drama" lost *My Mister*). The Drama boost works as a rough popularity signal, since well-known series usually carry the tag. Reverted.
+
+### Workplace queries
+
+The actual cause of "workplace drama" missing workplace dramas was that curated setting priors are matched against the raw query, and only the word "office" triggered the Office list. Added a "Workplace" setting prior (same titles as Office) and a `workplace` → office/career synonym in `query_analyzer.py`. "workplace drama" now returns *Business Proposal*, *What's Wrong with Secretary Kim*, *Her Private Life*, *Forecasting Love and Weather*, *Agency*, *Misaeng: Incomplete Life* (previously *The Queen of Office*, *The King of Dramas*, *Top Management*, ...). Test scores unchanged (no test uses that query).
+
+Noted for later: the similar dramas for *Yumi's Cells Season 3* are *Live* and *Jun & Jun* rather than earlier Yumi's Cells seasons.
