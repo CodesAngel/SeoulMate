@@ -16,13 +16,13 @@ Latest live backend reference (2026-10-01; production models with the 2,081-dram
 
 | Metric | Score |
 | --- | ---: |
-| Overall Accuracy | `85.95%` |
-| Precision@3 | `54.94%` |
-| Recall@10 | `98.46%` |
+| Overall Accuracy | `86.24%` |
+| Precision@3 | `55.56%` |
+| Recall@10 | `99.38%` |
 | MRR | `0.969` |
-| NDCG@10 | `0.974` |
+| NDCG@10 | `0.979` |
 | Filter Success Rate | `100%` |
-| Avg Response Time (uncached) | `69 ms` |
+| Avg Response Time (uncached) | `77 ms` |
 
 Precision@3 can reach at most 61.7% on this test set, because many tests list only one or two expected titles. The earlier `88.50%` figure predates the 2026-07-24 title-search changes and the evaluator fix, so it is not directly comparable. Full comparison: [tests/reports/model_comparison_2026-09-30.md](tests/reports/model_comparison_2026-09-30.md).
 

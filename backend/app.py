@@ -15,6 +15,8 @@ import time
 import json
 import re
 import random
+import unicodedata
+from collections import defaultdict
 from pathlib import Path
 import sys
 
@@ -363,6 +365,65 @@ TITLE_ALIASES = GENERATED_TITLE_ALIASES | QUERY_INTENT_PRIORS.get(
     "manual_title_aliases", {}
 )
 
+
+def fold_title(name: str) -> str:
+    """Lowercase, strip accents and punctuation: 'Twenty-Five Twenty-One' -> 'twentyfivetwentyone'."""
+    name = unicodedata.normalize("NFKD", str(name)).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def build_canonical_title_map(dramas, aliases):
+    """Map alternate names used in curated configs (e.g. 'Misaeng') to dataset titles.
+
+    Sources, in priority order: manual/generated title aliases, the dataset's
+    'Also Known As' names, then title variants (punctuation-folded, either side of
+    a colon, with/without a leading 'The'). A name is only mapped when it points
+    to exactly one drama.
+    """
+    exact = {fold_title(m["Title"]): m["Title"] for m in dramas}
+    mapping = {}
+
+    def add_unique(groups):
+        for key, values in groups.items():
+            if key and key not in exact and key not in mapping and len(set(values)) == 1:
+                mapping[key] = values[0]
+
+    for alias, target in aliases.items():
+        if fold_title(target) in exact:
+            add_unique({fold_title(alias): [exact[fold_title(target)]]})
+
+    aka = defaultdict(list)
+    for m in dramas:
+        for name in str(m.get("Also Known As", "") or "").split(","):
+            aka[fold_title(name)].append(m["Title"])
+    add_unique(aka)
+
+    variants = defaultdict(list)
+    for title in exact.values():
+        for part in title.split(":"):
+            variants[fold_title(part)].append(title)
+            variants[fold_title(re.sub(r"^\s*the\s+", "", part, flags=re.I))].append(title)
+    add_unique(variants)
+    return exact, mapping
+
+
+CANONICAL_EXACT_TITLES, CANONICAL_TITLE_MAP = build_canonical_title_map(metadata, TITLE_ALIASES)
+CANONICAL_LOWER_TITLES = {m["Title"].lower(): m["Title"] for m in metadata}
+
+
+def canonical_title(name: str) -> str:
+    """Dataset title for a curated-config name; returns the name unchanged if unknown."""
+    exact = CANONICAL_LOWER_TITLES.get(str(name).strip().lower())
+    if exact:
+        return exact
+    key = fold_title(name)
+    for candidate in (key, f"the{key}", re.sub(r"^the", "", key)):
+        if candidate in CANONICAL_EXACT_TITLES:
+            return CANONICAL_EXACT_TITLES[candidate]
+        if candidate in CANONICAL_TITLE_MAP:
+            return CANONICAL_TITLE_MAP[candidate]
+    return name
+
 CURATED_PRIORS = load_ranking_config("curated_priors.json")
 GENRE_PRIOR_SOURCE = os.environ.get(
     "SEOULMATE_GENRE_PRIOR_SOURCE",
@@ -461,7 +522,7 @@ SIMILAR_TITLE_PRIORS = (
     | QUERY_INTENT_PRIORS.get("similar_title_priors", {})
 )
 SIMILAR_TITLE_PRIORS_NORMALIZED = {
-    key.strip().lower(): value for key, value in SIMILAR_TITLE_PRIORS.items()
+    canonical_title(key).strip().lower(): value for key, value in SIMILAR_TITLE_PRIORS.items()
 }
 
 GENERATED_QUERY_PROFILES = [
@@ -685,7 +746,7 @@ def add_prior_title_boosts(
     """Add or increase scores for curated high-signal matches."""
     title_lookup = {m.get("Title", "").lower(): m for m in filtered_metadata}
     for rank, prior_title in enumerate(prior_titles):
-        drama = title_lookup.get(prior_title.lower())
+        drama = title_lookup.get(canonical_title(prior_title).lower())
         if not drama:
             continue
         title_key = drama["Title"]
@@ -916,7 +977,7 @@ def apply_similar_title_priors(seed_title, ranked_results, candidates):
 
     prioritized = []
     for prior_title in prior_titles:
-        key = prior_title.lower()
+        key = canonical_title(prior_title).lower()
         drama = ranked_lookup.get(key) or candidate_lookup.get(key)
         if drama and drama.get("Title", "").strip().lower() != seed_key:
             prioritized.append(drama)

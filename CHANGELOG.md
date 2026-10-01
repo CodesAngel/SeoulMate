@@ -22,6 +22,7 @@ Important project history reconstructed from Git commits and project documentati
 - `is_special_or_meta_title` now checks only the title (whole words) and a Documentary genre instead of descriptions, flagging 8 dramas instead of 232; `special_title_terms` "behind" narrowed to "behind the scenes".
 - Evaluator: the resolved title is always ranked first, and "Goblin" tests use the dataset title *Guardian: The Lonely and Great God*.
 - Live score: **85.95%** (Precision@3 54.94%, Recall@10 98.46%, MRR 0.969, NDCG@10 0.974, 69 ms avg). Precision@3's best possible value on this test set is 61.7% because many tests list only 1–2 expected titles; title and typo tests are now at that ceiling. Analysis in `tests/reports/model_comparison_2026-09-30.md`.
+- Curated ranking priors now match dataset titles by alternate names: 164 config references across 44 names (e.g. "Misaeng", "Goblin", "Twenty Five Twenty One", "Heartless City") never matched the dataset's titles and silently gave no boost. A startup name map (`canonical_title`) resolves them via title aliases, the dataset's "Also Known As" names, and unambiguous title variants; added `I Am Not a Robot` and `Chief Kim` as manual aliases. Live score: **86.24%** (theme Precision@3 48.5% → 51.5%; Misaeng now appears for "workplace startup" and "office life").
 
 ## 2026-09-30
 

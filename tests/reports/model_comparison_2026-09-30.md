@@ -11,7 +11,8 @@ Measured with `tests/evaluation/evaluate_accuracy.py` against the same backend c
 | training-new, new index (2,081 dramas) | 78.75% |
 | Production models + new index (2,081 dramas) | 78.35% |
 | Live system after year-filter, typo-scoring and typo-resolution fixes (2026-10-01) | 84.32% |
-| Live system after seed-drama fix + evaluator label fixes (2026-10-01) | **85.95%** |
+| Live system after seed-drama fix + evaluator label fixes (2026-10-01) | 85.95% |
+| Live system after curated-title name matching (2026-10-01) | **86.24%** |
 
 **Decision (2026-10-01):** production now runs the production models (`sbert-finetuned-full` + `cross-enc-excellent`, 88 MB reranker) with the new 2,081-drama index. training-new scored 0.4 points higher, which is within noise for ~80 test queries, but needs a 2.2 GB reranker. The old 1,922-drama index is kept in `training/faiss_index.bak`. Details and the before/after-fix numbers are below.
 
@@ -139,3 +140,23 @@ Precision@3 counts how many of the top 3 results are in a test's expected list, 
 | **All** | 54 | **61.7%** | 52.5% | 54.9% |
 
 Title and typo tests are now at their ceiling. The remaining gap is genre/theme/actor queries whose top 3 contain good results that aren't in the 2–3-title expected list (e.g. *Dr. Romantic* for "medical drama", *Mouse* for "crime thriller", *Lawless Lawyer* for "law firm corruption"). Raising Precision@3 further means either widening those expected lists or tuning rankings to match them — the first is a test-design choice, the second risks overfitting to the test.
+
+## Follow-up (2026-10-01): theme searches and curated-title name matching
+
+**Theme misses reviewed.** Of the five theme tests below their ceiling, four already had every expected title in the top 10 with the correct first result (MRR 1.0); the top 3 held other fitting dramas, e.g. *Nine: Nine Times Time Travel* for "time travel" (the test expects *Signal*, which is about linked timelines rather than time travel), and *Late Night Restaurant* / *Pasta* for "restaurant food" (the test expects *Itaewon Class*, which has no food genre or keywords). These were left alone to avoid tuning rankings to the test. The real miss was *Misaeng* not appearing in the top 10 for "workplace startup", nor at all for "office life".
+
+**Root cause: curated priors referenced titles that don't exist in the dataset.** The ranking config files list titles by name, and the backend looked them up by exact (case-insensitive) title. 164 references across 44 names never matched, so those dramas silently got no curated boost — e.g. "Misaeng" (dataset: *Misaeng: Incomplete Life*, 9 references), "Goblin" (27), "Twenty Five Twenty One" (21), "Arthdal Chronicles", "Moon Lovers", "Heartless City" (dataset: *Cruel City*).
+
+**Fix (`backend/app.py`):** a name map built at startup (`build_canonical_title_map` / `canonical_title`) resolves config names to dataset titles using the title aliases, the dataset's own "Also Known As" names, and title variants (punctuation/accents ignored, either side of a colon, with/without a leading "The"). A name is only mapped when it points to exactly one drama, and exact titles always map to themselves. It is applied in `add_prior_title_boosts`, `apply_similar_title_priors` and the similar-title prior keys. Two ambiguous names were added as explicit aliases (`I Am Not a Robot`, `Chief Kim`). Result: 190 config references now resolve; 6 remain unresolved, all films or titles not in the dataset.
+
+| Metric | Before (85.95% run) | After |
+|---|---|---|
+| **Overall accuracy** | 85.95% | **86.24%** |
+| Precision@3 | 54.94% | 55.56% |
+| Recall@10 | 98.46% | 99.38% |
+| MRR | 0.969 | 0.969 |
+| NDCG@10 | 0.974 | 0.979 |
+| Theme Precision@3 | 48.5% | 51.5% |
+| Avg response time | 69 ms | 77 ms |
+
+Misaeng now ranks #3 for "workplace startup" and #4 for "office life". Still open: "workplace drama" doesn't surface it, because "drama" is detected as a genre and the query never reaches the office/workplace priors.
