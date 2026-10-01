@@ -809,6 +809,13 @@ def extract_similar_to_title(query: str, candidates):
     return None, None
 
 
+def drama_aired_in_year(drama, year):
+    """True if `year` falls within the drama's aired range, e.g. 'Dec 10, 2019 - Jan 11, 2020'."""
+    aired = str(drama.get("Release Years", drama.get("aired", "")) or "")
+    years = [int(y) for y in re.findall(r"\b(?:19|20)\d{2}\b", aired)]
+    return bool(years) and min(years) <= year <= max(years)
+
+
 def split_metadata_terms(value):
     return {
         part.strip().lower()
@@ -1069,6 +1076,7 @@ def recommend(
     description=None,
     rating_value=None,
     rating_count=None,
+    year=None,
     keywords=None,
     screenwriters=None,
     sort_by=None,
@@ -1131,6 +1139,7 @@ def recommend(
             "publisher": publisher,
             "rating_value": rating_value,
             "rating_count": rating_count,
+            "year": year,
             "top_rated": top_rated,
             "description": description,
             "keywords": keywords,
@@ -1277,6 +1286,8 @@ def recommend(
             ]
         except Exception:
             pass
+    if year:
+        filtered_metadata = [r for r in filtered_metadata if drama_aired_in_year(r, int(year))]
     if keywords:
         keyword_terms = keyword_filter_terms(keywords)
         original_keyword_filtered = [
@@ -1363,6 +1374,7 @@ def recommend(
                 "description": description,
                 "rating_value": rating_value,
                 "rating_count": rating_count,
+                "year": year,
                 "keywords": keywords,
                 "screenwriters": screenwriters,
                 "sort_by": sort_by,
@@ -2279,6 +2291,7 @@ def recommend(
             "description": description,
             "rating_value": rating_value,
             "rating_count": rating_count,
+            "year": year,
             "keywords": keywords,
             "screenwriters": screenwriters,
             "sort_by": sort_by,
@@ -2308,6 +2321,7 @@ def recommend(
             "publisher": publisher,
             "rating_value": rating_value,
             "rating_count": rating_count,
+            "year": year,
             "top_rated": top_rated,
             "description": description,
             "keywords": keywords,
@@ -2386,6 +2400,7 @@ def get_recommendations(
     description: str = Query(None, description="Description keyword filter"),
     rating_value: float = Query(None, description="Minimum rating value"),
     rating_count: float = Query(None, description="Minimum rating count"),
+    year: int = Query(None, description="Release year (matches dramas airing in that year)"),
     keywords: str = Query(None, description="Keywords filter"),
     screenwriters: str = Query(None, description="Screenwriters filter"),
     sort_by: str = Query(
@@ -2418,6 +2433,7 @@ def get_recommendations(
         description=description,
         rating_value=rating_value,
         rating_count=rating_count,
+        year=year,
         keywords=keywords,
         screenwriters=screenwriters,
         sort_by=sort_by,

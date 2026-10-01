@@ -21,6 +21,7 @@ if sys.platform == "win32":
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 
+import re
 import requests
 import time
 from typing import List, Dict, Tuple
@@ -227,8 +228,8 @@ def evaluate_search_accuracy():
     for query, expected, category in SEARCH_TEST_CASES:
         try:
             params = {"title": query, "top_n": 10}
-            if category == "specific_title":
-                # Title searches run in title_similarity mode: the backend resolves the
+            if category in ("specific_title", "typo"):
+                # Title searches (including misspelled ones) run in title_similarity mode: the backend resolves the
                 # searched drama and lists *similar* dramas, excluding the drama itself.
                 # debug exposes the resolved title so we can score the lookup.
                 params["debug"] = "true"
@@ -246,8 +247,8 @@ def evaluate_search_accuracy():
 
                 titles = [r["Title"] for r in results]
 
-                if category == "specific_title":
-                    resolved = (data.get("debug") or {}).get("resolved_title")
+                if category in ("specific_title", "typo"):
+                    resolved =(data.get("debug") or {}).get("resolved_title")
                     if resolved and resolved not in titles:
                         # Treat the resolved drama as the top hit, similar dramas after it.
                         titles = [resolved] + titles
@@ -422,7 +423,16 @@ def evaluate_filter_accuracy():
                 if "expected_year" in test_case:
                     year = test_case["expected_year"]
                     for r in results:
-                        if str(year) not in str(r.get("Year", "")):
+                        # Metadata stores the aired range, e.g. "Dec 10, 2019 - Jan 11, 2020"
+                        aired_years = [
+                            int(y)
+                            for y in re.findall(
+                                r"\b(?:19|20)\d{2}\b", str(r.get("Release Years", ""))
+                            )
+                        ]
+                        if not aired_years or not (
+                            min(aired_years) <= year <= max(aired_years)
+                        ):
                             test_passed = False
                             break
 

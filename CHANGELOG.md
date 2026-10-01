@@ -8,7 +8,14 @@ Important project history reconstructed from Git commits and project documentati
 
 - `training/faiss_index` now holds the index rebuilt from `data/final/kdrama_dataset.csv` (2,081 dramas, 78.35% on `evaluate_accuracy.py`), used with the existing production models (`sbert-finetuned-full` + `cross-enc-excellent`). No backend code change was needed.
 - Chosen over `training-new` (78.75%): the 0.4-point difference is within noise, and production's 88 MB reranker is far lighter than training-new's 2.2 GB one.
-- Previous 1,922-drama index kept in `training/faiss_index.bak` for rollback.
+- Previous 1,922-drama index kept in `training/faiss_index.bak` for rollback. Verified in the running app: newly added dramas resolve by title (including `&` titles that were previously stored as `&amp;`); the ~209 titles no longer in the index are variety/reality shows removed by the scraper's TV-program cleanup.
+
+### Year Filter and Typo Scoring
+
+- Added a `year` filter to `/recommend`: previously `year=2020` was silently ignored because the endpoint had no such parameter. It matches dramas whose aired range (`Release Years`) includes that year, and is part of the result cache key.
+- `tests/evaluation/evaluate_accuracy.py`: the year test now checks `Release Years` (it checked a non-existent `Year` field), and typo queries use the same `resolved_title` scoring as exact-title queries.
+- Live system score: **83.76%** (up from 78.35%), filter success rate 100%. Remaining gap: "Hospitl Playlist" isn't resolved because the fuzzy title threshold is 95%.
+- Updated `training/README.md` with the current production artifacts and rollback steps.
 
 ## 2026-09-30
 

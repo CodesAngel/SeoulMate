@@ -58,6 +58,24 @@ Precision@3 by category:
 
 A (current production) stays live. C is effectively tied with A, not worse as first reported under the stale evaluator. B (rebuilt index) is not adopted until its rating-filter and typo regressions are understood.
 
+## Follow-up (2026-10-01): year filter + typo scoring
+
+Run on the live setup (production models + 2,081-drama index):
+
+- **Year filter added:** `/recommend` had no `year` parameter, so `year=2020` was silently ignored, and the evaluator checked a `Year` field that doesn't exist. The backend now accepts `year` and keeps dramas whose aired range (`Release Years`, e.g. "Dec 10, 2019 - Jan 11, 2020") includes it; the evaluator checks the same field.
+- **Typo scoring:** misspelled titles run in the same `title_similarity` mode as exact titles, so typo queries now use the same `resolved_title` scoring.
+
+| Metric | Before | After |
+|---|---|---|
+| **Overall accuracy** | 78.35% | **83.76%** |
+| Precision@3 | 50.00% | 51.85% |
+| Recall@10 | 89.51% | 95.06% |
+| MRR | 0.845 | 0.900 |
+| NDCG@10 | 0.855 | 0.910 |
+| Filter success rate | 75% | 100% |
+
+Still open: "Hospitl Playlist" fails because the backend's fuzzy title match needs 95% similarity and resolves to "Love Playlist" instead. Average response time now reads ~600 ms because title tests use `debug=true` (which skips the cache), so the performance test measures uncached searches; the earlier ~60 ms figures were cache hits.
+
 ## Follow-up: training-new index rebuilt on 2,081 dramas + rating-filter fix
 
 - Rebuilt training-new's four indexes (main, genre, actor, theme) from `data/final/kdrama_dataset.csv` with the existing fine-tuned E5 model — no retraining. `training-new/steps/enhanced_index_builder.py` now reads CSV and defaults to the `output/` paths. Old index kept in `training-new/output/faiss_index.bak`.
