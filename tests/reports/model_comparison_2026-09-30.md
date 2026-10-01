@@ -10,6 +10,7 @@ Measured with `tests/evaluation/evaluate_accuracy.py` against the same backend c
 | training-new, old index (1,823 dramas) | 79.03% |
 | training-new, new index (2,081 dramas) | 78.75% |
 | Production models + new index (2,081 dramas) | 78.35% |
+| Live system after year-filter, typo-scoring and typo-resolution fixes (2026-10-01) | **84.32%** |
 
 **Decision (2026-10-01):** production now runs the production models (`sbert-finetuned-full` + `cross-enc-excellent`, 88 MB reranker) with the new 2,081-drama index. training-new scored 0.4 points higher, which is within noise for ~80 test queries, but needs a 2.2 GB reranker. The old 1,922-drama index is kept in `training/faiss_index.bak`. Details and the before/after-fix numbers are below.
 
@@ -74,7 +75,22 @@ Run on the live setup (production models + 2,081-drama index):
 | NDCG@10 | 0.855 | 0.910 |
 | Filter success rate | 75% | 100% |
 
-Still open: "Hospitl Playlist" fails because the backend's fuzzy title match needs 95% similarity and resolves to "Love Playlist" instead. Average response time now reads ~600 ms because title tests use `debug=true` (which skips the cache), so the performance test measures uncached searches; the earlier ~60 ms figures were cache hits.
+## Follow-up (2026-10-01): typo title fix + timing re-run
+
+- **"Hospitl Playlist" root cause:** not the 95% threshold — it scores 97 and the first resolution step matched "Hospital Playlist". Stage 4.2 of `recommend()` then re-resolved the title with only exact/alias matching, discarding the fuzzy match, so a looser typo resolver (`token_set_ratio` ≥ 74) took over and picked "Love Playlist". (That resolver also skips "Hospital Playlist" because its description contains the word "special", which is in `special_title_terms`.) Fixed in `backend/app.py`: Stage 4.2 now reuses the Stage 4.1 match when it survives filtering. No threshold changed.
+- **Timing:** re-run with 6.6 GB free RAM (previous run had 1.7 GB). Average uncached response time 156 ms (min 18, max 302), down from 606 ms.
+
+| Metric | Before (83.76% run) | After |
+|---|---|---|
+| **Overall accuracy** | 83.76% | **84.32%** |
+| Precision@3 | 51.85% | 52.47% |
+| Recall@10 | 95.06% | 96.91% |
+| MRR | 0.900 | 0.919 |
+| NDCG@10 | 0.910 | 0.929 |
+| Filter success rate | 100% | 100% |
+| Avg response time | 606 ms | 156 ms |
+
+All 5 typo queries now return the intended drama first.
 
 ## Follow-up: training-new index rebuilt on 2,081 dramas + rating-filter fix
 

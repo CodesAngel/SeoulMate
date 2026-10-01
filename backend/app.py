@@ -1397,6 +1397,12 @@ def recommend(
     drama = next(
         (m for m in filtered_metadata if m["Title"].lower() == title.lower()), None
     )
+    if not drama and title_resolution_match:
+        # Reuse the high-confidence fuzzy match from Stage 4.1 if it survived filtering
+        drama = next(
+            (m for m in filtered_metadata if m["Title"] == title_resolution_match["Title"]),
+            None,
+        )
     resolved_title_match = drama or resolve_title_alias(title, filtered_metadata)
     if resolved_title_match:
         drama = resolved_title_match

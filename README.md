@@ -12,14 +12,19 @@ The system combines semantic search, lexical search, calibrated ranking indexes,
 
 ## Current Performance
 
-Latest stable backend reference:
+Latest live backend reference (2026-10-01; production models with the 2,081-drama index):
 
 | Metric | Score |
 | --- | ---: |
-| Overall Accuracy | `88.50%` |
-| Precision@3 | `63.58%` |
-| Recall@10 | `98.46%` |
-| MRR | `0.963` |
+| Overall Accuracy | `84.32%` |
+| Precision@3 | `52.47%` |
+| Recall@10 | `96.91%` |
+| MRR | `0.919` |
+| NDCG@10 | `0.929` |
+| Filter Success Rate | `100%` |
+| Avg Response Time (uncached) | `156 ms` |
+
+The earlier `88.50%` figure predates the 2026-07-24 title-search changes and the evaluator fix, so it is not directly comparable. Full comparison: [tests/reports/model_comparison_2026-09-30.md](tests/reports/model_comparison_2026-09-30.md).
 
 The default backend uses curated ranking priors with calibrated generated fallback support. Generated-only replacement is still experimental and is not the production default.
 

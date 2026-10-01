@@ -14,8 +14,10 @@ Important project history reconstructed from Git commits and project documentati
 
 - Added a `year` filter to `/recommend`: previously `year=2020` was silently ignored because the endpoint had no such parameter. It matches dramas whose aired range (`Release Years`) includes that year, and is part of the result cache key.
 - `tests/evaluation/evaluate_accuracy.py`: the year test now checks `Release Years` (it checked a non-existent `Year` field), and typo queries use the same `resolved_title` scoring as exact-title queries.
-- Live system score: **83.76%** (up from 78.35%), filter success rate 100%. Remaining gap: "Hospitl Playlist" isn't resolved because the fuzzy title threshold is 95%.
+- Live system score: **83.76%** (up from 78.35%), filter success rate 100%. Remaining gap at that point: "Hospitl Playlist".
+- Fixed typo title resolution: `recommend()` matched near-miss titles (fuzzy ≥ 95) but then re-resolved the title with exact/alias matching only, discarding the match, so e.g. "Hospitl Playlist" fell through to a looser resolver and became "Love Playlist". Stage 4.2 now reuses the earlier match. Live score: **84.32%**; all 5 typo queries resolve correctly. Average uncached response time re-measured at 156 ms with normal free RAM (the 606 ms reading was taken at 1.7 GB free).
 - Updated `training/README.md` with the current production artifacts and rollback steps.
+- Updated the root `README.md` performance table to the live 84.32% results; the old 88.50% figure predates the title-search changes and evaluator fix.
 
 ## 2026-09-30
 

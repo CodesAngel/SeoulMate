@@ -37,7 +37,7 @@ What `backend/app.py` loads (via `TRAINING_DIR = training/`), as of 2026-10-01:
 
 To pick up new data, only the index needs rebuilding (`--mode build-index`); the models don't need
 retraining unless accuracy drops. Back up `faiss_index/` first — step 3 overwrites it in place —
-and re-run `tests/evaluation/evaluate_accuracy.py` afterwards. Current score: **83.76%** (full
+and re-run `tests/evaluation/evaluate_accuracy.py` afterwards. Current score: **84.32%** (full
 comparison in `tests/reports/model_comparison_2026-09-30.md`).
 
 ## Standalone / future scripts (NOT called by `train_pipeline.py`)
