@@ -10,7 +10,8 @@ Measured with `tests/evaluation/evaluate_accuracy.py` against the same backend c
 | training-new, old index (1,823 dramas) | 79.03% |
 | training-new, new index (2,081 dramas) | 78.75% |
 | Production models + new index (2,081 dramas) | 78.35% |
-| Live system after year-filter, typo-scoring and typo-resolution fixes (2026-10-01) | **84.32%** |
+| Live system after year-filter, typo-scoring and typo-resolution fixes (2026-10-01) | 84.32% |
+| Live system after seed-drama fix + evaluator label fixes (2026-10-01) | **85.95%** |
 
 **Decision (2026-10-01):** production now runs the production models (`sbert-finetuned-full` + `cross-enc-excellent`, 88 MB reranker) with the new 2,081-drama index. training-new scored 0.4 points higher, which is within noise for ~80 test queries, but needs a 2.2 GB reranker. The old 1,922-drama index is kept in `training/faiss_index.bak`. Details and the before/after-fix numbers are below.
 
@@ -107,3 +108,34 @@ All 5 typo queries now return the intended drama first.
 D after the fix: Precision@3 50.62%, Recall@10 89.51%, MRR 0.823, NDCG@10 0.866, filter success 75%, avg response 97 ms.
 
 The remaining ~0.5-point gap between old and rebuilt indexes comes from NDCG/typo queries: the ~160–260 extra dramas add more candidates that compete with the expected results.
+
+## Follow-up (2026-10-01): seed-drama bug, special-title filter, Precision@3 analysis
+
+- **Seed-drama bug (backend):** six boost loops in `recommend()` (genre, theme, actor, keyword, quality) used `drama` as their loop variable, overwriting the searched drama. Whenever a title query also triggered a boost (e.g. "Attorney" → Law genre, "Hospital" → Medical), title-similarity mode removed and scored against the wrong drama. Effects: "Extraordinary Attorney Woo" appeared at rank 8 of its own similar list; "Hospital Playlist" returned *Life* and *A Poem a Day* as similar dramas (now *Dr. Romantic*, *Doctor Cha*). Fixed by renaming the loop variable to `candidate`.
+- **Special-title filter (backend):** `is_special_or_meta_title` searched descriptions, flagging 232 of 2,081 dramas (e.g. Hospital Playlist, whose description says "special"), which hid them from typo matching. It now checks only a Documentary genre or whole-word terms in the title (`special`, `making film`, `behind the scenes`, `documentary`, `SP`), flagging 8 — all genuine specials/documentaries. `behind` in `query_intent_priors.json` narrowed to `behind the scenes` so *Terius behind Me* / *Behind Your Touch* aren't flagged.
+- **Evaluator fixes:** the resolved title is now always moved to rank 1 (it was only prepended when absent, so a seed leaking into its own list was scored at its leaked rank). "Goblin" expectations now use the dataset's official title, *Guardian: The Lonely and Great God* — the backend already returned it, but the test only accepted the string "Goblin" (affected the Goblin, fantasy romance and Gong Yoo tests).
+
+| Metric | Before (84.32% run) | After |
+|---|---|---|
+| **Overall accuracy** | 84.32% | **85.95%** |
+| Precision@3 | 52.47% | 54.94% |
+| Recall@10 | 96.91% | 98.46% |
+| MRR | 0.919 | 0.969 |
+| NDCG@10 | 0.929 | 0.974 |
+| Filter success rate | 100% | 100% |
+| Avg response time | 156 ms | 69 ms |
+
+### Why Precision@3 stays near 55%
+
+Precision@3 counts how many of the top 3 results are in a test's expected list, so a test with one expected title can score at most 33%. Across the 54 scored search tests the **best achievable Precision@3 is 61.7%**:
+
+| Category | Tests | Max possible | Before | After |
+|---|---|---|---|---|
+| specific_title | 15 | 33.3% | 28.9% | 33.3% |
+| typo | 5 | 33.3% | 33.3% | 33.3% |
+| genre | 13 | 100% | 82.1% | 84.6% |
+| theme | 11 | 63.6% | 48.5% | 48.5% |
+| actor | 10 | 66.7% | 63.3% | 66.7% |
+| **All** | 54 | **61.7%** | 52.5% | 54.9% |
+
+Title and typo tests are now at their ceiling. The remaining gap is genre/theme/actor queries whose top 3 contain good results that aren't in the 2–3-title expected list (e.g. *Dr. Romantic* for "medical drama", *Mouse* for "crime thriller", *Lawless Lawyer* for "law firm corruption"). Raising Precision@3 further means either widening those expected lists or tuning rankings to match them — the first is a test-design choice, the second risks overfitting to the test.

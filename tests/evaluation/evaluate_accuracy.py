@@ -44,7 +44,7 @@ SEARCH_TEST_CASES = [
     ("Hospital Playlist", ["Hospital Playlist"], "specific_title"),
     ("Squid Game", ["Squid Game"], "specific_title"),
     ("Business Proposal", ["Business Proposal"], "specific_title"),
-    ("Goblin", ["Goblin"], "specific_title"),
+    ("Goblin", ["Guardian: The Lonely and Great God"], "specific_title"),  # Goblin's official English title in the dataset
     ("Descendants of the Sun", ["Descendants of the Sun"], "specific_title"),
     ("Vincenzo", ["Vincenzo"], "specific_title"),
     ("Extraordinary Attorney Woo", ["Extraordinary Attorney Woo"], "specific_title"),
@@ -81,7 +81,7 @@ SEARCH_TEST_CASES = [
     ("sageuk royal drama", ["The Red Sleeve", "Empress Ki", "Kingdom"], "genre"),
     ("legal drama", ["Extraordinary Attorney Woo", "Law School", "Vincenzo"], "genre"),
     ("school drama", ["True Beauty", "Dream High", "Extraordinary You"], "genre"),
-    ("fantasy romance", ["Goblin", "Hotel Del Luna", "Alchemy of Souls"], "genre"),
+    ("fantasy romance", ["Guardian: The Lonely and Great God", "Hotel Del Luna", "Alchemy of Souls"], "genre"),
     ("zombie drama", ["All of Us Are Dead", "Kingdom", "Happiness"], "genre"),
     ("revenge drama", ["The Glory", "Penthouse", "Eve"], "genre"),
     # Theme searches
@@ -106,7 +106,7 @@ SEARCH_TEST_CASES = [
     ("IU", ["Hotel Del Luna", "My Mister"], "actor"),
     ("Park Min Young", ["What's Wrong with Secretary Kim", "Her Private Life"], "actor"),
     ("Song Hye Kyo", ["Descendants of the Sun", "The Glory"], "actor"),
-    ("Gong Yoo", ["Goblin", "Coffee Prince"], "actor"),
+    ("Gong Yoo", ["Guardian: The Lonely and Great God", "Coffee Prince"], "actor"),
     # Typo / fuzzy title searches
     ("Crash Landng on You", ["Crash Landing on You"], "typo"),
     ("Hospitl Playlist", ["Hospital Playlist"], "typo"),
@@ -249,9 +249,9 @@ def evaluate_search_accuracy():
 
                 if category in ("specific_title", "typo"):
                     resolved =(data.get("debug") or {}).get("resolved_title")
-                    if resolved and resolved not in titles:
+                    if resolved:
                         # Treat the resolved drama as the top hit, similar dramas after it.
-                        titles = [resolved] + titles
+                        titles = [resolved] + [t for t in titles if t != resolved]
 
                 if expected:
                     precision = calculate_precision_at_k(titles, expected, k=3)

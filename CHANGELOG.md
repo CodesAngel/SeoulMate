@@ -17,7 +17,11 @@ Important project history reconstructed from Git commits and project documentati
 - Live system score: **83.76%** (up from 78.35%), filter success rate 100%. Remaining gap at that point: "Hospitl Playlist".
 - Fixed typo title resolution: `recommend()` matched near-miss titles (fuzzy ≥ 95) but then re-resolved the title with exact/alias matching only, discarding the match, so e.g. "Hospitl Playlist" fell through to a looser resolver and became "Love Playlist". Stage 4.2 now reuses the earlier match. Live score: **84.32%**; all 5 typo queries resolve correctly. Average uncached response time re-measured at 156 ms with normal free RAM (the 606 ms reading was taken at 1.7 GB free).
 - Updated `training/README.md` with the current production artifacts and rollback steps.
-- Updated the root `README.md` performance table to the live 84.32% results; the old 88.50% figure predates the title-search changes and evaluator fix.
+- Updated the root `README.md` performance table to the live results; the old 88.50% figure predates the title-search changes and evaluator fix.
+- Fixed the searched drama being overwritten in `recommend()`: six boost loops reused `drama` as their loop variable, so title queries that also triggered a genre/theme/actor boost (e.g. "Extraordinary Attorney Woo", "Hospital Playlist") listed and scored similar dramas against the wrong drama. Loop variable renamed to `candidate`.
+- `is_special_or_meta_title` now checks only the title (whole words) and a Documentary genre instead of descriptions, flagging 8 dramas instead of 232; `special_title_terms` "behind" narrowed to "behind the scenes".
+- Evaluator: the resolved title is always ranked first, and "Goblin" tests use the dataset title *Guardian: The Lonely and Great God*.
+- Live score: **85.95%** (Precision@3 54.94%, Recall@10 98.46%, MRR 0.969, NDCG@10 0.974, 69 ms avg). Precision@3's best possible value on this test set is 61.7% because many tests list only 1–2 expected titles; title and typo tests are now at that ceiling. Analysis in `tests/reports/model_comparison_2026-09-30.md`.
 
 ## 2026-09-30
 

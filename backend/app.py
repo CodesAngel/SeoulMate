@@ -190,10 +190,14 @@ def drama_quality_score(drama):
 
 
 def is_special_or_meta_title(drama):
-    searchable_text = " ".join(
-        str(drama.get(field, "")) for field in ["Title", "Genre", "Description"]
-    ).lower()
-    return any(term in searchable_text for term in SPECIAL_TITLE_TERMS)
+    # Title/genre only: descriptions of real dramas often say "special" or "behind"
+    if "documentary" in str(drama.get("Genre", "")).lower():
+        return True
+    title = str(drama.get("Title", "")).lower()
+    return any(
+        re.search(rf"\b{re.escape(term)}\b", title)
+        for term in SPECIAL_TITLE_TERMS + ["sp"]
+    )
 
 
 def resolve_typo_title(user_input: str, candidates, threshold=74):
@@ -1568,11 +1572,11 @@ def recommend(
     if detected_genres:
         print(f"🚀 Applying genre boost for: {detected_genres}")
         for result_title, score in list(combined_scores.items()):
-            drama = next(
+            candidate = next(
                 (m for m in filtered_metadata if m["Title"] == result_title), None
             )
-            if drama:
-                drama_genres = str(drama.get("Genre", "")).lower()
+            if candidate:
+                drama_genres = str(candidate.get("Genre", "")).lower()
                 # Count matching genres
                 matching_count = sum(
                     1 for g in detected_genres if g.lower() in drama_genres
@@ -1590,7 +1594,7 @@ def recommend(
 
                     # Additional boost for high-rated dramas (8.0+)
                     try:
-                        rating = float(drama.get("rating_value", 0))
+                        rating = float(candidate.get("rating_value", 0))
                         if rating >= 8.5:
                             boost += 0.15  # Extra 15% for highly rated
                         elif rating >= 8.0:
@@ -1756,13 +1760,13 @@ def recommend(
             "law": ["lawyer", "attorney", "law", "court"],
         }
         for result_title, score in list(combined_scores.items()):
-            drama = next(
+            candidate = next(
                 (m for m in filtered_metadata if m["Title"] == result_title), None
             )
-            if not drama:
+            if not candidate:
                 continue
             searchable_text = " ".join(
-                str(drama.get(field, ""))
+                str(candidate.get(field, ""))
                 for field in ["Title", "Genre", "Description", "keywords", "Cast"]
             ).lower()
             matching_theme_count = sum(
@@ -1780,17 +1784,17 @@ def recommend(
 
         if detected_genres:
             for result_title, score in list(combined_scores.items()):
-                drama = next(
+                candidate = next(
                     (m for m in filtered_metadata if m["Title"] == result_title), None
                 )
-                if not drama:
+                if not candidate:
                     continue
                 searchable_text = " ".join(
-                    str(drama.get(field, ""))
+                    str(candidate.get(field, ""))
                     for field in ["Title", "Genre", "Description", "keywords"]
                 ).lower()
                 genre_match = any(
-                    drama_matches_detected_genre(drama, genre)
+                    drama_matches_detected_genre(candidate, genre)
                     for genre in detected_genres
                 )
                 theme_match = any(
@@ -1828,12 +1832,12 @@ def recommend(
                     )
 
         for result_title, score in list(combined_scores.items()):
-            drama = next(
+            candidate = next(
                 (m for m in filtered_metadata if m["Title"] == result_title), None
             )
-            if not drama:
+            if not candidate:
                 continue
-            cast_text = str(drama.get("Cast", "")).lower()
+            cast_text = str(candidate.get("Cast", "")).lower()
             actor_match_count = sum(
                 1 for actor in detected_actors if actor.lower() in cast_text
             )
@@ -1853,12 +1857,12 @@ def recommend(
             )
 
         for result_title, score in list(combined_scores.items()):
-            drama = next(
+            candidate = next(
                 (m for m in filtered_metadata if m["Title"] == result_title), None
             )
-            if not drama:
+            if not candidate:
                 continue
-            keyword_text = str(drama.get("keywords", "")).lower()
+            keyword_text = str(candidate.get("keywords", "")).lower()
             matching_keyword_count = sum(term in keyword_text for term in keyword_terms)
             if matching_keyword_count:
                 combined_scores[result_title] = score * (
@@ -1910,12 +1914,12 @@ def recommend(
             decay=0.05,
         )
         for result_title, score in list(combined_scores.items()):
-            drama = next(
+            candidate = next(
                 (m for m in filtered_metadata if m["Title"] == result_title), None
             )
-            if drama:
+            if candidate:
                 combined_scores[result_title] = score + (
-                    drama_quality_score(drama) / 5.0
+                    drama_quality_score(candidate) / 5.0
                 )
 
     query_text_norm = title.lower()
