@@ -1,5 +1,7 @@
 # SeoulMate Model Upgrade Overview
 
+> Archived on 2026-10-04. Historical proposal and training snapshot; projected accuracy gains are not verified production results. See [current documentation](../README.md).
+
 A quick reference guide outlining the current model architecture, recommended drop-in replacements, and expected accuracy improvements.
 
 ---
@@ -59,5 +61,4 @@ The training pipeline was executed on a Google Colab T4 GPU instance in **45.7 m
 * **Cross-Encoder (`bge-reranker-v2-m3`):** MSE Loss plunged from **`0.0582` $\to$ `0.0064`** (~10× improvement).
 * **Artifacts:** All 4 FAISS indices (768-d) and both model safetensors successfully built.
 
-For full telemetry, see [training-new/README.md](../training-new/README.md#verified-training-run-results-colab-t4-gpu).
-
+For full telemetry, see [training-new/README.md](../../training-new/README.md#verified-training-run-results-colab-t4-gpu).

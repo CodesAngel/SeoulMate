@@ -2763,6 +2763,36 @@ def get_recommendations(
     )
 
 
+@app.get("/dramas/{drama_title:path}", tags=["Dramas"])
+def get_drama_details(
+    drama_title: str,
+    aired: str = Query(None, description="Optional aired range for duplicate titles"),
+):
+    """Return one drama record for the production frontend detail page."""
+    normalized_title = re.sub(r"\s+", " ", drama_title).strip().casefold()
+    normalized_aired = re.sub(r"\s+", " ", aired or "").strip().casefold()
+
+    matches = [
+        drama
+        for drama in metadata
+        if re.sub(r"\s+", " ", str(drama.get("Title", ""))).strip().casefold()
+        == normalized_title
+    ]
+    if normalized_aired:
+        matches = [
+            drama
+            for drama in matches
+            if re.sub(r"\s+", " ", str(drama.get("Release Years", "")))
+            .strip()
+            .casefold()
+            == normalized_aired
+        ]
+
+    if not matches:
+        raise HTTPException(status_code=404, detail=f"Drama '{drama_title}' not found")
+    return {"drama": matches[0]}
+
+
 # ======================================================
 # ANALYTICS ENDPOINTS (Phase 1)
 # ======================================================
@@ -2903,10 +2933,12 @@ def get_user_profile(user_id: str):
         user_profile = profile_manager.load_profile(user_id)
 
         # Get top preferences for easier consumption
-        top_genres = profile_manager.get_top_preferences(user_id, "genres", n=10)
-        top_actors = profile_manager.get_top_preferences(user_id, "actors", n=10)
-        top_directors = profile_manager.get_top_preferences(user_id, "directors", n=5)
-        top_themes = profile_manager.get_top_preferences(user_id, "themes", n=10)
+        top_genres = profile_manager.get_top_preferences(user_id, "genres", top_n=10)
+        top_actors = profile_manager.get_top_preferences(user_id, "actors", top_n=10)
+        top_directors = profile_manager.get_top_preferences(
+            user_id, "directors", top_n=5
+        )
+        top_themes = profile_manager.get_top_preferences(user_id, "themes", top_n=10)
 
         # Convert datetime strings to ensure JSON serialization
         import datetime

@@ -1,0 +1,56 @@
+# SeoulMate Web
+
+The production user interface for SeoulMate, built with Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, Zod, and Lucide icons.
+
+Streamlit remains available under `frontend/` for internal model testing and analytics. This application provides the public discovery experience.
+
+## Features
+
+- Natural-language K-drama discovery with genre, year, rating, and sorting filters
+- Responsive poster-led home and result pages
+- Local posters served by FastAPI; external poster URLs are not rendered
+- Shareable drama detail pages with cast, themes, ratings, and similar titles
+- Browser-persistent watchlist
+- Anonymous local viewer identity connected to backend personalization
+- Rating and taste-profile interface
+- Loading, empty, error, image-fallback, and reduced-motion states
+
+## Run locally
+
+Start the FastAPI backend from the repository root:
+
+```powershell
+.\scripts\run_backend.ps1
+```
+
+Then start this frontend:
+
+```powershell
+.\scripts\run_web_frontend.ps1
+```
+
+Open `http://localhost:3000`.
+
+The frontend uses `http://127.0.0.1:8001` by default. To use another API address, copy `.env.example` to `.env.local` and change `NEXT_PUBLIC_API_URL` before building or starting the app.
+
+## Commands
+
+```powershell
+npm install
+npm run dev
+npm run lint
+npm run build
+npm run start
+```
+
+## Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Personalized discovery home |
+| `/discover?q=...` | Search results and filters |
+| `/drama/[title]` | Drama information and similar recommendations |
+| `/watchlist` | Saved dramas in the current browser |
+| `/profile` | Taste profile, activity, and rating form |
+
+The watchlist and anonymous viewer ID currently use `localStorage`. They can move to PostgreSQL-backed accounts when authentication is introduced.

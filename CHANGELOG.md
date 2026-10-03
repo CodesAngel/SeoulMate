@@ -2,6 +2,19 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-04
+
+### Production Next.js Frontend
+
+- Added `frontend-web/`, a production user interface built with Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, Zod, and Lucide icons. Streamlit remains available as the internal testing and analytics interface.
+- Added a responsive discovery home, natural-language results with filters, shareable drama detail pages, similar-title recommendations, a browser-persistent watchlist, and a rating-driven taste profile.
+- Added stable anonymous browser identity and session IDs so searches, clicks, watchlist actions, ratings, and personalization continue using the existing FastAPI analytics flow.
+- Added loading, empty, API-error, poster-error, reduced-motion, desktop, tablet, and mobile presentation states.
+- Added `GET /dramas/{drama_title}` for drama detail pages, with an optional aired-range parameter to distinguish duplicate titles.
+- Fixed the profile endpoint using the wrong `get_top_preferences` keyword (`n` instead of `top_n`).
+- Added `scripts/run_web_frontend.ps1`, `.env.example`, production build documentation, and route documentation.
+- Validation: ESLint passed, the Next.js production build passed, production dependencies reported zero audit vulnerabilities, the detail/profile APIs returned successfully, all 2,081 local poster files were available through FastAPI, and desktop home/detail plus mobile discovery pages were visually inspected.
+
 ## 2026-10-03
 
 ### Other Seasons First in Similar-Drama Results
