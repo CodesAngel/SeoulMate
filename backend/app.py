@@ -1007,6 +1007,77 @@ def get_similar_title_priors(seed_title):
     return direct_defaults.get(seed_key, [])
 
 
+SEASON_SUFFIX_RE = re.compile(r"\s*(?:\b(?:season|part|s)\s*\d+|#\d+|\d+)\s*$", re.I)
+
+
+def franchise_keys(title: str):
+    """Franchise keys for a title: 'Yumi's Cells Season 3' -> {'yumiscells'}.
+
+    Returns (keys, has_season_suffix). Colon subtitles add the part before the
+    colon as a key ('Kingdom: Ashin of the North' -> 'kingdom').
+    """
+    title = str(title).strip()
+    stripped = SEASON_SUFFIX_RE.sub("", title)
+    keys = {fold_title(stripped)}
+    if ":" in title:
+        keys.add(fold_title(title.split(":")[0]))
+    keys.discard("")
+    return keys, stripped != title
+
+
+def drama_people(drama):
+    return split_metadata_terms(drama.get("Cast", "")) | split_metadata_terms(
+        drama.get("Director", "")
+    )
+
+
+def drama_start_year(drama):
+    years = re.findall(r"\b(?:19|20)\d{2}\b", str(drama.get("Release Years", "") or ""))
+    return int(years[0]) if years else 9999
+
+
+def franchise_siblings(seed_drama, candidates):
+    """Other seasons/parts of the seed's franchise, oldest first.
+
+    An explicit season suffix ('Season 2', 'Part 2', '#2', '2') is trusted on its
+    own; colon subtitles or identical names ('Who Are You' vs 'Who Are You?')
+    must also share a cast member or director, since 'Family' and
+    'Family: The Unbreakable Bond' are unrelated shows.
+    """
+    seed_title = seed_drama.get("Title", "")
+    seed_keys, seed_suffix = franchise_keys(seed_title)
+    seed_people = None
+    siblings = []
+    for candidate in candidates:
+        title = candidate.get("Title", "")
+        if not title or title.lower() == seed_title.lower():
+            continue
+        keys, suffix = franchise_keys(title)
+        shared = seed_keys & keys
+        if not shared:
+            continue
+        stripped_match = fold_title(SEASON_SUFFIX_RE.sub("", seed_title)) == fold_title(
+            SEASON_SUFFIX_RE.sub("", title)
+        )
+        if not (stripped_match and (seed_suffix or suffix)):
+            if seed_people is None:
+                seed_people = drama_people(seed_drama)
+            if not seed_people & drama_people(candidate):
+                continue
+        siblings.append(candidate)
+    return sorted(siblings, key=drama_start_year)
+
+
+def apply_franchise_priority(seed_drama, ranked_results, candidates):
+    """Put other seasons of the seed drama first; they are the most similar shows."""
+    siblings = franchise_siblings(seed_drama, candidates)
+    if not siblings:
+        return ranked_results, []
+    sibling_titles = {s["Title"].lower() for s in siblings}
+    remainder = [r for r in ranked_results if r.get("Title", "").lower() not in sibling_titles]
+    return siblings + remainder, [s["Title"] for s in siblings]
+
+
 def generated_index_boosts(result_title, detected_actors, detected_genres, detected_themes):
     """Return a small, capped multiplier from generated indexes.
 
@@ -2081,6 +2152,9 @@ def recommend(
         filtered = apply_similar_title_priors(
             drama["Title"], filtered, filtered_metadata
         )
+        filtered, debug_info["franchise_titles"] = apply_franchise_priority(
+            drama, filtered, filtered_metadata
+        )
         debug_info["similar_prior_titles"] = get_similar_title_priors(drama["Title"])
 
     if seen_title_set:
@@ -2122,6 +2196,9 @@ def recommend(
             )
             filtered = apply_similar_title_priors(
                 sim_drama["Title"], filtered, filtered_metadata
+            )
+            filtered, debug_info["franchise_titles"] = apply_franchise_priority(
+                sim_drama, filtered, filtered_metadata
             )
             debug_info["similar_prior_titles"] = get_similar_title_priors(
                 sim_drama["Title"]

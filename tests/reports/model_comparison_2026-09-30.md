@@ -13,7 +13,8 @@ Measured with `tests/evaluation/evaluate_accuracy.py` against the same backend c
 | Live system after year-filter, typo-scoring and typo-resolution fixes (2026-10-01) | 84.32% |
 | Live system after seed-drama fix + evaluator label fixes (2026-10-01) | 85.95% |
 | Live system after curated-title name matching (2026-10-01) | **86.24%** |
-| Same system, expanded test set (61 scored searches, 2026-10-01) | **87.92%** |
+| Same system, expanded test set (61 scored searches, 2026-10-01) | 87.92% |
+| Same test set, exact title matching (2026-10-03; unchanged by the franchise ordering) | **87.05%** |
 
 **Decision (2026-10-01):** production now runs the production models (`sbert-finetuned-full` + `cross-enc-excellent`, 88 MB reranker) with the new 2,081-drama index. training-new scored 0.4 points higher, which is within noise for ~80 test queries, but needs a 2.2 GB reranker. The old 1,922-drama index is kept in `training/faiss_index.bak`. Details and the before/after-fix numbers are below.
 
@@ -191,4 +192,38 @@ Queries like "workplace drama" detect the genres Business **and** Drama. The gen
 
 The actual cause of "workplace drama" missing workplace dramas was that curated setting priors are matched against the raw query, and only the word "office" triggered the Office list. Added a "Workplace" setting prior (same titles as Office) and a `workplace` → office/career synonym in `query_analyzer.py`. "workplace drama" now returns *Business Proposal*, *What's Wrong with Secretary Kim*, *Her Private Life*, *Forecasting Love and Weather*, *Agency*, *Misaeng: Incomplete Life* (previously *The Queen of Office*, *The King of Dramas*, *Top Management*, ...). Test scores unchanged (no test uses that query).
 
-Noted for later: the similar dramas for *Yumi's Cells Season 3* are *Live* and *Jun & Jun* rather than earlier Yumi's Cells seasons.
+Noted for later: the similar dramas for *Yumi's Cells Season 3* are *Live* and *Jun & Jun* rather than earlier Yumi's Cells seasons. (Fixed 2026-10-03, below.)
+
+## Follow-up (2026-10-03): other seasons first + exact-match metrics
+
+### Franchise ordering
+
+A title search now puts the drama's other seasons/parts first, oldest first (`franchise_siblings()` in `backend/app.py`). Grouping rule, checked against all 2,081 titles:
+
+- Titles differing only by a "Season N", "Part N", "#N" or trailing-number suffix are grouped even with different casts (*Save Me* / *Save Me Season 2*, *Reply 1988/1994/1997*, *Soundtrack #1/#2*).
+- Colon subtitles and identical names must also share a cast member or director. This keeps *Kingdom: Ashin of the North*, *Dr. Romantic: APPENDIX* and *Mouse: Restart* in their groups, and leaves out *Family: The Unbreakable Bond*, *Search: WWW*, *Black Knight: The Man Who Guards Me* and *Who Are You?*.
+
+| Query | Before | After (top 3) |
+|---|---|---|
+| Yumi's Cells Season 3 | Live, Jun & Jun, Run On | Yumi's Cells, Yumi's Cells Season 2, Live |
+| Yumi's Cells | It's Okay to Not Be Okay, My Mister, ... | Yumi's Cells Season 2, Yumi's Cells Season 3, It's Okay to Not Be Okay |
+| Dr. Romantic Season 3 | Dr. Romantic, Hospital Ship, New Heart | Dr. Romantic, Dr. Romantic: APPENDIX, Dr. Romantic Season 2 |
+| Taxi Driver | Military Prosecutor Doberman, Bad Guys: City of Evil, Punch | Taxi Driver Season 2, Military Prosecutor Doberman, Bad Guys: City of Evil |
+| Best Mistake Season 2 | Be My Boyfriend, Romance, Talking, ... | Best Mistake, Best Mistake Season 3, Be My Boyfriend |
+
+New evaluator check (10 cases, reported separately, not scored): 2/10 → **10/10**.
+
+### Evaluator fix: exact title matching
+
+Precision, recall, MRR and NDCG matched expected titles by substring, so a sequel counted as a hit (*Hospital Playlist Season 2* for "Hospital Playlist"); with sequels now listed, NDCG@10 came out at 1.011. Switched to exact, case-insensitive matching and re-ran the committed backend (git worktree at `32342e5`) and the new one:
+
+| Metric | Before franchise change | After |
+|---|---|---|
+| **Overall accuracy** | 87.05% | **87.05%** |
+| Precision@3 | 60.66% | 60.66% |
+| Recall@10 | 94.48% | 94.48% |
+| MRR | 0.992 | 0.992 |
+| NDCG@10 | 0.943 | 0.943 |
+| Franchise ordering | 2/10 | **10/10** |
+
+The 87.92% figure was inflated by substring hits (genre Precision@3 92.3% → 89.7% under exact matching, e.g. *Kingdom Season 2* had counted for "Kingdom").

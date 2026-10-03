@@ -171,9 +171,32 @@ FILTER_TEST_CASES = [
     {"year": "2020", "expected_year": 2020},
 ]
 
+# Franchise ordering: a title search for one season must list the franchise's other
+# seasons first (oldest first). Pass/fail check, not part of the overall score.
+# Format: (query, expected_first_results)
+FRANCHISE_TEST_CASES = [
+    ("Yumi's Cells Season 3", ["Yumi's Cells", "Yumi's Cells Season 2"]),
+    ("Yumi's Cells", ["Yumi's Cells Season 2", "Yumi's Cells Season 3"]),
+    ("Dr. Romantic Season 3", ["Dr. Romantic", "Dr. Romantic: APPENDIX, The Beginning of Everything", "Dr. Romantic Season 2"]),
+    ("Hospital Playlist", ["Hospital Playlist Season 2"]),
+    ("Hospital Playlist Season 2", ["Hospital Playlist"]),
+    ("Taxi Driver", ["Taxi Driver Season 2"]),
+    ("Taxi Driver Season 2", ["Taxi Driver"]),
+    ("dramas like Yumi's Cells Season 3", ["Yumi's Cells", "Yumi's Cells Season 2"]),
+    # Same-looking names that are unrelated shows must not be grouped
+    ("Family", []),
+    ("Search", []),
+]
+
 # ======================================================
 # EVALUATION FUNCTIONS
 # ======================================================
+
+
+def is_relevant(title: str, expected: List[str]) -> bool:
+    """Exact (case-insensitive) title match. Substring matching counted sequels
+    like 'Hospital Playlist Season 2' as hits for 'Hospital Playlist'."""
+    return title.strip().lower() in {exp.strip().lower() for exp in expected}
 
 
 def calculate_precision_at_k(
@@ -185,7 +208,7 @@ def calculate_precision_at_k(
 
     top_k = results[:k]
     relevant_count = sum(
-        1 for title in top_k if any(exp.lower() in title.lower() for exp in expected)
+        1 for title in top_k if is_relevant(title, expected)
     )
     return relevant_count / k
 
@@ -199,7 +222,7 @@ def calculate_recall_at_k(
 
     top_k = results[:k]
     found_count = sum(
-        1 for exp in expected if any(exp.lower() in title.lower() for title in top_k)
+        1 for exp in expected if any(is_relevant(title, [exp]) for title in top_k)
     )
     return found_count / len(expected)
 
@@ -210,7 +233,7 @@ def calculate_mrr(results: List[str], expected: List[str]) -> float:
         return None
 
     for i, title in enumerate(results, 1):
-        if any(exp.lower() in title.lower() for exp in expected):
+        if is_relevant(title, expected):
             return 1.0 / i
     return 0.0
 
@@ -223,7 +246,7 @@ def calculate_ndcg_at_k(results: List[str], expected: List[str], k: int = 10) ->
     dcg = 0.0
     for i, title in enumerate(results[:k], 1):
         relevance = (
-            1.0 if any(exp.lower() in title.lower() for exp in expected) else 0.0
+            1.0 if is_relevant(title, expected) else 0.0
         )
         dcg += relevance / np.log2(i + 1)
 
@@ -358,6 +381,29 @@ def evaluate_search_accuracy():
         "mrr": np.mean(overall_mrr),
         "ndcg": np.mean(overall_ndcg),
     }
+
+
+def evaluate_franchise_ordering():
+    """Check that other seasons of the searched drama come first, and nothing else is grouped."""
+    print("\n" + "-" * 60)
+    print("FRANCHISE ORDERING:")
+    print("-" * 60)
+    passed = 0
+    for query, expected in FRANCHISE_TEST_CASES:
+        try:
+            response = requests.get(
+                f"{BASE_URL}/recommend", params={"title": query, "top_n": 10, "debug": "true"}
+            )
+            data = response.json()
+            titles = [r["Title"] for r in data.get("recommendations", [])]
+            grouped = (data.get("debug") or {}).get("franchise_titles") or []
+            ok = titles[: len(expected)] == expected and grouped == expected
+        except Exception as e:
+            titles, ok = [f"error: {e}"], False
+        passed += ok
+        print(f"  {'✓' if ok else '✗'} '{query}' -> {titles[:len(expected) + 1]}")
+    print(f"FRANCHISE ORDERING: {passed}/{len(FRANCHISE_TEST_CASES)} passed")
+    return passed, len(FRANCHISE_TEST_CASES)
 
 
 # ======================================================
@@ -683,6 +729,7 @@ def main():
 
     # Run all tests
     search_metrics = evaluate_search_accuracy()
+    franchise_passed, franchise_total = evaluate_franchise_ordering()
     query_intelligence = evaluate_query_intelligence()
     filter_accuracy = evaluate_filter_accuracy()
     personalization = evaluate_personalization()
@@ -697,7 +744,8 @@ def main():
     print(f"  ├─ Precision@3: {search_metrics['precision']:.2%}")
     print(f"  ├─ Recall@10: {search_metrics['recall']:.2%}")
     print(f"  ├─ MRR: {search_metrics['mrr']:.3f}")
-    print(f"  └─ NDCG@10: {search_metrics['ndcg']:.3f}")
+    print(f"  ├─ NDCG@10: {search_metrics['ndcg']:.3f}")
+    print(f"  └─ Franchise ordering: {franchise_passed}/{franchise_total}")
 
     print(f"\n🧠 QUERY INTELLIGENCE:")
     print(f"  └─ Genre Detection: {query_intelligence:.2%}")

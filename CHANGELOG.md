@@ -2,6 +2,14 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-03
+
+### Other Seasons First in Similar-Drama Results
+
+- Title searches (and `similar_to`) now list the drama's other seasons/parts first, oldest first. Previously *Yumi's Cells Season 3* suggested *Live* and *Jun & Jun* and left out seasons 1–2; *Taxi Driver*, *Yumi's Cells* and *Best Mistake Season 2* also left out their sequels. New `franchise_siblings()` / `apply_franchise_priority()` in `backend/app.py`: titles that differ only by a "Season N" / "Part N" / "#N" / trailing-number suffix are grouped; colon subtitles (*Kingdom: Ashin of the North*) and identical names (*Who Are You* vs *Who Are You?*) must also share a cast member or director, so unrelated shows like *Family* / *Family: The Unbreakable Bond* and *Search* / *Search: WWW* stay separate. The returned group is in `debug.franchise_titles`.
+- `tests/evaluation/evaluate_accuracy.py`: added a franchise-ordering check (10 cases, including 2 that must not be grouped), reported separately like the self-listing check. Before: 2/10; after: **10/10**.
+- Fixed the evaluator's metrics to match titles exactly (case-insensitive). They used substring matching, so *Hospital Playlist Season 2* counted as a hit for "Hospital Playlist" (and *Kingdom Season 2* for "Kingdom", *Stranger Season 2* for "Stranger"), which pushed NDCG@10 above 1 once sequels were listed. With exact matching, the old and new backends score the same: **87.05%** (Precision@3 60.66%, Recall@10 94.48%, MRR 0.992, NDCG@10 0.943; genre Precision@3 89.7%). The previous 87.92% was inflated by substring hits.
+
 ## 2026-10-01
 
 ### Production Switched to the 2,081-Drama Index
