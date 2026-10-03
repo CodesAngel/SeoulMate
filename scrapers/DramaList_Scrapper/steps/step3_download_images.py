@@ -1,17 +1,31 @@
-# Only check the missing images and download them
-import pandas as pd
-import aiohttp
+# Download poster images named "<Title> (<Year>) [<ID>].jpg".
+#
+# The ID is the file name of the poster URL in the dataset's `image` column
+# (https://i.mydramalist.com/9oX6Gf.jpg -> 9oX6Gf). It is unique per drama, so dramas
+# that share a title (e.g. "Bad Guy" 2010 and 2024) no longer overwrite each other's
+# file. The backend finds a poster by the [ID] part only; the title and year are a
+# human-readable label. Only posters whose ID is not in the folder yet are downloaded.
+import argparse
 import asyncio
-import aiofiles
+import csv
 import os
-import re
 import random
-from tqdm.asyncio import tqdm as async_tqdm
+import re
+from pathlib import Path
 from urllib.parse import urlparse
 
-def sanitize_filename(name):
-    """Remove invalid characters for safe file naming."""
-    return re.sub(r'[\\/*?:"<>|]', "_", str(name)).strip()
+import aiofiles
+import aiohttp
+import pandas as pd
+from tqdm.asyncio import tqdm as async_tqdm
+
+PROJECT_DIR = Path(__file__).resolve().parents[3]
+DEFAULT_CSV = PROJECT_DIR / "data" / "final" / "kdrama_dataset.csv"
+DEFAULT_OUTPUT = PROJECT_DIR / "scrapers" / "DramaList_Scrapper" / "output" / "drama_image_by_id"
+DEFAULT_REPORT = DEFAULT_OUTPUT.parent / "drama_image_by_id_report.csv"
+
+# Matches the "[ID].ext" suffix of a saved poster. Keep in sync with the backend.
+POSTER_ID_PATTERN = re.compile(r"\[([^\[\]]+)\]\.[A-Za-z0-9]+$")
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -19,101 +33,142 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_5_2) AppleWebKit/605.1.15 "
     "(KHTML, like Gecko) Version/17.0 Safari/605.1.15",
     "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0",
-    "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 "
-    "(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) "
-    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-    "Googlebot/2.1 (+http://www.google.com/bot.html)",
-    "Bingbot/2.0 (+http://www.bing.com/bingbot.htm)",
 ]
 
-async def download_image(session, sem, title, image_url, output_folder, retries=3):
-    """Download a single image asynchronously with retries."""
-    if not image_url or str(image_url).lower() == 'nan':
+
+def poster_id(image_url):
+    """'https://i.mydramalist.com/73PkAD_4f.jpg' -> '73PkAD_4f' (None if no URL)."""
+    if not image_url or str(image_url).lower() == "nan":
         return None
+    stem = os.path.splitext(os.path.basename(urlparse(str(image_url)).path))[0]
+    return stem or None
 
+
+def first_year(aired):
+    match = re.search(r"\b(19|20)\d{2}\b", str(aired or ""))
+    return match.group(0) if match else None
+
+
+def sanitize_label(title):
+    """Title part of the file name: no characters Windows forbids, and no brackets
+    or parentheses, so the "(Year) [ID]" suffix always parses."""
+    label = re.sub(r'[\\/*?:"<>|]', "_", str(title)).strip()
+    label = re.sub(r"[\[\]()]", "", label)
+    return re.sub(r"\s+", " ", label).strip() or "untitled"
+
+
+def poster_filename(title, aired, image_url):
+    """'Bad Guy', 'May 26, 2010 - ...', '.../9oX6Gf.jpg' -> 'Bad Guy (2010) [9oX6Gf].jpg'."""
+    ext = os.path.splitext(urlparse(str(image_url)).path)[-1] or ".jpg"
+    year = first_year(aired)
+    year_part = f" ({year})" if year else ""
+    return f"{sanitize_label(title)}{year_part} [{poster_id(image_url)}]{ext}"
+
+
+def existing_poster_ids(output_folder):
+    """IDs already saved in the folder (files under 1 KB count as missing)."""
+    ids = set()
+    for path in Path(output_folder).glob("*"):
+        match = POSTER_ID_PATTERN.search(path.name)
+        if match and path.is_file() and path.stat().st_size > 1024:
+            ids.add(match.group(1))
+    return ids
+
+
+async def download_image(session, sem, task, output_folder, retries=3):
+    """Download one poster. Returns (task, status) where status is 'ok' or an error."""
+    filepath = Path(output_folder) / task["filename"]
+    status = "failed"
     async with sem:
-        ext = os.path.splitext(urlparse(image_url).path)[-1] or ".jpg"
-        filename = sanitize_filename(title) + ext
-        filepath = os.path.join(output_folder, filename)
-
-        # Skip if already exists and valid (>1KB)
-        if os.path.exists(filepath) and os.path.getsize(filepath) > 1024:
-            return None
-
         for attempt in range(retries):
             try:
                 headers = {"User-Agent": random.choice(USER_AGENTS)}
-                async with session.get(image_url, headers=headers) as response:
-                    if response.status == 200:
+                async with session.get(task["image"], headers=headers) as response:
+                    if response.status == 404:
+                        return task, "http 404"
+                    if response.status != 200:
+                        status = f"http {response.status}"
+                    else:
                         content = await response.read()
-                        if len(content) < 500:  # avoid broken images
-                            continue
-                        async with aiofiles.open(filepath, "wb") as f:
-                            await f.write(content)
-                        return filename
-            except Exception:
-                await asyncio.sleep(0.5 * (attempt + 1))
-        return None
+                        if len(content) < 500:  # broken / placeholder image
+                            status = "too small"
+                        else:
+                            async with aiofiles.open(filepath, "wb") as f:
+                                await f.write(content)
+                            return task, "ok"
+            except Exception as e:
+                status = f"error: {type(e).__name__}"
+            await asyncio.sleep(0.5 * (attempt + 1))
+    return task, status
 
-async def download_images_async(tasks, output_folder, concurrency=100):
-    """Manage asynchronous downloading of images."""
-    os.makedirs(output_folder, exist_ok=True)
+
+async def download_images_async(tasks, output_folder, concurrency):
     sem = asyncio.Semaphore(concurrency)
-
-    connector = aiohttp.TCPConnector(limit=0, ttl_dns_cache=3600)
+    connector = aiohttp.TCPConnector(limit=concurrency, ttl_dns_cache=3600)
     timeout = aiohttp.ClientTimeout(total=25)
-
     async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
-        coroutines = [
-            download_image(session, sem, title, url, output_folder)
-            for title, url in tasks
-        ]
+        coroutines = [download_image(session, sem, task, output_folder) for task in tasks]
         results = []
         for coro in async_tqdm.as_completed(
-            coroutines, total=len(coroutines), desc="Downloading missing images", unit="img"
+            coroutines, total=len(coroutines), desc="Downloading posters", unit="img"
         ):
-            result = await coro
-            results.append(result)
+            results.append(await coro)
         return results
 
-def download_images_from_csv(csv_path, output_folder, concurrency=100):
-    """Download only missing images from a CSV/Excel file."""
-    # Read data
-    if csv_path.lower().endswith(('.xlsx', '.xls')):
-        df = pd.read_excel(csv_path)
-    else:
-        df = pd.read_csv(csv_path, sep=None, engine="python", encoding="utf-8-sig")
 
-    if "title" not in df.columns or "image" not in df.columns:
-        raise ValueError("The file must contain 'title' and 'image' columns.")
-
+def download_images_from_csv(csv_path, output_folder, report_path, concurrency=10):
+    """Download every poster in the CSV whose ID is not in `output_folder` yet."""
+    df = pd.read_csv(csv_path, encoding="utf-8-sig")
+    for column in ("title", "image", "aired"):
+        if column not in df.columns:
+            raise ValueError(f"The CSV must contain a '{column}' column.")
     os.makedirs(output_folder, exist_ok=True)
 
-    # Filter: only those whose image is missing in folder
-    missing_tasks = []
+    have = existing_poster_ids(output_folder)
+    tasks, no_url = [], []
     for _, row in df.iterrows():
-        if pd.isna(row["image"]):
+        pid = poster_id(row["image"])
+        if not pid:
+            no_url.append(row["title"])
             continue
-        ext = os.path.splitext(urlparse(str(row["image"])).path)[-1] or ".jpg"
-        filename = sanitize_filename(row["title"]) + ext
-        filepath = os.path.join(output_folder, filename)
-        if not (os.path.exists(filepath) and os.path.getsize(filepath) > 1024):
-            missing_tasks.append((row["title"], row["image"]))
+        if pid in have:
+            continue
+        tasks.append({
+            "title": str(row["title"]).strip(),
+            "aired": row["aired"],
+            "image": str(row["image"]),
+            "id": pid,
+            "filename": poster_filename(row["title"], row["aired"], row["image"]),
+        })
 
-    print(f"Found {len(df)} total entries.")
-    print(f"Skipping {len(df) - len(missing_tasks)} existing files.")
-    print(f"Downloading {len(missing_tasks)} missing images...\n")
+    print(f"CSV: {csv_path} ({len(df)} dramas)")
+    print(f"Output: {output_folder}")
+    print(f"Already saved: {len(have)} | no image URL: {len(no_url)} | to download: {len(tasks)}\n")
 
-    if not missing_tasks:
-        print("All images already downloaded.")
-        return
+    results = asyncio.run(download_images_async(tasks, output_folder, concurrency)) if tasks else []
+    failed = [(task, status) for task, status in results if status != "ok"]
 
-    asyncio.run(download_images_async(missing_tasks, output_folder, concurrency))
-    print(f"\nAll missing images saved in '{output_folder}' folder.")
+    with open(report_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["title", "aired", "id", "image", "status"])
+        for task, status in failed:
+            writer.writerow([task["title"], task["aired"], task["id"], task["image"], status])
+        for title in no_url:
+            writer.writerow([title, "", "", "", "no image url"])
+
+    print(f"\nDownloaded {len(results) - len(failed)} | failed {len(failed)} | no URL {len(no_url)}")
+    print(f"Failures (if any) listed in: {report_path}")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__ or "Download drama posters by ID.")
+    parser.add_argument("--csv", default=str(DEFAULT_CSV), help="Dataset CSV with title, aired, image columns")
+    parser.add_argument("--out", default=str(DEFAULT_OUTPUT), help="Folder to save posters in")
+    parser.add_argument("--report", default=str(DEFAULT_REPORT), help="CSV listing failed downloads")
+    parser.add_argument("--concurrency", type=int, default=10, help="Parallel downloads (keep it polite)")
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    download_images_from_csv(
-        r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\by_country\kdrama_dataset.csv",
-        output_folder=r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\drama_image",
-    )
+    args = parse_args()
+    download_images_from_csv(args.csv, args.out, args.report, args.concurrency)

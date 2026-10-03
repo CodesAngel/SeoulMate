@@ -280,28 +280,56 @@ def check_api_health() -> bool:
         return False
 
 
+# Remote poster host the backend may fall back to when no local poster file exists.
+REMOTE_POSTER_PREFIX = "https://i.mydramalist.com/"
+
+
+def resolve_poster_url(value: str) -> str:
+    """Local backend poster path -> absolute URL; MyDramaList URL as is; else ''."""
+    value = str(value or "").strip()
+    if value.startswith("/drama-images/"):
+        return urljoin(f"{API_URL.rstrip('/')}/", value.lstrip("/"))
+    if value.startswith(REMOTE_POSTER_PREFIX):
+        return value
+    return ""
+
+
 def build_poster_html(drama: Dict, title: str) -> str:
-    """Return poster markup using only images served by the local backend."""
-    image_url = str(drama.get("Image", drama.get("image", "")) or "").strip()
+    """Poster markup: the backend's local poster, or the MyDramaList URL fallback.
+
+    If a local poster fails to load in the browser, it retries once with the
+    drama's `image_url` before showing the placeholder.
+    """
+    poster_url = resolve_poster_url(drama.get("Image", drama.get("image", "")))
+    fallback_url = resolve_poster_url(drama.get("image_url", ""))
     safe_title = html.escape(str(title), quote=True)
     placeholder_contents = (
         '<span style="font-size: 2.4rem;">🎬</span>'
         '<span>Poster unavailable</span>'
     )
-    if not image_url.startswith("/drama-images/"):
+    if not poster_url:
+        poster_url, fallback_url = fallback_url, ""
+    if not poster_url:
         return (
             '<div class="result-card-poster">'
             f'<div class="result-card-placeholder">{placeholder_contents}</div>'
             "</div>"
         )
 
-    local_url = urljoin(f"{API_URL.rstrip('/')}/", image_url.lstrip("/"))
-    safe_url = html.escape(local_url, quote=True)
+    show_placeholder = "this.style.display='none';this.nextElementSibling.style.display='flex';"
+    if fallback_url and fallback_url != poster_url:
+        onerror = (
+            "if(this.dataset.fallback){this.src=this.dataset.fallback;this.dataset.fallback='';}"
+            f"else{{{show_placeholder}}}"
+        )
+        fallback_attr = f' data-fallback="{html.escape(fallback_url, quote=True)}"'
+    else:
+        onerror, fallback_attr = show_placeholder, ""
     return (
         '<div class="result-card-poster">'
-        f'<img src="{safe_url}" alt="{safe_title} poster" loading="lazy" '
-        'onerror="this.style.display=\'none\';'
-        'this.nextElementSibling.style.display=\'flex\';">'
+        f'<img src="{html.escape(poster_url, quote=True)}"{fallback_attr} '
+        f'alt="{safe_title} poster" loading="lazy" referrerpolicy="no-referrer" '
+        f'onerror="{onerror}">'
         f'<div class="result-card-placeholder" style="display:none;">{placeholder_contents}</div>'
         "</div>"
     )

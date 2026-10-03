@@ -10,6 +10,7 @@ import argparse
 import os
 import pandas as pd
 import pickle
+from urllib.parse import urlparse
 import faiss
 from sentence_transformers import SentenceTransformer
 
@@ -167,6 +168,19 @@ print(f"FAISS index built successfully with {index.ntotal} items.")
 # ======================================================
 faiss.write_index(index, os.path.join(INDEX_DIR, "index.faiss"))
 
+# Poster URL and its ID ('https://i.mydramalist.com/9oX6Gf.jpg' -> '9oX6Gf'). The backend
+# finds the local poster "<Title> (<Year>) [<ID>].jpg" by this ID, so same-title dramas
+# keep their own posters; without these fields it joins the dataset CSV on title + aired.
+if "image" in df.columns:
+    df["image_url"] = df["image"].astype(str).str.strip()
+    df["image_id"] = df["image_url"].map(
+        lambda url: os.path.splitext(os.path.basename(urlparse(url).path))[0] if url else ""
+    )
+if "watchers" in df.columns:
+    df["watchers"] = pd.to_numeric(
+        df["watchers"].astype(str).str.replace(",", ""), errors="coerce"
+    ).fillna(0.0)
+
 # Save relevant metadata (keep it clean for inference)
 meta_cols = [
     "Title",
@@ -181,6 +195,9 @@ meta_cols = [
     "episodes",
     "aired",
     "keywords",
+    "image_url",
+    "image_id",
+    "watchers",
 ]
 meta_cols = [c for c in meta_cols if c in df.columns]
 

@@ -10,11 +10,24 @@ Important project history reconstructed from Git commits and project documentati
 - `tests/evaluation/evaluate_accuracy.py`: added a franchise-ordering check (10 cases, including 2 that must not be grouped), reported separately like the self-listing check. Before: 2/10; after: **10/10**.
 - Fixed the evaluator's metrics to match titles exactly (case-insensitive). They used substring matching, so *Hospital Playlist Season 2* counted as a hit for "Hospital Playlist" (and *Kingdom Season 2* for "Kingdom", *Stranger Season 2* for "Stranger"), which pushed NDCG@10 above 1 once sequels were listed. With exact matching, the old and new backends score the same: **87.05%** (Precision@3 60.66%, Recall@10 94.48%, MRR 0.992, NDCG@10 0.943; genre Precision@3 89.7%). The previous 87.92% was inflated by substring hits.
 
+### Posters by ID, with URL Fallback
+
+- Fixed wrong posters for same-title dramas: 10 titles belong to two different dramas each (*Bad Guy* 2010/2024, *Secret*, *Trap*, *Your Honor*, *While You Were Sleeping*, *Save Me*, *Connect*, *Once Again*, *Temptation*, *The Miracle*). Title-named files overwrote each other when downloading, so one drama of each pair showed the other's poster.
+- `step3_download_images.py` now saves posters as `<Title> (<Year>) [<ID>].jpg` in `output/drama_image_by_id/` (ID = file name of the poster URL, unique for all 2,081 dramas), skips IDs already saved, defaults to `data/final/kdrama_dataset.csv` and 10 parallel downloads, writes failures to `output/drama_image_by_id_report.csv`, and takes `--csv/--out/--report/--concurrency`. Dropped the Googlebot/Bingbot user agents.
+- Backend: `attach_dataset_extras()` replaces `attach_local_images()`. It joins index records to dataset rows on title + air date (whitespace/case-insensitive, all 2,081 match; three CSV titles have double spaces), finds the local poster by ID, and otherwise returns the MyDramaList URL. Responses now include `image_id`, `image_url`, `watchers`.
+- Watcher counts are now per record instead of per title (they feed similar-drama and trope ranking), so same-title dramas no longer share one popularity value. Scores unchanged: overall 87.05%, franchise 10/10, similar dramas 22.7%, tropes 63.3%, regression suite 33/33.
+- Frontend: accepts `https://i.mydramalist.com/` poster URLs as well as `/drama-images/` paths, and retries the drama's `image_url` if a local poster fails to load.
+- `training/steps/step3_build_index.py` writes `image_url`, `image_id` and `watchers` into `meta.pkl` at the next rebuild; the backend prefers those over the CSV join.
+- Until the posters are re-downloaded into `drama_image_by_id/`, every poster loads from MyDramaList (startup log: `Posters: 0 local, 2081 via URL`).
+
 ### Local Poster Images
 
-- The backend serves posters from the scraper's `output/drama_image/` folder at `/drama-images` (`attach_dataset_images()` in `backend/app.py`), and the Streamlit result cards show them, with a "Poster unavailable" placeholder when there is no local file.
+- The backend serves posters from the scraper's `output/drama_image/` folder at `/drama-images` (`attach_local_images()` in `backend/app.py`), and the Streamlit result cards show them, with a "Poster unavailable" placeholder when there is no local file.
+- Removed the online image URL fallback. Recommendation responses now contain only local `/drama-images/...` paths, and the frontend rejects non-local poster paths.
 - Matching: the exact sanitized title first (the scraper replaces `\ / * ? : " < > |` with `_`), then a punctuation/case-insensitive fallback used only when exactly one file fits, so *Who Are You* and *Who Are You?* keep their own posters.
-- Audit: all 2,081 dramas have a poster (1,894 exact, 187 via the `_` substitution); 6 image files belong to no indexed drama.
+- Fixed posters remaining unavailable when an older backend process was still running without the `/drama-images` mount. The backend must be restarted after this update or after local poster files change.
+- Audit: all 2,081 indexed records map to local posters (2,078 exact sanitized-filename matches and 3 unique normalized-title matches). The folder contains 2,077 files because some records share a title/poster; 6 files belong to no indexed drama.
+- Verified `King2Hearts.jpg` through the live backend as a 147,543-byte JPEG with HTTP 200, and verified five Streamlit result cards used local poster paths with no online fallback attributes.
 - Known limits: same-title dramas would overwrite each other's file when scraping, and renaming a title after scraping loses its poster. Possible next step: name files by the poster ID from the `image` URL, or write the saved filename into the dataset.
 
 ### 10 More Tropes

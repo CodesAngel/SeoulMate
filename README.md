@@ -39,6 +39,7 @@ The default backend uses curated ranking priors with calibrated generated fallba
 - Fuzzy title matching for typo-tolerant search
 - User profiles with click, rating, and watchlist-based personalization
 - Streamlit frontend for interactive search and profile exploration
+- Local drama posters served by FastAPI from the scraper output directory
 - FastAPI backend with analytics and evaluation support
 
 ## Repository Structure
@@ -267,6 +268,14 @@ pip install -r training\requirements.txt
 
 ## Running The Application
 
+Before starting the application, make sure the downloaded poster files are present in:
+
+```text
+scrapers/DramaList_Scrapper/output/drama_image/
+```
+
+The backend reads this folder during startup. Restart the backend after adding, removing, or renaming poster files.
+
 Start the backend:
 
 ```powershell
@@ -370,15 +379,23 @@ DELETE /profile/{user_id}
 
 ## Poster Images
 
-Posters are served by the backend from the local scraper output folder, not hot-linked from MyDramaList.
+Posters are identified by the poster URL in each dataset row, not by the drama's title. The backend serves a local copy when it has one and falls back to the MyDramaList URL otherwise.
 
-- `scrapers/DramaList_Scrapper/step3_download_images.py` saves each poster as `<title>.jpg`, replacing characters Windows can't use in filenames (`\ / * ? : " < > |`) with `_` ("Which Star Are You From?" → `Which Star Are You From_.jpg`).
-- At startup, `attach_dataset_images()` in `backend/app.py` gives each drama an `Image` path (`/drama-images/<file>`): first the exact sanitized title, then, only if exactly one file fits, a punctuation- and case-insensitive comparison. `/drama-images` is a static mount of `scrapers/DramaList_Scrapper/output/drama_image/` (gitignored, so posters exist only where the scraper ran).
-- The Streamlit frontend only shows `/drama-images/...` paths and otherwise shows "Poster unavailable".
+- **File names.** `scrapers/DramaList_Scrapper/steps/step3_download_images.py` saves each poster as `<Title> (<Year>) [<ID>].jpg`, where the ID is the file name of the poster URL (`https://i.mydramalist.com/9oX6Gf.jpg` → `9oX6Gf`). The title and year are only a readable label; code reads the `[ID]` part. Same-title dramas get separate files: `Bad Guy (2010) [9oX6Gf].jpg`, `Bad Guy (2024) [73PkAD_4f].jpg`.
+- **Lookup.** At startup `attach_dataset_extras()` in `backend/app.py` joins each index record to its dataset row on title + air date (whitespace/case-insensitive), takes the poster URL and ID, and sets `Image` to `/drama-images/<file>` if a file with that ID exists in `scrapers/DramaList_Scrapper/output/drama_image_by_id/`, otherwise to the poster URL. Responses also include `image_id`, `image_url` and `watchers`. The startup log reports `Posters: N local, N via URL, N missing`.
+- **Frontend.** Streamlit shows `/drama-images/...` paths and `https://i.mydramalist.com/...` URLs (no other hosts). If a local poster fails to load, it retries the drama's `image_url`, then shows "Poster unavailable".
+- **Index rebuilds.** `training/steps/step3_build_index.py` now writes `image_url`, `image_id` and `watchers` into `meta.pkl`; the backend uses those when present and the CSV join otherwise.
 
-Coverage (2026-10-03): all 2,081 dramas have a poster. 1,894 match the exact title, 187 after the `_` substitution, and 6 image files belong to no drama in the index.
+Download or top up the posters (skips IDs already in the folder, writes failures to `output/drama_image_by_id_report.csv`):
 
-Limits of matching by title: two dramas with the same title would overwrite each other's file when scraping; renaming a title in the dataset after scraping loses its poster; and a match proves the names agree, not that the picture is right. A sturdier option for the next scrape is naming files by the poster ID in the dataset's `image` URL (`https://i.mydramalist.com/wJjAnf.jpg` → `wJjAnf.jpg`) or writing the saved filename into the dataset.
+```bash
+python scrapers/DramaList_Scrapper/steps/step3_download_images.py
+# options: --csv <dataset.csv> --out <folder> --report <report.csv> --concurrency 10
+```
+
+Restart the backend afterwards; it indexes the poster folder at startup. To check one poster while the backend runs: `http://127.0.0.1:8001/drama-images/Bad%20Guy%20%282010%29%20%5B9oX6Gf%5D.jpg`.
+
+Why not titles: 10 titles are shared by two different dramas (*Bad Guy*, *Secret*, *Trap*, *Your Honor*, *While You Were Sleeping*, *Save Me*, *Connect*, *Once Again*, *Temptation*, *The Miracle*). With title-named files the second download overwrote the first, so one drama of each pair showed the other's poster. The old title-named folder `output/drama_image/` is no longer read.
 
 ## Ranking Modes
 
@@ -530,7 +547,7 @@ This improves personalized recommendations for that user. The core SBERT model, 
 - Some theme queries still need calibration.
 - `time manipulation` can still lean toward literal title matches.
 - Accuracy scripts require the backend to be running before live evaluation.
-- Posters are matched to dramas by title, so renaming a title after scraping drops its poster (see Poster Images).
+- Posters fall back to MyDramaList URLs when no local file exists, so those depend on that site being reachable (see Poster Images).
 
 ## Git And Runtime Notes
 

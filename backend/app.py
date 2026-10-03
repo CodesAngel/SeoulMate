@@ -22,7 +22,7 @@ from pathlib import Path
 import csv
 import math
 import sys
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
@@ -42,8 +42,11 @@ from personalization import get_personalization_engine
 MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
+DATASET_CSV = PROJECT_DIR / "data" / "final" / "kdrama_dataset.csv"
+# Posters saved by scrapers/DramaList_Scrapper/steps/step3_download_images.py as
+# "<Title> (<Year>) [<ID>].jpg"; looked up by ID, falling back to the poster URL.
 DRAMA_IMAGE_DIR = (
-    PROJECT_DIR / "scrapers" / "DramaList_Scrapper" / "output" / "drama_image"
+    PROJECT_DIR / "scrapers" / "DramaList_Scrapper" / "output" / "drama_image_by_id"
 )
 # Override to point the backend at an alternate training tree, e.g.
 # SEOULMATE_TRAINING_DIR="training-new/output" to test the training-new artifacts
@@ -130,43 +133,86 @@ with open(os.path.join(INDEX_DIR, "meta.pkl"), "rb") as f:
     metadata = pickle.load(f)
 
 
-def attach_local_images(dramas):
-    """Attach poster paths using only files in the local drama image folder."""
-    sanitize_filename = lambda value: re.sub(
-        r'[\\/*?:"<>|]', "_", str(value or "")
-    ).strip()
-    canonical_title = lambda value: "".join(
-        character
-        for character in unicodedata.normalize("NFKC", str(value or "")).casefold()
-        if character.isalnum()
-    )
+# Matches the "[ID].ext" suffix of a saved poster. Keep in sync with step3_download_images.py.
+POSTER_ID_PATTERN = re.compile(r"\[([^\[\]]+)\]\.[A-Za-z0-9]+$")
 
-    local_images = list(DRAMA_IMAGE_DIR.glob("*.jpg")) if DRAMA_IMAGE_DIR.is_dir() else []
-    images_by_title = defaultdict(list)
-    for image_path in local_images:
-        images_by_title[canonical_title(image_path.stem)].append(image_path)
 
-    attached_count = 0
-    missing_count = 0
+def dataset_row_key(title, aired):
+    """Join key between meta.pkl records and dataset CSV rows. Title alone is not
+    unique ("Bad Guy" 2010 and 2024), and some CSV titles have double spaces."""
+    clean = lambda value: re.sub(r"\s+", " ", str(value or "")).strip().casefold()
+    return clean(title), clean(aired)
+
+
+def poster_id_from_url(image_url):
+    """'https://i.mydramalist.com/73PkAD_4f.jpg' -> '73PkAD_4f'."""
+    if not image_url:
+        return None
+    return os.path.splitext(os.path.basename(urlparse(str(image_url)).path))[0] or None
+
+
+def load_dataset_extras():
+    """(title, aired) -> poster URL and watcher count; meta.pkl stores neither."""
+    extras = {}
+    try:
+        with open(DATASET_CSV, encoding="utf-8-sig", newline="") as f:
+            for row in csv.DictReader(f):
+                try:
+                    watchers = float(str(row.get("watchers", "")).replace(",", ""))
+                except ValueError:
+                    watchers = 0.0
+                extras[dataset_row_key(row.get("title"), row.get("aired"))] = {
+                    "image_url": (row.get("image") or "").strip() or None,
+                    "watchers": watchers,
+                }
+    except OSError as e:
+        print(f"Dataset CSV unavailable ({e}); no poster URLs or watcher counts.")
+    return extras
+
+
+def attach_dataset_extras(dramas):
+    """Give each drama its poster URL/ID and watcher count, and set `Image`.
+
+    `Image` is the local poster (/drama-images/<file>) when a file with the drama's
+    ID exists, otherwise the MyDramaList poster URL. `image_id` / `image_url`
+    already in a record (from a future index rebuild) win over the CSV join.
+    """
+    extras = load_dataset_extras()
+    local_files = {}
+    if DRAMA_IMAGE_DIR.is_dir():
+        for path in DRAMA_IMAGE_DIR.iterdir():
+            match = POSTER_ID_PATTERN.search(path.name)
+            if match and path.is_file():
+                local_files[match.group(1)] = path.name
+
+    counts = Counter()
     for drama in dramas:
-        expected_file = DRAMA_IMAGE_DIR / f"{sanitize_filename(drama.get('Title'))}.jpg"
-        if expected_file.is_file():
-            local_file = expected_file
-        else:
-            title_matches = images_by_title.get(canonical_title(drama.get("Title")), [])
-            local_file = title_matches[0] if len(title_matches) == 1 else None
+        extra = extras.get(dataset_row_key(drama.get("Title"), drama.get("Release Years")))
+        if not extra:
+            counts["not in csv"] += 1
+        extra = extra or {}
+        image_url = drama.get("image_url") or extra.get("image_url")
+        image_id = drama.get("image_id") or poster_id_from_url(image_url)
+        drama["image_url"], drama["image_id"] = image_url, image_id
+        drama["watchers"] = extra.get("watchers", drama.get("watchers", 0.0))
 
-        if local_file:
-            drama["Image"] = f"/drama-images/{quote(local_file.name, safe='')}"
-            attached_count += 1
+        if image_id in local_files:
+            drama["Image"] = f"/drama-images/{quote(local_files[image_id], safe='')}"
+            counts["local"] += 1
+        elif image_url:
+            drama["Image"] = image_url
+            counts["url"] += 1
         else:
             drama.pop("Image", None)
-            missing_count += 1
-    return attached_count, missing_count
+            counts["none"] += 1
+    return counts
 
 
-local_image_count, missing_image_count = attach_local_images(metadata)
-print(f"Attached {local_image_count} local posters; {missing_image_count} missing.")
+poster_counts = attach_dataset_extras(metadata)
+print(
+    f"Posters: {poster_counts['local']} local, {poster_counts['url']} via URL, "
+    f"{poster_counts['none']} missing; {poster_counts['not in csv']} dramas not found in the dataset CSV."
+)
 
 titles = [m["Title"] for m in metadata]
 corpus = [
@@ -942,28 +988,12 @@ def split_metadata_terms(value):
     }
 
 
-def load_watcher_counts():
-    """MyDramaList watcher counts by title from the dataset CSV (not stored in meta.pkl)."""
-    path = PROJECT_DIR / "data" / "final" / "kdrama_dataset.csv"
-    counts = {}
-    try:
-        with open(path, encoding="utf-8-sig", newline="") as f:
-            for row in csv.DictReader(f):
-                try:
-                    counts[row["title"].strip()] = float(str(row.get("watchers", "")).replace(",", ""))
-                except ValueError:
-                    pass
-    except OSError as e:
-        print(f"Watcher counts unavailable ({e}); similar-drama ranking runs without popularity.")
-    return counts
-
-
 # Tags that describe production format rather than story, so they say nothing about similarity.
 FORMAT_KEYWORDS = {
     "ai-generated content", "web release", "short length series", "filmed vertically",
     "adapted from a webtoon", "adapted from a web novel", "adapted from a novel", "remake",
 }
-def build_similarity_features(dramas, watchers):
+def build_similarity_features(dramas):
     """Per-title genre/keyword sets, IDF weights and the candidate-only part of the score."""
     genre_sets = {m["Title"]: split_metadata_terms(m.get("Genre", "")) for m in dramas}
     keyword_sets = {
@@ -973,30 +1003,30 @@ def build_similarity_features(dramas, watchers):
     genre_idf = idf(Counter(g for s in genre_sets.values() for g in s))
     keyword_idf = idf(Counter(k for s in keyword_sets.values() for k in s))
 
-    max_log_watchers = math.log1p(max(watchers.values(), default=0)) or 1.0
+    # `watchers` comes from attach_dataset_extras() (per record, so same-title dramas differ).
+    max_log_watchers = math.log1p(max((m.get("watchers", 0) for m in dramas), default=0)) or 1.0
     prior = {}
     for m in dramas:
         try:
             rating = float(m.get("rating_value", 0) or 0)
         except Exception:
             rating = 0.0
-        popularity = math.log1p(watchers.get(m["Title"], 0)) / max_log_watchers
+        popularity = math.log1p(m.get("watchers", 0)) / max_log_watchers
         prior[m["Title"]] = 0.5 * rating / 10.0 + 1.5 * popularity
     return genre_sets, keyword_sets, genre_idf, keyword_idf, prior
 
 
-WATCHER_COUNTS = load_watcher_counts()
 (
     SIM_GENRES,
     SIM_KEYWORDS,
     GENRE_IDF,
     KEYWORD_IDF,
     SIM_PRIOR,
-) = build_similarity_features(metadata, WATCHER_COUNTS)
+) = build_similarity_features(metadata)
 SPECIAL_TITLES = {m["Title"] for m in metadata if is_special_or_meta_title(m)}
 
 
-def build_trope_priors(config, dramas, watchers):
+def build_trope_priors(config, dramas):
     """Trope name -> (aliases, tagged titles most-watched first) from trope_priors.json.
 
     Putting the curated relationship priors first was tried: it helped "found
@@ -1007,19 +1037,18 @@ def build_trope_priors(config, dramas, watchers):
         if not isinstance(spec, dict):
             continue
         tags = {t.lower() for t in spec.get("tags", [])}
-        titles = [
-            m["Title"]
+        tagged = [
+            m
             for m in dramas
             if tags & {k.strip().lower() for k in str(m.get("keywords", "")).split(",")}
         ]
-        titles.sort(key=lambda t: watchers.get(t, 0), reverse=True)
+        tagged.sort(key=lambda m: m.get("watchers", 0), reverse=True)
+        titles = [m["Title"] for m in tagged]
         tropes[name] = ([a.lower() for a in spec.get("aliases", [name])], titles)
     return tropes
 
 
-TROPE_PRIORS = build_trope_priors(
-    load_ranking_config("trope_priors.json"), metadata, WATCHER_COUNTS
-)
+TROPE_PRIORS = build_trope_priors(load_ranking_config("trope_priors.json"), metadata)
 
 
 def match_tropes(query: str):
