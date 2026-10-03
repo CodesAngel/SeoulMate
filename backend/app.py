@@ -912,7 +912,7 @@ FORMAT_KEYWORDS = {
     "ai-generated content", "web release", "short length series", "filmed vertically",
     "adapted from a webtoon", "adapted from a web novel", "adapted from a novel", "remake",
 }
-def build_similarity_features(dramas):
+def build_similarity_features(dramas, watchers):
     """Per-title genre/keyword sets, IDF weights and the candidate-only part of the score."""
     genre_sets = {m["Title"]: split_metadata_terms(m.get("Genre", "")) for m in dramas}
     keyword_sets = {
@@ -922,7 +922,6 @@ def build_similarity_features(dramas):
     genre_idf = idf(Counter(g for s in genre_sets.values() for g in s))
     keyword_idf = idf(Counter(k for s in keyword_sets.values() for k in s))
 
-    watchers = load_watcher_counts()
     max_log_watchers = math.log1p(max(watchers.values(), default=0)) or 1.0
     prior = {}
     for m in dramas:
@@ -935,14 +934,50 @@ def build_similarity_features(dramas):
     return genre_sets, keyword_sets, genre_idf, keyword_idf, prior
 
 
+WATCHER_COUNTS = load_watcher_counts()
 (
     SIM_GENRES,
     SIM_KEYWORDS,
     GENRE_IDF,
     KEYWORD_IDF,
     SIM_PRIOR,
-) = build_similarity_features(metadata)
+) = build_similarity_features(metadata, WATCHER_COUNTS)
 SPECIAL_TITLES = {m["Title"] for m in metadata if is_special_or_meta_title(m)}
+
+
+def build_trope_priors(config, dramas, watchers):
+    """Trope name -> (aliases, tagged titles most-watched first) from trope_priors.json."""
+    tropes = {}
+    for name, spec in config.items():
+        if not isinstance(spec, dict):
+            continue
+        tags = {t.lower() for t in spec.get("tags", [])}
+        titles = [
+            m["Title"]
+            for m in dramas
+            if tags & {k.strip().lower() for k in str(m.get("keywords", "")).split(",")}
+        ]
+        titles.sort(key=lambda t: watchers.get(t, 0), reverse=True)
+        tropes[name] = ([a.lower() for a in spec.get("aliases", [name])], titles)
+    return tropes
+
+
+TROPE_PRIORS = build_trope_priors(
+    load_ranking_config("trope_priors.json"), metadata, WATCHER_COUNTS
+)
+
+
+def match_tropes(query: str):
+    """Tropes whose alias appears as whole words in the query, with the matched alias."""
+    query_norm = f" {re.sub(r'[^a-z0-9]+', ' ', query.lower()).strip()} "
+    matches = []
+    for name, (aliases, titles) in TROPE_PRIORS.items():
+        for alias in aliases:
+            alias_norm = re.sub(r"[^a-z0-9]+", " ", alias).strip()
+            if alias_norm and f" {alias_norm} " in query_norm:
+                matches.append((name, alias_norm, titles))
+                break
+    return matches
 
 
 def weighted_overlap(seed_terms, candidate_terms, idf, seed_total):
@@ -1350,7 +1385,17 @@ def recommend(
     intent = analysis["intent"]
     expanded_query = analysis["expanded_query"]
     dynamic_alpha = analysis["dynamic_alpha"]
-    entities = analysis["entities"]
+    entities = dict(analysis["entities"])
+
+    # Trope phrases ("found family", "body swap"): words inside the matched phrase are
+    # not genres, otherwise "found family" hard-filters to the Family genre.
+    matched_tropes = match_tropes(title)
+    if matched_tropes:
+        trope_words = {word for _, alias, _ in matched_tropes for word in alias.split()}
+        entities["genres"] = [
+            g for g in entities.get("genres") or [] if g.lower() not in trope_words
+        ]
+        debug_info["tropes"] = [name for name, _, _ in matched_tropes]
 
     print(f"🔍 Query Analysis: Intent={intent.value}, Alpha={dynamic_alpha:.2f}")
     print(f"📝 Expanded Query: {expanded_query}")
@@ -2069,6 +2114,14 @@ def recommend(
             prior_titles,
             boost=extra_boost,
             decay=0.06,
+        )
+    for _, _, trope_titles in matched_tropes:
+        add_prior_title_boosts(
+            combined_scores,
+            filtered_metadata,
+            trope_titles[:40],
+            boost=PRIOR_WEIGHTS.get("trope_prior", 1.9),
+            decay=0.03,
         )
     if active_extra_priors:
         debug_info["extra_prior_terms"] = [

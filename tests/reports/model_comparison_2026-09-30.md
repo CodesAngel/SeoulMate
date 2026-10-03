@@ -250,3 +250,28 @@ Query text: description-only retrieved fewer comparables (15/80 in top 200), gen
 **Live results** (old backend P@5 6.7% / R@10 15.6% → **22.7% / 28.8%**). Examples (top 5): Kitchen Soldier → *Pasta, Bon Appetit, Panda and Hedgehog, I Order You, Wok of Love*; Hotel del Luna → *Bring It On, Ghost, My Demon, Sell Your Haunted House, Spooky in Love, A Korean Odyssey*; Mr. Queen → *Queen and I, Bon Appetit, Your Majesty, Rooftop Prince, ...*. Still missing their expected dramas: Spring Fever, Filing for Love, To My Beloved Thief, Phantom Lawyer.
 
 Overall 87.05% (unchanged), franchise 10/10, `search_regression_suite.py` 33/33. Title searches also skip BM25 (zero weight in that mode): 0.5–1.1 s → 0.15–0.28 s uncached.
+
+## Follow-up (2026-10-03): trope searches
+
+New check `HARD_THEME_TEST_CASES` (8 queries, separate from the overall score): expected dramas are well-known examples, preferring ones with the matching dataset tag (e.g. 14 dramas carry "Found Family", 18 "Body Swap", 106 "Older Woman/Younger Man"; no tag mentions "chaebol" or "second lead").
+
+**Causes found**
+- Typed queries never consulted keyword tags; the keyword index was only used for the explicit `keywords=` API parameter. Ranking came from title words and description embeddings ("body swap" → *Switch: Change the World*, *Friends with Benefits Play the Swap Game*).
+- "found family" / "chaebol family" detected the Family genre, which hard-filters the corpus, removing every expected drama. The curated "found family" relationship prior was applied but its titles were already filtered out.
+- The relationship prior "body swap romance" needs "romance" in the query, so "body swap" matched nothing.
+
+**Fix**: `trope_priors.json` maps aliases → tags; matched tropes boost tagged dramas (most-watched first, boost 1.9, decay 0.03, top 40) and their words are removed from detected genres.
+
+| Query | P@5 before | P@5 after | Top 5 after |
+|---|---|---|---|
+| chaebol family | 0% | 40% | My Demon, Queen of Tears, When the Phone Rings, Reborn Rich, My Royal Nemesis |
+| second lead syndrome | 0% | 40% | Strong Woman Do Bong Soon, True Beauty, Boys over Flowers, The Heirs, Itaewon Class |
+| found family | 0% | 60% | The Uncanny Counter, A Shop for Killers, Hospital Playlist, Summer Strike, If You Wish Upon Me |
+| enemies to lovers | 20% | 40% | Our Beloved Summer, Cheese in the Trap, Mad for Each Other, A Korean Odyssey, When the Phone Rings |
+| noona romance | 80% | 80% | Romance Is a Bonus Book, I Hear Your Voice, Something in the Rain, Search: WWW, Crash Course in Romance |
+| body swap | 0% | 100% | Alchemy of Souls, Secret Garden, The Heavenly Idol, High School Return of a Gangster, Big |
+| childhood friends to lovers | 40% | 60% | Weightlifting Fairy Kim Bok Joo, Fight for My Way, Romance Is a Bonus Book, Love Next Door, Doctor Slump |
+| fake dating | 40% | 60% | Business Proposal, My Demon, Because This Is My First Life, The Beauty Inside, Marriage, Not Dating |
+| **Average** | **22.5%** | **60.0%** | Recall@10 22.3% → 69.4% |
+
+Unchanged: overall 87.05%, similar dramas 22.7% / 28.8%, franchise 10/10, regression suite 33/33.

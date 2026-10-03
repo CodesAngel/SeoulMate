@@ -211,6 +211,23 @@ SIMILAR_TEST_CASES = [
     ("Kingdom", ["Joseon Exorcist", "The Haunted Palace", "Gyeongseong Creature", "All of Us Are Dead", "Happiness", "Sweet Home"]),
 ]
 
+# Harder theme searches: trope phrasing fans use, often not literally in the metadata
+# ("chaebol", "second lead" appear in no keyword). Expected dramas are well-known examples,
+# preferring ones that carry the matching dataset tag (Found Family, Enemies to Lovers,
+# Older Woman/Younger Man, Body Swap, Friends to Lovers, Contract/Fake Relationship).
+# Reported separately; not part of the overall score.
+# Format: (query, expected dramas)
+HARD_THEME_TEST_CASES = [
+    ("chaebol family", ["Reborn Rich", "Queen of Tears", "The Heirs", "Mine", "Graceful Family", "The Penthouse: War in Life", "High Society"]),
+    ("second lead syndrome", ["Start-Up", "Reply 1988", "Moon Lovers: Scarlet Heart Ryeo", "True Beauty", "Boys over Flowers", "Love Alarm", "Record of Youth"]),
+    ("found family", ["The Uncanny Counter", "Itaewon Class", "Prison Playbook", "Hospital Playlist", "Reply 1988", "Summer Strike"]),
+    ("enemies to lovers", ["Love to Hate You", "Destined with You", "Cheese in the Trap", "So I Married an Anti-Fan", "King2Hearts", "When the Phone Rings"]),
+    ("noona romance", ["Something in the Rain", "Encounter", "Romance Is a Bonus Book", "Crash Course in Romance", "Forecasting Love and Weather", "I Hear Your Voice"]),
+    ("body swap", ["Secret Garden", "Alchemy of Souls", "The Heavenly Idol", "Big", "High School Return of a Gangster", "Mr. Queen"]),
+    ("childhood friends to lovers", ["Fight for My Way", "Weightlifting Fairy Kim Bok Joo", "Love Next Door", "Reply 1988", "Welcome to Samdal-ri", "Reply 1997"]),
+    ("fake dating", ["Business Proposal", "Love in Contract", "Marriage, Not Dating", "Full House", "Fated to Love You", "Because This Is My First Life", "When the Phone Rings"]),
+]
+
 # ======================================================
 # EVALUATION FUNCTIONS
 # ======================================================
@@ -453,6 +470,28 @@ def evaluate_similar_dramas():
         print(f"  {seed:30} P@5 {p5:.0%}  R@10 {r10:.0%}  top5={titles[:5]}")
     p5, r10 = float(np.mean(hits5)), float(np.mean(recalls))
     print(f"SIMILAR DRAMAS: Precision@5 {p5:.2%} | Recall@10 {r10:.2%}")
+    return p5, r10
+
+
+def evaluate_hard_themes():
+    """Trope searches whose wording is mostly absent from the metadata."""
+    print("\n" + "-" * 60)
+    print("HARD THEMES (trope phrasing):")
+    print("-" * 60)
+    hits5, recalls = [], []
+    for query, expected in HARD_THEME_TEST_CASES:
+        try:
+            data = requests.get(f"{BASE_URL}/recommend", params={"title": query, "top_n": 10}).json()
+            titles = [r["Title"] for r in data.get("recommendations", [])]
+        except Exception as e:
+            print(f"  ✗ '{query}' - Error: {e}")
+            titles = []
+        p5 = sum(is_relevant(t, expected) for t in titles[:5]) / 5
+        r10 = calculate_recall_at_k(titles, expected, k=10)
+        hits5.append(p5); recalls.append(r10)
+        print(f"  {query:30} P@5 {p5:.0%}  R@10 {r10:.0%}  top5={titles[:5]}")
+    p5, r10 = float(np.mean(hits5)), float(np.mean(recalls))
+    print(f"HARD THEMES: Precision@5 {p5:.2%} | Recall@10 {r10:.2%}")
     return p5, r10
 
 
@@ -781,6 +820,7 @@ def main():
     search_metrics = evaluate_search_accuracy()
     franchise_passed, franchise_total = evaluate_franchise_ordering()
     similar_p5, similar_r10 = evaluate_similar_dramas()
+    hard_p5, hard_r10 = evaluate_hard_themes()
     query_intelligence = evaluate_query_intelligence()
     filter_accuracy = evaluate_filter_accuracy()
     personalization = evaluate_personalization()
@@ -797,7 +837,8 @@ def main():
     print(f"  ├─ MRR: {search_metrics['mrr']:.3f}")
     print(f"  ├─ NDCG@10: {search_metrics['ndcg']:.3f}")
     print(f"  ├─ Franchise ordering: {franchise_passed}/{franchise_total}")
-    print(f"  └─ Similar dramas (non-curated): P@5 {similar_p5:.2%}, R@10 {similar_r10:.2%}")
+    print(f"  ├─ Similar dramas (non-curated): P@5 {similar_p5:.2%}, R@10 {similar_r10:.2%}")
+    print(f"  └─ Hard themes (tropes): P@5 {hard_p5:.2%}, R@10 {hard_r10:.2%}")
 
     print(f"\n🧠 QUERY INTELLIGENCE:")
     print(f"  └─ Genre Detection: {query_intelligence:.2%}")

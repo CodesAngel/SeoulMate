@@ -1,0 +1,35 @@
+{
+  "_comment": "Fan trope phrasing -> dataset keyword tags. A query containing any alias boosts dramas carrying any of the tags (most-watched first), and words inside the matched alias stop counting as genres ('family' in 'found family' is not the Family genre).",
+  "found family": {
+    "aliases": ["found family", "chosen family"],
+    "tags": ["Found Family"]
+  },
+  "chaebol": {
+    "aliases": ["chaebol family", "chaebol", "conglomerate family", "rich family"],
+    "tags": ["Conglomerate", "Rich Family", "Heir Male Lead", "Heiress Female Lead"]
+  },
+  "second lead syndrome": {
+    "aliases": ["second lead syndrome", "second lead", "second male lead"],
+    "tags": ["Love Triangle", "Unrequited Love"]
+  },
+  "enemies to lovers": {
+    "aliases": ["enemies to lovers", "enemies-to-lovers", "hate to love"],
+    "tags": ["Enemies to Lovers", "Love/Hate Relationship"]
+  },
+  "noona romance": {
+    "aliases": ["noona romance", "noona", "older woman younger man", "older woman/younger man"],
+    "tags": ["Older Woman/Younger Man"]
+  },
+  "body swap": {
+    "aliases": ["body swap", "body switch", "soul swap", "swap bodies"],
+    "tags": ["Body Swap"]
+  },
+  "friends to lovers": {
+    "aliases": ["childhood friends", "friends to lovers", "childhood sweethearts", "best friends to lovers"],
+    "tags": ["Childhood Friends' Relationship", "Friends to Lovers", "Childhood sweethearts"]
+  },
+  "fake dating": {
+    "aliases": ["fake dating", "fake relationship", "pretend dating", "fake girlfriend", "fake boyfriend"],
+    "tags": ["Fake Relationship", "Contract Relationship"]
+  }
+}

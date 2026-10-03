@@ -10,6 +10,13 @@ Important project history reconstructed from Git commits and project documentati
 - `tests/evaluation/evaluate_accuracy.py`: added a franchise-ordering check (10 cases, including 2 that must not be grouped), reported separately like the self-listing check. Before: 2/10; after: **10/10**.
 - Fixed the evaluator's metrics to match titles exactly (case-insensitive). They used substring matching, so *Hospital Playlist Season 2* counted as a hit for "Hospital Playlist" (and *Kingdom Season 2* for "Kingdom", *Stranger Season 2* for "Stranger"), which pushed NDCG@10 above 1 once sequels were listed. With exact matching, the old and new backends score the same: **87.05%** (Precision@3 60.66%, Recall@10 94.48%, MRR 0.992, NDCG@10 0.943; genre Precision@3 89.7%). The previous 87.92% was inflated by substring hits.
 
+### Trope Searches ("found family", "body swap", "chaebol family", ...)
+
+- New `backend/ranking/config/trope_priors.json`: 8 fan tropes (found family, chaebol, second lead syndrome, enemies to lovers, noona romance, body swap, friends to lovers, fake dating), each with aliases and the dataset keyword tags that mark it. A typed query containing an alias boosts dramas carrying those tags, most-watched first (`match_tropes()` / `TROPE_PRIORS` in `backend/app.py`, debug field `tropes`).
+- Words inside a matched trope no longer count as genres: "found family" and "chaebol family" used to detect the Family genre and hard-filter the corpus to Family-genre dramas, so *Hospital Playlist* or *Reborn Rich* could never appear.
+- Before, typed queries never used the dataset's keyword tags (only the explicit `keywords=` parameter did), so results matched title words: "body swap" → *Switch*, *Swap Game*; "second lead syndrome" → *Second Husband*; "chaebol family" → *Typhoon Family*.
+- Added a hard-theme check to `tests/evaluation/evaluate_accuracy.py` (8 trope queries, reported separately). Precision@5 **22.5% → 60.0%**, Recall@10 **22.3% → 69.4%**. Overall 87.05%, similar dramas, franchise 10/10 and `search_regression_suite.py` 33/33 unchanged; "family drama" and "contract marriage" results unchanged.
+
 ### Better Similar Dramas for Non-Curated Titles (incl. 2026 dramas)
 
 - Only 21 dramas have curated similar-title lists; every other title search was ranked by `seed_similarity_score`, which gave a flat +2.4 per shared hand-written "theme" matched by substring against the description. *The Legend of Kitchen Soldier* (a military-base chef comedy) got only military dramas (*Search*, *Crash Landing on You*, *D.P.*); *Spring Fever* (a rural teacher romance) matched "office romance" and "legal" and got *Eve* and *Punch*.
