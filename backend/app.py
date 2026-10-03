@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -21,6 +22,7 @@ from pathlib import Path
 import csv
 import math
 import sys
+from urllib.parse import quote
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
@@ -40,6 +42,9 @@ from personalization import get_personalization_engine
 MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
+DRAMA_IMAGE_DIR = (
+    PROJECT_DIR / "scrapers" / "DramaList_Scrapper" / "output" / "drama_image"
+)
 # Override to point the backend at an alternate training tree, e.g.
 # SEOULMATE_TRAINING_DIR="training-new/output" to test the training-new artifacts
 # without touching the production default.
@@ -67,6 +72,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if DRAMA_IMAGE_DIR.is_dir():
+    app.mount(
+        "/drama-images",
+        StaticFiles(directory=str(DRAMA_IMAGE_DIR)),
+        name="drama-images",
+    )
 
 # ======================================================
 # STAGE 1 — LOAD MODELS & INDEXES
@@ -116,6 +128,45 @@ index = faiss.read_index(os.path.join(INDEX_DIR, "index.faiss"))
 
 with open(os.path.join(INDEX_DIR, "meta.pkl"), "rb") as f:
     metadata = pickle.load(f)
+
+
+def attach_local_images(dramas):
+    """Attach poster paths using only files in the local drama image folder."""
+    sanitize_filename = lambda value: re.sub(
+        r'[\\/*?:"<>|]', "_", str(value or "")
+    ).strip()
+    canonical_title = lambda value: "".join(
+        character
+        for character in unicodedata.normalize("NFKC", str(value or "")).casefold()
+        if character.isalnum()
+    )
+
+    local_images = list(DRAMA_IMAGE_DIR.glob("*.jpg")) if DRAMA_IMAGE_DIR.is_dir() else []
+    images_by_title = defaultdict(list)
+    for image_path in local_images:
+        images_by_title[canonical_title(image_path.stem)].append(image_path)
+
+    attached_count = 0
+    missing_count = 0
+    for drama in dramas:
+        expected_file = DRAMA_IMAGE_DIR / f"{sanitize_filename(drama.get('Title'))}.jpg"
+        if expected_file.is_file():
+            local_file = expected_file
+        else:
+            title_matches = images_by_title.get(canonical_title(drama.get("Title")), [])
+            local_file = title_matches[0] if len(title_matches) == 1 else None
+
+        if local_file:
+            drama["Image"] = f"/drama-images/{quote(local_file.name, safe='')}"
+            attached_count += 1
+        else:
+            drama.pop("Image", None)
+            missing_count += 1
+    return attached_count, missing_count
+
+
+local_image_count, missing_image_count = attach_local_images(metadata)
+print(f"Attached {local_image_count} local posters; {missing_image_count} missing.")
 
 titles = [m["Title"] for m in metadata]
 corpus = [

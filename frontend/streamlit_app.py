@@ -9,13 +9,16 @@ import streamlit as st
 import requests
 import pandas as pd
 from typing import List, Dict
+import html
+import os
 import uuid
 import time
+from urllib.parse import urljoin
 
 # ======================================================
 # CONFIG
 # ======================================================
-API_URL = "http://127.0.0.1:8001"
+API_URL = os.environ.get("SEOULMATE_API_URL", "http://127.0.0.1:8001")
 CURRENT_BACKEND_ACCURACY = "88.50%"
 CURRENT_BACKEND_MODE = "Stable curated + generated fallback"
 CURRENT_BACKEND_RECALL = "98.46%"
@@ -138,6 +141,66 @@ st.markdown(
         font-size: 0.95rem;
         box-shadow: 0 4px 10px rgba(255, 217, 61, 0.3);
     }
+
+    .result-card {
+        display: flex;
+        gap: 1.5rem;
+        align-items: stretch;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+
+    .result-card-poster {
+        width: 170px;
+        min-width: 170px;
+        aspect-ratio: 2 / 3;
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.14);
+        box-shadow: 0 8px 22px rgba(20, 20, 50, 0.3);
+    }
+
+    .result-card-poster img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+
+    .result-card-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.85rem;
+        padding: 1rem;
+    }
+
+    .result-card-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    @media (max-width: 700px) {
+        .result-card {
+            flex-direction: column;
+        }
+
+        .result-card-poster {
+            width: 140px;
+            min-width: 140px;
+            align-self: center;
+        }
+    }
     
     /* Filter Section Styling */
     .stTextInput > div > div > input {
@@ -215,6 +278,33 @@ def check_api_health() -> bool:
         return response.status_code == 200
     except Exception:
         return False
+
+
+def build_poster_html(drama: Dict, title: str) -> str:
+    """Return poster markup using only images served by the local backend."""
+    image_url = str(drama.get("Image", drama.get("image", "")) or "").strip()
+    safe_title = html.escape(str(title), quote=True)
+    placeholder_contents = (
+        '<span style="font-size: 2.4rem;">🎬</span>'
+        '<span>Poster unavailable</span>'
+    )
+    if not image_url.startswith("/drama-images/"):
+        return (
+            '<div class="result-card-poster">'
+            f'<div class="result-card-placeholder">{placeholder_contents}</div>'
+            "</div>"
+        )
+
+    local_url = urljoin(f"{API_URL.rstrip('/')}/", image_url.lstrip("/"))
+    safe_url = html.escape(local_url, quote=True)
+    return (
+        '<div class="result-card-poster">'
+        f'<img src="{safe_url}" alt="{safe_title} poster" loading="lazy" '
+        'onerror="this.style.display=\'none\';'
+        'this.nextElementSibling.style.display=\'flex\';">'
+        f'<div class="result-card-placeholder" style="display:none;">{placeholder_contents}</div>'
+        "</div>"
+    )
 
 
 def log_interaction(drama_title: str, interaction_type: str, position: int = None):
@@ -695,6 +785,7 @@ with tab1:
                 for idx, drama in enumerate(recommendations, 1):
                     # Extract drama data
                     title = drama.get("Title", "Unknown")
+                    poster_html = build_poster_html(drama, title)
                     genre = drama.get("Genre", drama.get("genres", "N/A"))
                     description = drama.get(
                         "Description",
@@ -709,6 +800,12 @@ with tab1:
 
                     rating = drama.get("rating_value", drama.get("score", "N/A"))
                     episodes = drama.get("episodes", drama.get("Episodes", "N/A"))
+                    display_title = html.escape(str(title))
+                    display_genre = html.escape(str(genre))
+                    display_cast = html.escape(str(cast))
+                    display_description = html.escape(str(description))
+                    display_rating = html.escape(str(rating))
+                    display_episodes = html.escape(str(episodes))
 
                     # Check personalization
                     boost_multiplier = drama.get("boost_multiplier", 1.0)
@@ -738,14 +835,17 @@ with tab1:
 
                     # Create complete card with text content
                     card_html = f"""
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; padding: 2rem; margin: 1.5rem 0; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); color: white;">
-<div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">#{idx} {title}{match_badge_text}</div>
+<div class="result-card">
+{poster_html}
+<div class="result-card-content">
+<div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">#{idx} {display_title}{match_badge_text}</div>
 {f'<div style="background: rgba(255,255,255,0.2); padding: 0.5rem; border-radius: 10px; margin-bottom: 1rem;">{boost_badges_text}</div>' if boost_badges_text else ''}
-<div style="margin-bottom: 0.8rem;"><strong>🎭 Genre:</strong> {genre}</div>
-<div style="margin-bottom: 0.8rem;"><strong>⭐ Rating:</strong> {rating}/10 | <strong>📺 Episodes:</strong> {episodes}</div>
-<div style="margin-bottom: 0.8rem;"><strong>🎬 Cast:</strong> {cast}</div>
-<div style="margin-bottom: 1rem; line-height: 1.6;"><strong>📖 Synopsis:</strong> {description}</div>
-<div><span style="background: #FFD93D; color: #1A1A2E; padding: 0.5rem 1rem; border-radius: 25px; font-weight: 700;">⭐ {rating}/10</span></div>
+<div style="margin-bottom: 0.8rem;"><strong>🎭 Genre:</strong> {display_genre}</div>
+<div style="margin-bottom: 0.8rem;"><strong>⭐ Rating:</strong> {display_rating}/10 | <strong>📺 Episodes:</strong> {display_episodes}</div>
+<div style="margin-bottom: 0.8rem;"><strong>🎬 Cast:</strong> {display_cast}</div>
+<div style="margin-bottom: 1rem; line-height: 1.6;"><strong>📖 Synopsis:</strong> {display_description}</div>
+<div><span style="background: #FFD93D; color: #1A1A2E; padding: 0.5rem 1rem; border-radius: 25px; font-weight: 700;">⭐ {display_rating}/10</span></div>
+</div>
 </div>
 """
                     st.markdown(card_html, unsafe_allow_html=True)
