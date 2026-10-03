@@ -368,6 +368,18 @@ POST   /profile/{user_id}/rate
 DELETE /profile/{user_id}
 ```
 
+## Poster Images
+
+Posters are served by the backend from the local scraper output folder, not hot-linked from MyDramaList.
+
+- `scrapers/DramaList_Scrapper/step3_download_images.py` saves each poster as `<title>.jpg`, replacing characters Windows can't use in filenames (`\ / * ? : " < > |`) with `_` ("Which Star Are You From?" → `Which Star Are You From_.jpg`).
+- At startup, `attach_dataset_images()` in `backend/app.py` gives each drama an `Image` path (`/drama-images/<file>`): first the exact sanitized title, then, only if exactly one file fits, a punctuation- and case-insensitive comparison. `/drama-images` is a static mount of `scrapers/DramaList_Scrapper/output/drama_image/` (gitignored, so posters exist only where the scraper ran).
+- The Streamlit frontend only shows `/drama-images/...` paths and otherwise shows "Poster unavailable".
+
+Coverage (2026-10-03): all 2,081 dramas have a poster. 1,894 match the exact title, 187 after the `_` substitution, and 6 image files belong to no drama in the index.
+
+Limits of matching by title: two dramas with the same title would overwrite each other's file when scraping; renaming a title in the dataset after scraping loses its poster; and a match proves the names agree, not that the picture is right. A sturdier option for the next scrape is naming files by the poster ID in the dataset's `image` URL (`https://i.mydramalist.com/wJjAnf.jpg` → `wJjAnf.jpg`) or writing the saved filename into the dataset.
+
 ## Ranking Modes
 
 The safest default is the curated system with calibrated generated fallback support.
@@ -518,6 +530,7 @@ This improves personalized recommendations for that user. The core SBERT model, 
 - Some theme queries still need calibration.
 - `time manipulation` can still lean toward literal title matches.
 - Accuracy scripts require the backend to be running before live evaluation.
+- Posters are matched to dramas by title, so renaming a title after scraping drops its poster (see Poster Images).
 
 ## Git And Runtime Notes
 

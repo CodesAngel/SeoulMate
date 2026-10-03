@@ -10,6 +10,13 @@ Important project history reconstructed from Git commits and project documentati
 - `tests/evaluation/evaluate_accuracy.py`: added a franchise-ordering check (10 cases, including 2 that must not be grouped), reported separately like the self-listing check. Before: 2/10; after: **10/10**.
 - Fixed the evaluator's metrics to match titles exactly (case-insensitive). They used substring matching, so *Hospital Playlist Season 2* counted as a hit for "Hospital Playlist" (and *Kingdom Season 2* for "Kingdom", *Stranger Season 2* for "Stranger"), which pushed NDCG@10 above 1 once sequels were listed. With exact matching, the old and new backends score the same: **87.05%** (Precision@3 60.66%, Recall@10 94.48%, MRR 0.992, NDCG@10 0.943; genre Precision@3 89.7%). The previous 87.92% was inflated by substring hits.
 
+### Local Poster Images
+
+- The backend serves posters from the scraper's `output/drama_image/` folder at `/drama-images` (`attach_dataset_images()` in `backend/app.py`), and the Streamlit result cards show them, with a "Poster unavailable" placeholder when there is no local file.
+- Matching: the exact sanitized title first (the scraper replaces `\ / * ? : " < > |` with `_`), then a punctuation/case-insensitive fallback used only when exactly one file fits, so *Who Are You* and *Who Are You?* keep their own posters.
+- Audit: all 2,081 dramas have a poster (1,894 exact, 187 via the `_` substitution); 6 image files belong to no indexed drama.
+- Known limits: same-title dramas would overwrite each other's file when scraping, and renaming a title after scraping loses its poster. Possible next step: name files by the poster ID from the `image` URL, or write the saved filename into the dataset.
+
 ### 10 More Tropes
 
 - `trope_priors.json` now covers 18 tropes. Added: time slip, amnesia, hidden identity, cohabitation, reincarnation, cross-dressing, second chance romance, Cinderella (rich man/poor woman), secret relationship, arranged marriage.
