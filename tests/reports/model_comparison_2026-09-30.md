@@ -275,3 +275,28 @@ New check `HARD_THEME_TEST_CASES` (8 queries, separate from the overall score): 
 | **Average** | **22.5%** | **60.0%** | Recall@10 22.3% → 69.4% |
 
 Unchanged: overall 87.05%, similar dramas 22.7% / 28.8%, franchise 10/10, regression suite 33/33.
+
+### 10 more tropes (2026-10-03)
+
+Added time slip, amnesia, hidden identity, cohabitation, reincarnation, cross-dressing, second chance romance, Cinderella, secret relationship and arranged marriage to `trope_priors.json`, with 10 matching test queries. Before: 8% average P@5 on those 10.
+
+Two more causes found:
+- **Fuzzy title capture.** "reincarnation" → *Reincarnation Love*, "cinderella story" → *Cinderella's Sister*, "secret relationship" → *Secret Relationships*: the query became a similar-to-title search. Now a matched trope blocks fuzzy title resolution unless the query is exactly a dataset title ("hidden identity" is the exact title *Hidden Identity*, so it stays a title search; the test uses the alias "secret identity").
+- **Boost too low.** "living together romance" had the trope applied but the Romance genre prior (2.2) outranked it (1.9). Trope boost → 2.4.
+
+| Query | P@5 before | P@5 after |
+|---|---|---|
+| time slip romance | 40% | 40% |
+| amnesia romance | 0% | 60% |
+| secret identity | — | 80% |
+| living together romance | 0% | 60% |
+| reincarnation | 0% | 80% |
+| cross dressing | 0% | 80% |
+| second chance romance | 40% | 40% |
+| cinderella story | 0% | 80% |
+| secret relationship | 0% | 80% |
+| arranged marriage | 0% | 80% |
+
+Whole 18-query check: **P@5 63.3%, R@10 81.8%**. The original 8 queries: 60.0% → 57.5% ("found family" 60% → 40% under the higher boost, as tag-ordered dramas like *Black Knight* outrank the curated list). Tried putting curated relationship lists ahead of tagged dramas: "found family" back to 60% but the check fell to 55.6% (curated lists for enemies to lovers, fake dating etc. are weaker than the tags). Not kept.
+
+Unchanged: overall 87.05%, "time travel" scored test 100% P@3, franchise 10/10, similar dramas 22.7% / 28.8%, regression suite 33/33.

@@ -226,6 +226,17 @@ HARD_THEME_TEST_CASES = [
     ("body swap", ["Secret Garden", "Alchemy of Souls", "The Heavenly Idol", "Big", "High School Return of a Gangster", "Mr. Queen"]),
     ("childhood friends to lovers", ["Fight for My Way", "Weightlifting Fairy Kim Bok Joo", "Love Next Door", "Reply 1988", "Welcome to Samdal-ri", "Reply 1997"]),
     ("fake dating", ["Business Proposal", "Love in Contract", "Marriage, Not Dating", "Full House", "Fated to Love You", "Because This Is My First Life", "When the Phone Rings"]),
+    ("time slip romance", ["Lovely Runner", "Mr. Queen", "Moon Lovers: Scarlet Heart Ryeo", "Rooftop Prince", "Twinkling Watermelon", "A Time Called You", "Tomorrow with You"]),
+    ("amnesia romance", ["100 Days My Prince", "Queen and I", "Extraordinary You", "Our Sticky Love", "Big", "Who Are You: School 2015"]),
+    # "hidden identity" is also an exact drama title, so it stays a title search; test the trope via an alias
+    ("secret identity", ["Healer", "Business Proposal", "True Beauty", "The Legend of the Blue Sea", "I'm Not a Robot", "Pinocchio"]),
+    ("living together romance", ["Because This Is My First Life", "Full House", "Suspicious Partner", "My Roommate Is a Gumiho", "Romance Is a Bonus Book", "Playful Kiss"]),
+    ("reincarnation", ["Tale of the Nine-Tailed", "See You in My 19th Life", "Rooftop Prince", "Death's Game", "Chicago Typewriter", "Bulgasal: Immortal Souls"]),
+    ("cross dressing", ["Coffee Prince", "Love in the Moonlight", "You're Beautiful", "The Tale of Nokdu", "Sungkyunkwan Scandal", "The King's Affection"]),
+    ("second chance romance", ["Queen of Tears", "Our Beloved Summer", "Go Back Couple", "Familiar Wife", "Melo Movie"]),
+    ("cinderella story", ["Boys over Flowers", "Business Proposal", "The Heirs", "Secret Garden", "Coffee Prince", "Strong Woman Do Bong Soon"]),
+    ("secret relationship", ["Something in the Rain", "Forecasting Love and Weather", "She Would Never Know", "Pasta", "My Dearest Nemesis"]),
+    ("arranged marriage", ["Because This Is My First Life", "Mr. Queen", "100 Days My Prince", "Goong", "When the Phone Rings", "Love in Contract"]),
 ]
 
 # ======================================================

@@ -946,7 +946,11 @@ SPECIAL_TITLES = {m["Title"] for m in metadata if is_special_or_meta_title(m)}
 
 
 def build_trope_priors(config, dramas, watchers):
-    """Trope name -> (aliases, tagged titles most-watched first) from trope_priors.json."""
+    """Trope name -> (aliases, tagged titles most-watched first) from trope_priors.json.
+
+    Putting the curated relationship priors first was tried: it helped "found
+    family" but lowered the 18-query trope check from 63% to 56% Precision@5.
+    """
     tropes = {}
     for name, spec in config.items():
         if not isinstance(spec, dict):
@@ -1396,6 +1400,10 @@ def recommend(
             g for g in entities.get("genres") or [] if g.lower() not in trope_words
         ]
         debug_info["tropes"] = [name for name, _, _ in matched_tropes]
+    # A trope query only becomes a title search when it is exactly a drama's title
+    # ("Hidden Identity"); fuzzy guesses like "secret relationship" -> "Secret
+    # Relationships" or "reincarnation" -> "Reincarnation Love" lose to the trope.
+    trope_overrides_title = bool(matched_tropes) and title.strip().lower() not in CANONICAL_LOWER_TITLES
 
     print(f"🔍 Query Analysis: Intent={intent.value}, Alpha={dynamic_alpha:.2f}")
     print(f"📝 Expanded Query: {expanded_query}")
@@ -1422,7 +1430,9 @@ def recommend(
     filtered_metadata = metadata.copy()
 
     # Check for exact title match FIRST - skip filtering if exact match exists
-    exact_title_match, title_match_source = resolve_title(title, metadata, fuzzy_threshold=95)
+    exact_title_match, title_match_source = (
+        (None, None) if trope_overrides_title else resolve_title(title, metadata, fuzzy_threshold=95)
+    )
     title_resolution_match = exact_title_match
     if title_resolution_match:
         debug_info["resolved_title"] = title_resolution_match.get("Title")
@@ -1636,13 +1646,16 @@ def recommend(
             (m for m in filtered_metadata if m["Title"] == title_resolution_match["Title"]),
             None,
         )
-    resolved_title_match = drama or resolve_title_alias(title, filtered_metadata)
+    resolved_title_match = drama or (
+        None if trope_overrides_title else resolve_title_alias(title, filtered_metadata)
+    )
     if resolved_title_match:
         drama = resolved_title_match
     high_confidence_fuzzy_match = None
 
     if (
         not drama
+        and not trope_overrides_title
         and intent == QueryIntent.VAGUE
         and not generic_quality_query
         and not detected_genres
@@ -1664,7 +1677,7 @@ def recommend(
             )
 
     allow_high_confidence_fuzzy = intent in [QueryIntent.SPECIFIC_TITLE]
-    if not drama and allow_high_confidence_fuzzy:
+    if not drama and allow_high_confidence_fuzzy and not trope_overrides_title:
         filtered_titles = [m["Title"] for m in filtered_metadata]
         if filtered_titles:
             match, score, _ = process.extractOne(
@@ -1693,7 +1706,7 @@ def recommend(
         QueryIntent.ACTOR_BASED,
     ]
 
-    if not drama and intent not in skip_fuzzy_intents:
+    if not drama and intent not in skip_fuzzy_intents and not trope_overrides_title:
         # Try fuzzy match only within filtered corpus and only for specific title searches
         filtered_titles = [m["Title"] for m in filtered_metadata]
         if filtered_titles:
@@ -2120,7 +2133,7 @@ def recommend(
             combined_scores,
             filtered_metadata,
             trope_titles[:40],
-            boost=PRIOR_WEIGHTS.get("trope_prior", 1.9),
+            boost=PRIOR_WEIGHTS.get("trope_prior", 2.4),
             decay=0.03,
         )
     if active_extra_priors:
@@ -2235,7 +2248,7 @@ def recommend(
         filtered.insert(0, exact_match)
         print(f"✓ Exact title match injected: {exact_match['Title']}")
 
-    alias_match = resolve_title_alias(title, metadata)
+    alias_match = None if trope_overrides_title else resolve_title_alias(title, metadata)
     resolved_match = alias_match or high_confidence_fuzzy_match
     if not resolved_match and not exact_match and intent not in skip_fuzzy_intents:
         resolved_match = drama

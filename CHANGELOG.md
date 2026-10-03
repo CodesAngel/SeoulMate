@@ -10,6 +10,14 @@ Important project history reconstructed from Git commits and project documentati
 - `tests/evaluation/evaluate_accuracy.py`: added a franchise-ordering check (10 cases, including 2 that must not be grouped), reported separately like the self-listing check. Before: 2/10; after: **10/10**.
 - Fixed the evaluator's metrics to match titles exactly (case-insensitive). They used substring matching, so *Hospital Playlist Season 2* counted as a hit for "Hospital Playlist" (and *Kingdom Season 2* for "Kingdom", *Stranger Season 2* for "Stranger"), which pushed NDCG@10 above 1 once sequels were listed. With exact matching, the old and new backends score the same: **87.05%** (Precision@3 60.66%, Recall@10 94.48%, MRR 0.992, NDCG@10 0.943; genre Precision@3 89.7%). The previous 87.92% was inflated by substring hits.
 
+### 10 More Tropes
+
+- `trope_priors.json` now covers 18 tropes. Added: time slip, amnesia, hidden identity, cohabitation, reincarnation, cross-dressing, second chance romance, Cinderella (rich man/poor woman), secret relationship, arranged marriage.
+- A trope query no longer turns into a fuzzy title search: "reincarnation" became a "similar to *Reincarnation Love*" search, "cinderella story" → *Cinderella's Sister*, "secret relationship" → *Secret Relationships*. Now a trope wins unless the query is exactly a drama title ("Hidden Identity" still searches that drama). Flag `trope_overrides_title` in `recommend()`.
+- Trope boost raised 1.9 → 2.4 so it beats generic genre priors ("living together romance" was ranked by the Romance prior: *Business Proposal*, *What's Wrong with Secretary Kim*).
+- The trope check now has 18 queries: Precision@5 **63.3%**, Recall@10 **81.8%**. The 10 new queries went from 8% to 68% P@5 ("cross dressing" used to return *Cross*, *Golden Cross*). The original 8 moved from 60.0% to 57.5% ("found family" 60% → 40%, "enemies to lovers" unchanged, "childhood friends to lovers" unchanged): the higher boost puts tag-ordered dramas above the curated "found family" list. Putting curated lists first fixed that query but lowered the whole check to 55.6%, so it was not kept.
+- Overall 87.05%, scored "time travel" test (100% P@3), similar dramas, franchise 10/10 and `search_regression_suite.py` 33/33 unchanged.
+
 ### Trope Searches ("found family", "body swap", "chaebol family", ...)
 
 - New `backend/ranking/config/trope_priors.json`: 8 fan tropes (found family, chaebol, second lead syndrome, enemies to lovers, noona romance, body swap, friends to lovers, fake dating), each with aliases and the dataset keyword tags that mark it. A typed query containing an alias boosts dramas carrying those tags, most-watched first (`match_tropes()` / `TROPE_PRIORS` in `backend/app.py`, debug field `tropes`).

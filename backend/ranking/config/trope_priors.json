@@ -31,5 +31,45 @@
   "fake dating": {
     "aliases": ["fake dating", "fake relationship", "pretend dating", "fake girlfriend", "fake boyfriend"],
     "tags": ["Fake Relationship", "Contract Relationship"]
+  },
+  "time slip": {
+    "aliases": ["time slip", "time travel", "time traveling", "time travelling", "time-travel"],
+    "tags": ["Time Travel", "Time Altering"]
+  },
+  "amnesia": {
+    "aliases": ["amnesia", "memory loss", "lost memory", "lost her memory", "lost his memory", "loses memory"],
+    "tags": ["Amnesia", "Dissociative Amnesia"]
+  },
+  "hidden identity": {
+    "aliases": ["hidden identity", "secret identity", "double identity", "double life"],
+    "tags": ["Hidden Identity", "Double Identity"]
+  },
+  "cohabitation": {
+    "aliases": ["cohabitation", "living together", "live together", "roommates", "roommate romance"],
+    "tags": ["Cohabitation"]
+  },
+  "reincarnation": {
+    "aliases": ["reincarnation", "reincarnated", "past life", "past lives"],
+    "tags": ["Reincarnation", "Reincarnated Lovers", "Past Life"]
+  },
+  "cross-dressing": {
+    "aliases": ["cross dressing", "crossdressing", "disguised as a man", "disguised as a boy", "girl disguised"],
+    "tags": ["Cross-Dressing"]
+  },
+  "second chance romance": {
+    "aliases": ["second chance romance", "second chance love", "exes reunite", "ex lovers", "lovers reunited", "first love returns"],
+    "tags": ["Second Chance Romance", "First Love Returns"]
+  },
+  "cinderella": {
+    "aliases": ["cinderella story", "cinderella romance", "cinderella", "rich man poor woman", "rich guy poor girl"],
+    "tags": ["Rich Man/Poor Woman"]
+  },
+  "secret relationship": {
+    "aliases": ["secret relationship", "secret dating", "secret romance", "hidden relationship"],
+    "tags": ["Secret Relationship"]
+  },
+  "arranged marriage": {
+    "aliases": ["arranged marriage", "marriage of convenience", "political marriage"],
+    "tags": ["Arranged Marriage", "Marriage of Convenience"]
   }
 }
