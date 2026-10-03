@@ -188,6 +188,29 @@ FRANCHISE_TEST_CASES = [
     ("Search", []),
 ]
 
+# Similar-drama quality for seeds WITHOUT curated similar-title priors (2026 dramas and
+# well-known older ones), so this measures seed_similarity_score itself. Expected titles
+# are widely-cited comparable dramas (premise, setting, tone), checked to exist in the
+# dataset. Reported separately; not part of the overall score.
+# Format: (seed title, comparable dramas)
+SIMILAR_TEST_CASES = [
+    ("The Legend of Kitchen Soldier", ["Bon Appetit, Your Majesty", "Heo's Diner", "Wok of Love", "Pasta", "Let's Eat"]),
+    ("Spring Fever", ["Hometown Cha-Cha-Cha", "Welcome to Samdal-ri", "When the Weather Is Fine", "Crash Course in Romance", "Sold Out on You", "Our Blues"]),
+    ("My Royal Nemesis", ["Mr. Queen", "Destined with You", "Rooftop Prince", "My Demon", "Bon Appetit, Your Majesty"]),
+    ("My Bias, My Boss", ["Her Private Life", "Business Proposal", "What's Wrong with Secretary Kim", "King the Land", "Touch Your Heart", "Kiss Sixth Sense"]),
+    ("Filing for Love", ["Business Proposal", "What's Wrong with Secretary Kim", "Her Private Life", "King the Land", "Touch Your Heart", "Kiss Sixth Sense"]),
+    ("Teach You a Lesson", ["Weak Hero Class 1", "Study Group", "The Glory", "Revenge of Others", "Duty after School: Part 1", "High School Return of a Gangster"]),
+    ("Agent Kim Reactivated", ["Vagabond", "Healer", "The K2", "Taxi Driver", "Fifties Professionals"]),
+    ("To My Beloved Thief", ["Mr. Queen", "The Tale of Nokdu", "Love in the Moonlight", "Rookie Historian Goo Hae Ryung", "Under the Queen's Umbrella", "Captivating the King"]),
+    ("Four Hands, Two Sonatas", ["Do You Like Brahms?", "Heartstrings", "Beethoven Virus", "Twinkling Watermelon"]),
+    ("Phantom Lawyer", ["The Uncanny Counter", "Bring It On, Ghost", "Hotel del Luna", "The Master's Sun"]),
+    ("Signal", ["Tunnel", "Life on Mars", "Stranger", "Beyond Evil", "Voice"]),
+    ("Hotel del Luna", ["Guardian: The Lonely and Great God", "Tale of the Nine-Tailed", "The Master's Sun", "My Demon", "Bring It On, Ghost"]),
+    ("Vincenzo", ["Taxi Driver", "Big Mouth", "The Fiery Priest", "Lawless Lawyer", "Reborn Rich"]),
+    ("Mr. Queen", ["Rooftop Prince", "The Crowned Clown", "Moon Lovers: Scarlet Heart Ryeo", "Bon Appetit, Your Majesty", "The Tale of Nokdu", "Love in the Moonlight"]),
+    ("Kingdom", ["Joseon Exorcist", "The Haunted Palace", "Gyeongseong Creature", "All of Us Are Dead", "Happiness", "Sweet Home"]),
+]
+
 # ======================================================
 # EVALUATION FUNCTIONS
 # ======================================================
@@ -404,6 +427,33 @@ def evaluate_franchise_ordering():
         print(f"  {'✓' if ok else '✗'} '{query}' -> {titles[:len(expected) + 1]}")
     print(f"FRANCHISE ORDERING: {passed}/{len(FRANCHISE_TEST_CASES)} passed")
     return passed, len(FRANCHISE_TEST_CASES)
+
+
+def evaluate_similar_dramas():
+    """Similar-drama quality for non-curated seeds. Other seasons of the seed are
+    skipped so franchise ordering doesn't count for or against it."""
+    print("\n" + "-" * 60)
+    print("SIMILAR DRAMAS (non-curated seeds):")
+    print("-" * 60)
+    hits5, recalls = [], []
+    for seed, expected in SIMILAR_TEST_CASES:
+        try:
+            data = requests.get(
+                f"{BASE_URL}/recommend", params={"title": seed, "top_n": 15, "debug": "true"}
+            ).json()
+            siblings = set((data.get("debug") or {}).get("franchise_titles") or [])
+            titles = [r["Title"] for r in data.get("recommendations", []) if r["Title"] not in siblings][:10]
+        except Exception as e:
+            print(f"  ✗ '{seed}' - Error: {e}")
+            hits5.append(0.0); recalls.append(0.0)
+            continue
+        p5 = sum(is_relevant(t, expected) for t in titles[:5]) / 5
+        r10 = calculate_recall_at_k(titles, expected, k=10)
+        hits5.append(p5); recalls.append(r10)
+        print(f"  {seed:30} P@5 {p5:.0%}  R@10 {r10:.0%}  top5={titles[:5]}")
+    p5, r10 = float(np.mean(hits5)), float(np.mean(recalls))
+    print(f"SIMILAR DRAMAS: Precision@5 {p5:.2%} | Recall@10 {r10:.2%}")
+    return p5, r10
 
 
 # ======================================================
@@ -730,6 +780,7 @@ def main():
     # Run all tests
     search_metrics = evaluate_search_accuracy()
     franchise_passed, franchise_total = evaluate_franchise_ordering()
+    similar_p5, similar_r10 = evaluate_similar_dramas()
     query_intelligence = evaluate_query_intelligence()
     filter_accuracy = evaluate_filter_accuracy()
     personalization = evaluate_personalization()
@@ -745,7 +796,8 @@ def main():
     print(f"  ├─ Recall@10: {search_metrics['recall']:.2%}")
     print(f"  ├─ MRR: {search_metrics['mrr']:.3f}")
     print(f"  ├─ NDCG@10: {search_metrics['ndcg']:.3f}")
-    print(f"  └─ Franchise ordering: {franchise_passed}/{franchise_total}")
+    print(f"  ├─ Franchise ordering: {franchise_passed}/{franchise_total}")
+    print(f"  └─ Similar dramas (non-curated): P@5 {similar_p5:.2%}, R@10 {similar_r10:.2%}")
 
     print(f"\n🧠 QUERY INTELLIGENCE:")
     print(f"  └─ Genre Detection: {query_intelligence:.2%}")

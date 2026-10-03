@@ -395,6 +395,15 @@ CASES = [
 ]
 
 
+SIMILARITY_STABILITY_SEEDS = [
+    "Teach You a Lesson",
+    "Agent Kim Reactivated",
+    "Yumi's Cells Season 3",
+    "The Legend of Kitchen Soldier",
+    "Phantom Lawyer",
+]
+
+
 def fetch(params: dict) -> dict:
     response = requests.get(f"{BASE_URL}/recommend", params=params, timeout=25)
     response.raise_for_status()
@@ -446,6 +455,33 @@ def run_refresh_check() -> bool:
     return ok
 
 
+def run_similarity_stability_check(seed: str) -> bool:
+    """The ranked head must not depend on how many results the caller requests."""
+    responses = {
+        top_n: fetch({"title": seed, "top_n": top_n, "debug": True})
+        for top_n in (3, 10, 50)
+    }
+    top_threes = {top_n: titles(data)[:3] for top_n, data in responses.items()}
+    expected = top_threes[3]
+    stable = all(result == expected for result in top_threes.values())
+    seed_absent = all(seed not in titles(data) for data in responses.values())
+    similarity_mode = all(
+        debug(data).get("search_mode") == "title_similarity"
+        for data in responses.values()
+    )
+    passed = stable and seed_absent and similarity_mode
+
+    print(f"\nCASE: title similarity is top_n-stable for {seed}")
+    for top_n, result in top_threes.items():
+        print(f"top_n={top_n}: {result}")
+    print(
+        f"  {'PASS' if passed else 'FAIL'}: "
+        f"stable={stable}, seed_absent={seed_absent}, "
+        f"title_similarity_mode={similarity_mode}"
+    )
+    return passed
+
+
 def main() -> int:
     try:
         health = requests.get(f"{BASE_URL}/", timeout=8)
@@ -455,9 +491,13 @@ def main() -> int:
         return 2
 
     passed = 0
-    total = len(CASES) + 1
+    total = len(CASES) + len(SIMILARITY_STABILITY_SEEDS) + 1
     for case in CASES:
         if run_case(case):
+            passed += 1
+
+    for seed in SIMILARITY_STABILITY_SEEDS:
+        if run_similarity_stability_check(seed):
             passed += 1
 
     if run_refresh_check():

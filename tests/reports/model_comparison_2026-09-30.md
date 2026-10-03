@@ -227,3 +227,26 @@ Precision, recall, MRR and NDCG matched expected titles by substring, so a seque
 | Franchise ordering | 2/10 | **10/10** |
 
 The 87.92% figure was inflated by substring hits (genre Precision@3 92.3% → 89.7% under exact matching, e.g. *Kingdom Season 2* had counted for "Kingdom").
+
+## Follow-up (2026-10-03): similar dramas for non-curated titles
+
+Only 21 dramas have curated similar-title lists; all other title searches are ranked by `seed_similarity_score`. New check in `evaluate_accuracy.py` (`SIMILAR_TEST_CASES`): 15 seeds without curated lists (10 from 2026, plus Signal, Hotel del Luna, Vincenzo, Mr. Queen, Kingdom), each with 4–6 widely cited comparable dramas checked to exist in the dataset. The seed's other seasons are skipped. Not part of the overall score.
+
+**Diagnosis.** The old score gave +2.4 per shared hand-written "theme" matched by substring against title/description, which outweighed everything else: *The Legend of Kitchen Soldier* got military dramas because of its Military genre (FAISS alone ranked *Let's Eat*, *Pasta* top), and *Spring Fever* matched "office romance"/"legal". Also, only 30 of the 80 expected dramas were in the top-200 FAISS pool that got reranked, so retrieval capped what rescoring could do.
+
+**Offline sweep** (FAISS pool → rescore; script replicated the backend, results matched the live backend exactly):
+
+| Variant | P@5 | R@10 |
+|---|---|---|
+| Old scoring, top-200 pool | 9.3% | 12.8% |
+| FAISS only | 6.7% | 8.7% |
+| IDF genre+keyword, top-200 pool | 12.0% | 17.9% |
+| IDF, whole corpus, genre+keyword query | 18.7% | 23.9% |
+| + popularity 1.5 (**chosen**) | **22.7%** | **28.8%** |
+| + popularity 3 | 32.0% | 39.0% |
+
+Query text: description-only retrieved fewer comparables (15/80 in top 200), genre+keywords the most (35/80); adding cast/director changed nothing (the text is truncated before it). Popularity 3 was rejected: *Because This Is My First Life* appeared in 11 of 55 top-10 lists, and *Crash Landing on You* became a top-2 match for Kitchen Soldier; the expected lists favour well-known dramas, so the test rewards popularity more than users would.
+
+**Live results** (old backend P@5 6.7% / R@10 15.6% → **22.7% / 28.8%**). Examples (top 5): Kitchen Soldier → *Pasta, Bon Appetit, Panda and Hedgehog, I Order You, Wok of Love*; Hotel del Luna → *Bring It On, Ghost, My Demon, Sell Your Haunted House, Spooky in Love, A Korean Odyssey*; Mr. Queen → *Queen and I, Bon Appetit, Your Majesty, Rooftop Prince, ...*. Still missing their expected dramas: Spring Fever, Filing for Love, To My Beloved Thief, Phantom Lawyer.
+
+Overall 87.05% (unchanged), franchise 10/10, `search_regression_suite.py` 33/33. Title searches also skip BM25 (zero weight in that mode): 0.5–1.1 s → 0.15–0.28 s uncached.

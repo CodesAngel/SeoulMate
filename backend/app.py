@@ -16,8 +16,10 @@ import json
 import re
 import random
 import unicodedata
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
+import csv
+import math
 import sys
 
 if sys.platform == "win32":
@@ -234,7 +236,7 @@ def cached_encode(text: str, mode: str = "query"):
 _result_cache = {}
 _cache_max_size = 200
 _cache_ttl = 300  # 5 minutes
-_cache_version = "search-ranking-v2"
+_cache_version = "search-ranking-v3"
 
 
 def load_generated_index(filename: str, default=None):
@@ -889,61 +891,111 @@ def split_metadata_terms(value):
     }
 
 
-def drama_theme_set(drama):
-    searchable_text = " ".join(
-        str(drama.get(field, ""))
-        for field in ["Title", "Genre", "Description", "keywords"]
-    ).lower()
-    theme_keywords = {
-        "north korea": ["north korea", "north and south korea", "defector", "dmz"],
-        "military romance": ["soldier", "army", "military", "army officer"],
-        "supernatural romance": ["goblin", "ghost", "supernatural", "immortal", "dokkaebi"],
-        "contract relationship": ["contract relationship", "fake identity", "fake dating", "contract marriage"],
-        "office romance": ["boss-employee", "company", "office", "ceo", "workplace"],
-        "school bullying": ["bullying", "school violence", "bullied"],
-        "revenge": ["revenge", "vengeance", "payback"],
-        "medical": ["doctor", "hospital", "medical", "surgeon"],
-        "legal": ["lawyer", "attorney", "court", "prosecutor"],
-        "time travel": ["time travel", "time slip", "time loop", "past life"],
-        "healing slice of life": ["healing", "slice of life", "comfort", "everyday"],
-    }
-    return {
-        theme
-        for theme, keywords in theme_keywords.items()
-        if any(keyword in searchable_text for keyword in keywords)
-    }
-
-
-def seed_similarity_score(seed_drama, candidate, faiss_rank=None):
-    seed_genres = split_metadata_terms(seed_drama.get("Genre", ""))
-    candidate_genres = split_metadata_terms(candidate.get("Genre", ""))
-    genre_overlap = len(seed_genres & candidate_genres)
-    genre_union = len(seed_genres | candidate_genres) or 1
-
-    seed_keywords = split_metadata_terms(seed_drama.get("keywords", ""))
-    candidate_keywords = split_metadata_terms(candidate.get("keywords", ""))
-    keyword_overlap = len(seed_keywords & candidate_keywords)
-
-    seed_themes = drama_theme_set(seed_drama)
-    candidate_themes = drama_theme_set(candidate)
-    theme_overlap = len(seed_themes & candidate_themes)
-
+def load_watcher_counts():
+    """MyDramaList watcher counts by title from the dataset CSV (not stored in meta.pkl)."""
+    path = PROJECT_DIR / "data" / "final" / "kdrama_dataset.csv"
+    counts = {}
     try:
-        rating = float(candidate.get("rating_value", 0) or 0)
-    except Exception:
-        rating = 0.0
+        with open(path, encoding="utf-8-sig", newline="") as f:
+            for row in csv.DictReader(f):
+                try:
+                    counts[row["title"].strip()] = float(str(row.get("watchers", "")).replace(",", ""))
+                except ValueError:
+                    pass
+    except OSError as e:
+        print(f"Watcher counts unavailable ({e}); similar-drama ranking runs without popularity.")
+    return counts
 
-    rank_bonus = 0.0
-    if faiss_rank is not None:
-        rank_bonus = max(0.0, 1.0 - (faiss_rank / 200))
 
-    return (
-        (genre_overlap / genre_union) * 3.0
-        + theme_overlap * 2.4
-        + min(keyword_overlap, 4) * 0.35
-        + (rating / 10.0) * 0.8
-        + rank_bonus
+# Tags that describe production format rather than story, so they say nothing about similarity.
+FORMAT_KEYWORDS = {
+    "ai-generated content", "web release", "short length series", "filmed vertically",
+    "adapted from a webtoon", "adapted from a web novel", "adapted from a novel", "remake",
+}
+def build_similarity_features(dramas):
+    """Per-title genre/keyword sets, IDF weights and the candidate-only part of the score."""
+    genre_sets = {m["Title"]: split_metadata_terms(m.get("Genre", "")) for m in dramas}
+    keyword_sets = {
+        m["Title"]: split_metadata_terms(m.get("keywords", "")) - FORMAT_KEYWORDS for m in dramas
+    }
+    idf = lambda doc_freq: {t: math.log(len(dramas) / (1 + n)) for t, n in doc_freq.items()}
+    genre_idf = idf(Counter(g for s in genre_sets.values() for g in s))
+    keyword_idf = idf(Counter(k for s in keyword_sets.values() for k in s))
+
+    watchers = load_watcher_counts()
+    max_log_watchers = math.log1p(max(watchers.values(), default=0)) or 1.0
+    prior = {}
+    for m in dramas:
+        try:
+            rating = float(m.get("rating_value", 0) or 0)
+        except Exception:
+            rating = 0.0
+        popularity = math.log1p(watchers.get(m["Title"], 0)) / max_log_watchers
+        prior[m["Title"]] = 0.5 * rating / 10.0 + 1.5 * popularity
+    return genre_sets, keyword_sets, genre_idf, keyword_idf, prior
+
+
+(
+    SIM_GENRES,
+    SIM_KEYWORDS,
+    GENRE_IDF,
+    KEYWORD_IDF,
+    SIM_PRIOR,
+) = build_similarity_features(metadata)
+SPECIAL_TITLES = {m["Title"] for m in metadata if is_special_or_meta_title(m)}
+
+
+def weighted_overlap(seed_terms, candidate_terms, idf, seed_total):
+    """Share of the seed's terms (weighted by rarity, IDF) that the candidate also has."""
+    if seed_total <= 0:
+        return 0.0
+    return sum(idf.get(t, 0.0) for t in seed_terms & candidate_terms) / seed_total
+
+
+def seed_similarity_scorer(seed_drama):
+    """Return score(candidate, semantic_score) for one seed drama.
+
+    Rare shared genres/keywords count more than common ones ('Cooking' vs 'Drama').
+    Weights were tuned on SIMILAR_TEST_CASES in tests/evaluation/evaluate_accuracy.py;
+    popularity (in SIM_PRIOR) is kept modest because a higher weight floods unrelated
+    lists with the same hit dramas.
+    """
+    seed_genres = SIM_GENRES.get(seed_drama["Title"]) or split_metadata_terms(seed_drama.get("Genre", ""))
+    seed_keywords = SIM_KEYWORDS.get(seed_drama["Title"]) or (
+        split_metadata_terms(seed_drama.get("keywords", "")) - FORMAT_KEYWORDS
     )
+    genre_total = sum(GENRE_IDF.get(t, 0.0) for t in seed_genres)
+    keyword_total = sum(KEYWORD_IDF.get(t, 0.0) for t in seed_keywords)
+
+    def score(candidate, semantic_score=0.0):
+        title = candidate["Title"]
+        return (
+            weighted_overlap(seed_genres, SIM_GENRES.get(title, set()), GENRE_IDF, genre_total)
+            + 2.0 * weighted_overlap(seed_keywords, SIM_KEYWORDS.get(title, set()), KEYWORD_IDF, keyword_total)
+            + 2.0 * semantic_score
+            + SIM_PRIOR.get(title, 0.0)
+        )
+
+    return score
+
+
+def rank_similar_dramas(seed_drama, candidates):
+    """Rank every candidate by similarity to the seed drama.
+
+    The whole (filtered) corpus is scored rather than the top FAISS hits: only 30 of
+    80 test comparables were in the top 200. The embedding query uses genre +
+    keywords, which retrieved more comparables than the description did.
+    """
+    query = " ".join(str(seed_drama.get(field, "")) for field in ["Genre", "keywords"])
+    scores, ids = index.search(cached_encode(query, mode="passage"), len(metadata))
+    semantic = {metadata[i]["Title"]: float(s) for i, s in zip(ids[0], scores[0]) if 0 <= i < len(metadata)}
+    seed_title = seed_drama.get("Title", "").lower()
+    score = seed_similarity_scorer(seed_drama)
+    pool = [
+        c for c in candidates
+        if c.get("Title", "").lower() != seed_title and c["Title"] not in SPECIAL_TITLES
+    ]
+    return sorted(pool, key=lambda c: score(c, semantic.get(c["Title"], 0.0)), reverse=True)
 
 
 def apply_similar_title_priors(seed_title, ranked_results, candidates):
@@ -1636,10 +1688,8 @@ def recommend(
         print(
             f"Title similarity mode: using '{drama['Title']}' as the seed drama and suppressing keyword-only matches"
         )
-        query_text = " ".join(
-            str(drama.get(field, ""))
-            for field in ["Genre", "Description", "keywords", "Cast", "Director"]
-        )
+        # Same text rank_similar_dramas() embeds, so its encode is a cache hit.
+        query_text = " ".join(str(drama.get(field, "")) for field in ["Genre", "keywords"])
 
     # ---- Stage 4.3: FAISS Semantic Search on filtered corpus ----
     # query_text is drama-metadata-derived (passage-like) whenever a seed drama was
@@ -1665,12 +1715,15 @@ def recommend(
     ]  # Take top results from filtered set
 
     # ---- Stage 4.3: BM25 Lexical Search on filtered corpus ----
-    # Get BM25 scores for all dramas, then filter
-    bm25_scores_all = bm25.get_scores(query_text.split())
-    bm25_results = [
-        (metadata[idx], float(bm25_scores_all[idx])) for idx in filtered_indices
-    ]
-    bm25_results = sorted(bm25_results, key=lambda x: x[1], reverse=True)[: top_n + 20]
+    # Get BM25 scores for all dramas, then filter. Skipped in title-similarity mode,
+    # where its weight is 0 (it cost ~0.5 s per request on the seed's metadata text).
+    bm25_results = []
+    if not title_similarity_mode:
+        bm25_scores_all = bm25.get_scores(query_text.split())
+        bm25_results = [
+            (metadata[idx], float(bm25_scores_all[idx])) for idx in filtered_indices
+        ]
+        bm25_results = sorted(bm25_results, key=lambda x: x[1], reverse=True)[: top_n + 20]
 
     # ---- Stage 4.4: Combine Results ----
     combined_scores = {}
@@ -2140,15 +2193,7 @@ def recommend(
         print(f"Title match injected: {resolved_match['Title']}")
 
     if title_similarity_mode:
-        filtered = [r for r in filtered if r["Title"] != drama["Title"]]
-        faiss_rank = {rec["Title"]: rank for rank, (rec, _) in enumerate(faiss_results)}
-        filtered = sorted(
-            filtered,
-            key=lambda r: seed_similarity_score(
-                drama, r, faiss_rank.get(r["Title"])
-            ),
-            reverse=True,
-        )
+        filtered = rank_similar_dramas(drama, filtered_metadata)
         filtered = apply_similar_title_priors(
             drama["Title"], filtered, filtered_metadata
         )
@@ -2170,30 +2215,7 @@ def recommend(
             None,
         )
         if sim_drama:
-            sim_query = " ".join(
-                str(sim_drama.get(field, ""))
-                for field in ["Genre", "Description", "keywords", "Cast", "Director"]
-            )
-            sim_emb = cached_encode(sim_query, mode="passage")
-            D_sim, I_sim = index.search(sim_emb, len(filtered_metadata) + 20)
-            # Only keep results that are in our filtered set
-            sim_results = [
-                metadata[idx]
-                for idx in I_sim[0]
-                if idx < len(metadata)
-                and idx in filtered_indices
-                and metadata[idx]["Title"].lower() != similar_to.lower()
-            ]
-            faiss_rank = {
-                result["Title"]: rank for rank, result in enumerate(sim_results)
-            }
-            filtered = sorted(
-                sim_results,
-                key=lambda r: seed_similarity_score(
-                    sim_drama, r, faiss_rank.get(r["Title"])
-                ),
-                reverse=True,
-            )
+            filtered = rank_similar_dramas(sim_drama, filtered_metadata)
             filtered = apply_similar_title_priors(
                 sim_drama["Title"], filtered, filtered_metadata
             )

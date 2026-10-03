@@ -10,6 +10,15 @@ Important project history reconstructed from Git commits and project documentati
 - `tests/evaluation/evaluate_accuracy.py`: added a franchise-ordering check (10 cases, including 2 that must not be grouped), reported separately like the self-listing check. Before: 2/10; after: **10/10**.
 - Fixed the evaluator's metrics to match titles exactly (case-insensitive). They used substring matching, so *Hospital Playlist Season 2* counted as a hit for "Hospital Playlist" (and *Kingdom Season 2* for "Kingdom", *Stranger Season 2* for "Stranger"), which pushed NDCG@10 above 1 once sequels were listed. With exact matching, the old and new backends score the same: **87.05%** (Precision@3 60.66%, Recall@10 94.48%, MRR 0.992, NDCG@10 0.943; genre Precision@3 89.7%). The previous 87.92% was inflated by substring hits.
 
+### Better Similar Dramas for Non-Curated Titles (incl. 2026 dramas)
+
+- Only 21 dramas have curated similar-title lists; every other title search was ranked by `seed_similarity_score`, which gave a flat +2.4 per shared hand-written "theme" matched by substring against the description. *The Legend of Kitchen Soldier* (a military-base chef comedy) got only military dramas (*Search*, *Crash Landing on You*, *D.P.*); *Spring Fever* (a rural teacher romance) matched "office romance" and "legal" and got *Eve* and *Punch*.
+- New scoring (`seed_similarity_scorer()` / `rank_similar_dramas()` in `backend/app.py`): IDF-weighted overlap of genres and keywords (rare tags like "Cooking" count far more than "Drama"; format tags like "AI-Generated Content" ignored), plus embedding similarity, rating, and a modest popularity term from the dataset CSV's `watchers` count. The whole filtered corpus is scored instead of the top FAISS hits (only 30 of 80 test comparables were in the top 200), and the embedding query uses genre + keywords. Used by title searches and `similar_to`.
+- Added a similar-drama check to `tests/evaluation/evaluate_accuracy.py` (15 non-curated seeds: 10 from 2026, 5 well-known; reported separately). Precision@5 **6.7% → 22.7%**, Recall@10 **15.6% → 28.8%**. Overall score unchanged at 87.05%; franchise 10/10; `search_regression_suite.py` 33/33.
+- Popularity weight kept at 1.5: weight 3 scored higher on the test (32% P@5) but put the same hits (*Because This Is My First Life* in 11 of 55 lists, *Crash Landing on You* for Kitchen Soldier) into unrelated lists, and the test's expected lists are themselves biased toward well-known dramas.
+- Title searches skip BM25 (its weight is 0 in that mode; it cost ~0.5 s per request) and reuse one embedding. Uncached title searches 0.5–1.1 s → 0.15–0.28 s on this machine (1.35 GB free RAM).
+- Still weak: *Spring Fever*, *Filing for Love*, *To My Beloved Thief*, *Phantom Lawyer* hit none of their expected dramas in the top 5.
+
 ## 2026-10-01
 
 ### Production Switched to the 2,081-Drama Index
