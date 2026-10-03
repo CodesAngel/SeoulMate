@@ -96,7 +96,7 @@ export default function HomePage() {
             <Link className="text-link" href="/discover?q=recommend%20me%20something%20great">See more matches <ArrowRight size={17} /></Link>
           </div>
           {homeQuery.isLoading ? <DramaGridSkeleton count={5} /> : homeQuery.isError ? (
-            <div className="error-banner">The recommendation service is unavailable. Start the FastAPI backend on port 8001 and refresh.</div>
+            <div className="error-banner">The recommendation service is unavailable. <button type="button" onClick={() => homeQuery.refetch()}>Try again</button></div>
           ) : (
             <div className="drama-grid">
               {dramas.slice(0, 5).map((drama, index) => <DramaCard key={`${drama.Title}-${index}`} drama={drama} position={index + 1} priority={index < 3} />)}

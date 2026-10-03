@@ -10,6 +10,7 @@ Important project history reconstructed from Git commits and project documentati
 - Added a responsive discovery home, natural-language results with filters, shareable drama detail pages, similar-title recommendations, a browser-persistent watchlist, and a rating-driven taste profile.
 - Added stable anonymous browser identity and session IDs so searches, clicks, watchlist actions, ratings, and personalization continue using the existing FastAPI analytics flow.
 - Added loading, empty, API-error, poster-error, reduced-motion, desktop, tablet, and mobile presentation states.
+- Refined the full visual hierarchy after desktop and 390px mobile review: reduced oversized page headings, tightened hero and section spacing, added collapsible mobile filters, visible keyboard focus, retry actions, watchlist confirmation toasts, profile loading feedback, and reset confirmation.
 - Added `GET /dramas/{drama_title}` for drama detail pages, with an optional aired-range parameter to distinguish duplicate titles.
 - Fixed the profile endpoint using the wrong `get_top_preferences` keyword (`n` instead of `top_n`).
 - Added `scripts/run_web_frontend.ps1`, `.env.example`, production build documentation, and route documentation.

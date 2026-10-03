@@ -59,7 +59,7 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
               <strong>Already watched it?</strong>
               <select value={rating} onChange={(event) => setRating(event.target.value)} aria-label="Your rating">{[10,9.5,9,8.5,8,7.5,7,6,5].map((score) => <option value={score} key={score}>{score}/10</option>)}</select>
               <button className="secondary-button" onClick={() => ratingMutation.mutate()} disabled={!userId || ratingMutation.isPending}>{ratingMutation.isPending ? "Saving…" : "Save rating"}</button>
-              {message && <span className="muted">{message}</span>}
+              {message && <span className="muted" role="status">{message}</span>}
             </div>
           </div>
         </section>

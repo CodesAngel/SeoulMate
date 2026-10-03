@@ -30,16 +30,19 @@ export default function ProfilePage() {
       <div className="shell profile-layout">
         <section className="profile-card">
           <h2>Your taste map</h2>
-          {profile.isError && <div className="error-banner">{profile.error instanceof Error ? profile.error.message : "Profile unavailable"}</div>}
-          <PreferenceList title="Top genres" items={data?.top_preferences.genres || []} />
-          <PreferenceList title="Favorite actors" items={data?.top_preferences.actors || []} />
-          <PreferenceList title="Story themes" items={data?.top_preferences.themes || []} />
-          <PreferenceList title="Directors" items={data?.top_preferences.directors || []} />
+          {profile.isLoading && <div className="profile-loading"><span /><span /><span /></div>}
+          {profile.isError && <div className="error-banner">{profile.error instanceof Error ? profile.error.message : "Profile unavailable"} <button type="button" onClick={() => profile.refetch()}>Try again</button></div>}
+          {!profile.isLoading && <>
+            <PreferenceList title="Top genres" items={data?.top_preferences.genres || []} />
+            <PreferenceList title="Favorite actors" items={data?.top_preferences.actors || []} />
+            <PreferenceList title="Story themes" items={data?.top_preferences.themes || []} />
+            <PreferenceList title="Directors" items={data?.top_preferences.directors || []} />
+          </>}
         </section>
         <aside className="profile-sidebar">
           <div className="profile-card persona-card"><span className="eyebrow">Your current persona</span><h2>{personas[0]}</h2><p>This changes as you watch, save, and rate more stories.</p><div className="persona-list">{personas.map((persona) => <span key={persona}>{persona}</span>)}</div></div>
-          <div className="profile-card" style={{ marginTop: 18 }}><h2>Teach SeoulMate</h2><form className="rate-form" onSubmit={submit}><input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Drama title" aria-label="Drama title" /><select value={rating} onChange={(event) => setRating(event.target.value)} aria-label="Rating">{[10,9.5,9,8.5,8,7.5,7,6,5].map((score) => <option value={score} key={score}>{score}/10</option>)}</select><button className="primary-button" type="submit" disabled={rate.isPending}>{rate.isPending ? "Saving…" : "Save rating"}</button></form>{message && <p className="muted">{message}</p>}</div>
-          <div className="profile-card" style={{ marginTop: 18 }}><h2>Your activity</h2><div className="stat-grid">{Object.entries(stats).slice(0, 4).map(([key, value]) => <div className="stat-box" key={key}><strong>{value}</strong><span>{key.replaceAll("_", " ")}</span></div>)}{!Object.keys(stats).length && <p className="muted">Your activity will appear here.</p>}</div><button className="danger-button" onClick={() => reset.mutate()} disabled={reset.isPending}>{reset.isPending ? "Resetting…" : "Reset taste profile"}</button></div>
+          <div className="profile-card" style={{ marginTop: 18 }}><h2>Teach SeoulMate</h2><form className="rate-form" onSubmit={submit}><label className="field-label" htmlFor="profile-drama">Drama title</label><input id="profile-drama" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Hospital Playlist" /><label className="field-label" htmlFor="profile-rating">Your rating</label><select id="profile-rating" value={rating} onChange={(event) => setRating(event.target.value)}>{[10,9.5,9,8.5,8,7.5,7,6,5].map((score) => <option value={score} key={score}>{score}/10</option>)}</select><button className="primary-button" type="submit" disabled={rate.isPending}>{rate.isPending ? "Saving…" : "Save rating"}</button></form>{message && <p className="muted" role="status">{message}</p>}</div>
+          <div className="profile-card" style={{ marginTop: 18 }}><h2>Your activity</h2><div className="stat-grid">{Object.entries(stats).slice(0, 4).map(([key, value]) => <div className="stat-box" key={key}><strong>{value}</strong><span>{key.replaceAll("_", " ")}</span></div>)}{!Object.keys(stats).length && <p className="muted">Your activity will appear here.</p>}</div><button className="danger-button" onClick={() => { if (window.confirm("Reset everything SeoulMate has learned about your taste?")) reset.mutate(); }} disabled={reset.isPending}>{reset.isPending ? "Resetting…" : "Reset taste profile"}</button></div>
         </aside>
       </div>
     </>

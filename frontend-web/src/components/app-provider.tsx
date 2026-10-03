@@ -48,31 +48,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [watchlist, setWatchlist] = useState<Drama[]>([]);
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
-    const hydrateBrowserState = () => {
-      if (cancelled) return;
-      const storedUser = localStorage.getItem("seoulmate:user") || createId("viewer");
-      localStorage.setItem("seoulmate:user", storedUser);
-      setUserId(storedUser);
-      setSessionId(createId("session"));
+    const storedUser = localStorage.getItem("seoulmate:user") || createId("viewer");
+    localStorage.setItem("seoulmate:user", storedUser);
+    // This effect intentionally hydrates state from browser-only storage after SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUserId(storedUser);
+    setSessionId(createId("session"));
 
-      try {
-        const storedList = JSON.parse(
-          localStorage.getItem("seoulmate:watchlist") || "[]",
-        ) as Drama[];
-        setWatchlist(Array.isArray(storedList) ? storedList : []);
-      } catch {
-        setWatchlist([]);
-      }
-      setReady(true);
-    };
-
-    queueMicrotask(hydrateBrowserState);
-    return () => {
-      cancelled = true;
-    };
+    try {
+      const storedList = JSON.parse(
+        localStorage.getItem("seoulmate:watchlist") || "[]",
+      ) as Drama[];
+      setWatchlist(Array.isArray(storedList) ? storedList : []);
+    } catch {
+      setWatchlist([]);
+    }
+    setReady(true);
   }, []);
 
   const isSaved = useCallback(
@@ -88,6 +82,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         : [drama, ...watchlist];
       setWatchlist(next);
       localStorage.setItem("seoulmate:watchlist", JSON.stringify(next));
+      setNotice(removing ? "Removed from your list" : "Saved to your list");
 
       if (userId && sessionId) {
         void logInteraction({
@@ -108,7 +103,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContext.Provider value={value}>{children}</AppContext.Provider>
+      <AppContext.Provider value={value}>
+        {children}
+        {notice && (
+          <div className="app-toast" role="status" onAnimationEnd={() => setNotice("")}>
+            {notice}
+          </div>
+        )}
+      </AppContext.Provider>
     </QueryClientProvider>
   );
 }
