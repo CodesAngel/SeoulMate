@@ -1,6 +1,6 @@
 # Supabase PostgreSQL migration plan
 
-Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, poster URL cutover, and local authentication foundation are complete; hosted deployment and the remaining application-data cutover remain.
+Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, poster URL cutover, authentication, and persistent watchlists/ratings are complete; hosted deployment and the profile/preference/analytics cutover remain.
 
 ## Implementation progress
 
@@ -13,7 +13,8 @@ Date: 2026-10-04. Status: implementation in progress. The local database foundat
 - [ ] Integrate FastAPI reads and writes with PostgreSQL.
 - [x] Add Supabase Auth to Next.js and JWT verification to FastAPI.
 - [x] Generate poster thumbnails and upload the local poster collection to Storage.
-- [ ] Migrate frontend watchlists, ratings, profiles, and preferences.
+- [x] Migrate frontend watchlists, viewing statuses, and ratings.
+- [ ] Migrate generated profiles, learned preferences, and analytics events.
 - [ ] Validate and deploy the schema and catalog to the hosted project.
 
 ## Decisions

@@ -4,12 +4,21 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-04
 
+### Persistent Authenticated Watchlists and Ratings
+
+- Added authenticated FastAPI CRUD endpoints under `/me/watchlist` and `/me/ratings`. Every operation derives ownership from the verified Supabase JWT and never accepts a client-selected user ID.
+- Added PostgreSQL-backed watchlist restoration, five viewing states (`planned`, `watching`, `completed`, `paused`, and `dropped`), persistent 1–10 ratings, and automatic `completed` status when a title is rated.
+- Kept a browser-local list for guests and added a sign-in merge that imports catalog-backed guest saves without overwriting viewing states already stored in the account.
+- Updated drama details and the My List page with account-aware save controls, viewing-status selectors, restored personal ratings, signed-out guidance, optimistic updates, rollback messages, and loading/error states.
+- Prevented the non-reloading backend launcher from importing the recommendation models twice, reducing startup memory pressure while retaining explicit reload support for development.
+- Validation: two disposable accounts proved missing-token rejection, guest merge, status changes, rating persistence, cross-user isolation, and restoration after logout and password login. Test users were removed afterward; ESLint, TypeScript, Python compilation, diff checks, and the Next.js production build passed.
+
 ### Local Supabase Authentication
 
 - Added Supabase SSR cookie sessions to Next.js 16 with email/password registration, login, logout, protected account details, signup callbacks, and password recovery pages.
 - Added automatic `public.profiles` creation for every new `auth.users` record while retaining owner-only Row Level Security.
 - Added ES256/RS256 Supabase JWT verification to FastAPI and a reference protected `GET /auth/me` route. CORS now permits the configured frontend origin instead of every origin.
-- Connected the site header and personalization identity to live Auth state, with an anonymous browser identity retained for signed-out visitors. Watchlists and legacy taste-profile storage remain scheduled for the next PostgreSQL cutover.
+- Connected the site header and personalization identity to live Auth state, with an anonymous browser identity retained for signed-out visitors.
 - Set local Auth redirects for both `localhost` and `127.0.0.1`, raised the minimum password length to eight, and documented Mailpit-based local recovery testing.
 - Validation: disposable local signups produced valid JWTs and matching profiles, missing credentials were rejected, password recovery reached Mailpit, short passwords were rejected, and user deletion cascaded cleanly. ESLint, TypeScript, Python compilation, dependency checks, and the Next.js production build passed; the npm production audit reported zero vulnerabilities.
 

@@ -52,6 +52,10 @@ Password-reset messages are captured locally in Mailpit. Request one at `http://
 
 FastAPI exposes `GET /auth/me` as the reference protected route. It accepts `Authorization: Bearer <access-token>`, verifies the token against Supabase's JWKS, and returns the authenticated user ID, email, and role. Existing discovery routes remain public.
 
+After signing in, save a drama and open `/watchlist` to set its status to Planned, Watching, Completed, On hold, or Dropped. Ratings saved from a drama detail page are stored in PostgreSQL and mark the title Completed. Log out and sign in again to verify that both the status and rating are restored. Saves made while signed out remain local to that browser and merge into the account at the next sign-in.
+
+The authenticated application endpoints are `GET/PUT/DELETE /me/watchlist`, `POST /me/watchlist/merge`, and `GET/PUT/DELETE /me/ratings`. They obtain the user ID from the verified access token; clients do not send a user ID for ownership.
+
 ## Index rebuilding
 
 The backend needs `training/faiss_index/index.faiss` and `meta.pkl`. If these already match your dataset and model, ordinary startup does not require rebuilding.

@@ -4,6 +4,9 @@ import type {
   ProfileResponse,
   RecommendationResponse,
   SearchFilters,
+  RatingEntry,
+  WatchlistEntry,
+  WatchStatus,
 } from "@/lib/types";
 import { z } from "zod";
 
@@ -34,6 +37,19 @@ const recommendationSchema = z.object({
   recommendations: z.array(dramaSchema),
   search_id: z.string().optional(),
 }).passthrough();
+const watchStatusSchema = z.enum(["planned", "watching", "completed", "paused", "dropped"]);
+const watchlistEntrySchema = z.object({
+  drama: dramaSchema,
+  status: watchStatusSchema,
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+});
+const ratingEntrySchema = z.object({
+  drama: dramaSchema,
+  rating: z.number().min(1).max(10),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+});
 
 export const API_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8001"
@@ -100,7 +116,13 @@ async function apiRequest<T>(
     throw new ApiError(message, response.status, message);
   }
 
+  if (response.status === 204) return undefined as T;
+
   return response.json() as Promise<T>;
+}
+
+function bearerHeaders(accessToken: string) {
+  return { Authorization: `Bearer ${accessToken}` };
 }
 
 export function resolvePosterUrl(value?: string): string | null {
@@ -166,6 +188,73 @@ export function resetProfile(userId: string, signal?: AbortSignal) {
     `/profile/${encodeURIComponent(userId)}`,
     { method: "DELETE", signal },
   );
+}
+
+export async function getMyWatchlist(accessToken: string, signal?: AbortSignal) {
+  const response = await apiRequest<{ items: WatchlistEntry[] }>("/me/watchlist", {
+    headers: bearerHeaders(accessToken),
+    signal,
+  });
+  return { items: z.array(watchlistEntrySchema).parse(response.items) };
+}
+
+export async function mergeMyWatchlist(
+  accessToken: string,
+  items: Array<{ drama_id: number; status: WatchStatus }>,
+) {
+  const response = await apiRequest<{ items: WatchlistEntry[] }>("/me/watchlist/merge", {
+    method: "POST",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify({ items }),
+  });
+  return { items: z.array(watchlistEntrySchema).parse(response.items) };
+}
+
+export async function saveMyWatchlistItem(
+  accessToken: string,
+  dramaId: number,
+  status: WatchStatus,
+) {
+  const response = await apiRequest<{ item: WatchlistEntry }>(`/me/watchlist/${dramaId}`, {
+    method: "PUT",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify({ status }),
+  });
+  return { item: watchlistEntrySchema.parse(response.item) };
+}
+
+export function removeMyWatchlistItem(accessToken: string, dramaId: number) {
+  return apiRequest<void>(`/me/watchlist/${dramaId}`, {
+    method: "DELETE",
+    headers: bearerHeaders(accessToken),
+  });
+}
+
+export async function getMyRatings(accessToken: string, signal?: AbortSignal) {
+  const response = await apiRequest<{ items: RatingEntry[] }>("/me/ratings", {
+    headers: bearerHeaders(accessToken),
+    signal,
+  });
+  return { items: z.array(ratingEntrySchema).parse(response.items) };
+}
+
+export async function saveMyRating(
+  accessToken: string,
+  dramaId: number,
+  rating: number,
+) {
+  const response = await apiRequest<{
+    item: RatingEntry;
+    watchlist_item: WatchlistEntry;
+  }>(`/me/ratings/${dramaId}`, {
+    method: "PUT",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify({ rating }),
+  });
+  return {
+    item: ratingEntrySchema.parse(response.item),
+    watchlist_item: watchlistEntrySchema.parse(response.watchlist_item),
+  };
 }
 
 export function logInteraction(input: {

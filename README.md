@@ -14,7 +14,7 @@ The system combines semantic search, lexical search, calibrated ranking indexes,
 - Query analysis, typo-tolerant title matching, and genre, year, and rating filters.
 - Cross-encoder reranking with curated priors and calibrated generated fallbacks.
 - Personalized recommendations based on ratings and recorded user interactions.
-- Drama detail pages, poster images, and a browser-persistent watchlist.
+- Drama detail pages, poster images, an account-synced watchlist, viewing statuses, and personal ratings.
 - Email/password accounts with Supabase Auth, server-refreshed sessions, password recovery, and verified FastAPI bearer tokens.
 - Internal Streamlit interface for model testing, analytics, and profile exploration.
 
@@ -94,7 +94,7 @@ To use the internal Streamlit interface, run `.\scripts\run_frontend.ps1` in ano
 
 The Next.js application uses Supabase Auth with server-refreshed cookie sessions. Create an account at `/auth/sign-up`, sign in at `/auth/login`, manage the current session at `/account`, and request password recovery at `/auth/forgot-password`. Local authentication emails are captured by Mailpit at `http://127.0.0.1:54324`.
 
-Every signup creates a matching row in `public.profiles`. FastAPI validates Supabase access tokens through the project's JWKS endpoint; `GET /auth/me` is the reference protected endpoint. The watchlist and existing taste-profile data remain browser-local or in legacy runtime storage until the next PostgreSQL application-data migration.
+Every signup creates a matching row in `public.profiles`. FastAPI validates Supabase access tokens through the project's JWKS endpoint; `GET /auth/me` is the reference protected endpoint. Signed-in watchlists, viewing statuses, and ratings are stored in PostgreSQL and restored on later sessions. Guest saves remain in the browser and merge into the account after sign-in. The generated taste profile and preference learning still use legacy runtime storage pending their PostgreSQL migration.
 
 ## Dataset and posters
 

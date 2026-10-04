@@ -6,7 +6,7 @@ Reviewed against the repository on 2026-10-04.
 | --- | --- |
 | [Quick start](QUICKSTART.md) | Start the backend and internal frontend; refresh posters or rebuild the index |
 | [Personalization guide](PERSONALIZATION_QUICK_START.md) | Profile and recommendation API usage |
-| [Supabase PostgreSQL migration plan](SUPABASE_POSTGRESQL_MIGRATION_PLAN.md) | Active database, authentication, poster-storage, rollout, and free-plan capacity plan; local database and poster phases implemented |
+| [Supabase PostgreSQL migration plan](SUPABASE_POSTGRESQL_MIGRATION_PLAN.md) | Active database, authentication, Storage, and rollout plan; local catalog, posters, Auth, watchlists, and ratings implemented |
 | [Automatic dataset update plan](AUTOMATED_DATASET_UPDATE_PLAN.md) | Proposed Python update manager and scheduled workflow; not implemented |
 | [Training guide](../training/README.md) | Active training and index pipeline |
 | [Scraper guide](../scrapers/DramaList_Scrapper/README.md) | Data collection scripts |

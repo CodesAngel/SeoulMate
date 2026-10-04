@@ -39,6 +39,7 @@ from database.models import Drama
 from database.session import SessionLocal
 from database.settings import get_database_settings
 from auth import AuthenticatedUser, require_user
+from user_library import router as user_library_router
 
 # ======================================================
 # CONFIGURATION
@@ -80,6 +81,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(user_library_router)
 
 # ======================================================
 # STAGE 1 — LOAD MODELS & INDEXES
@@ -3112,4 +3114,5 @@ if __name__ == "__main__":
 
     port = int(os.environ.get("SEOULMATE_PORT", "8001"))
     reload_enabled = os.environ.get("SEOULMATE_RELOAD", "1") != "0"
-    uvicorn.run("app:app", host="127.0.0.1", port=port, reload=reload_enabled)
+    application = "app:app" if reload_enabled else app
+    uvicorn.run(application, host="127.0.0.1", port=port, reload=reload_enabled)

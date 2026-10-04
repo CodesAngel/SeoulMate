@@ -22,6 +22,27 @@ export type Drama = {
   boost_details?: Record<string, number>;
 };
 
+export type WatchStatus =
+  | "planned"
+  | "watching"
+  | "completed"
+  | "paused"
+  | "dropped";
+
+export type WatchlistEntry = {
+  drama: Drama;
+  status: WatchStatus;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type RatingEntry = {
+  drama: Drama;
+  rating: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type UserStatistics = {
   total_interactions: number;
   total_clicks: number;

@@ -160,6 +160,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .detail-description { max-width: 780px; color: #5f625f; line-height: 1.75; font-size: 1.01rem; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .detail-actions button { display: inline-flex; align-items: center; gap: 8px; }
+.status-control { min-width: 170px; display: grid; gap: 5px; }
 .rating-box { margin-top: 28px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .rating-box select { height: 45px; border-radius: 10px; border: 1px solid var(--line); background: var(--cream); padding: 0 12px; }
 .detail-columns { margin-top: 70px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 60px; border-top: 1px solid var(--line); padding-top: 42px; }
@@ -170,6 +171,13 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag { padding: 8px 11px; border-radius: 8px; background: var(--paper-deep); font-size: .74rem; }
 .watchlist-grid { padding: 46px 0 100px; }
+.watchlist-card-wrap { min-width: 0; }
+.watchlist-controls { margin-top: 12px; display: grid; gap: 9px; }
+.watchlist-controls label { display: grid; gap: 5px; }
+.watchlist-controls label span, .status-control span { font-size: .66rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #77746f; }
+.watchlist-controls select, .status-control select { width: 100%; height: 40px; border: 1px solid var(--line); border-radius: 9px; background: var(--cream); color: var(--ink); padding: 0 10px; }
+.personal-rating { font-size: .75rem; color: #6f706b; }
+.personal-rating strong { color: #b67512; }
 .profile-layout { padding: 48px 0 100px; display: grid; grid-template-columns: 1fr 340px; gap: 38px; align-items: start; }
 .profile-card { background: var(--cream); border: 1px solid var(--line); border-radius: 22px; padding: 28px; }
 .profile-card h2 { margin: 0 0 20px; font: 500 1.7rem Georgia, serif; }
