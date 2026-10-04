@@ -2,6 +2,32 @@
 
 Updated: 2026-10-04. Run these commands from `D:\Projects\SeoulMate` with the existing virtual environment and dependencies installed. See the [root README](../README.md) for full setup.
 
+## Start the local database
+
+Start Docker Desktop, then run the project-scoped Supabase services:
+
+```powershell
+supabase start
+```
+
+The ignored `backend/.env` and `frontend-web/.env.local` files must contain the local values printed by `supabase status -o env`; the committed `.env.example` files document the required variable names. Never put a secret key in the frontend environment file.
+
+Apply the application schema and import the validated catalog:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe scripts\import_catalog.py --dry-run
+.\.venv\Scripts\python.exe scripts\import_catalog.py
+```
+
+The importer is idempotent. It requires the 2,081-row final CSV, matching FAISS metadata, and the complete `drama_image_by_id/` poster directory. It does not import legacy test analytics or store remote poster URLs.
+
+Open the local Supabase Studio at `http://127.0.0.1:54323`. Stop this project's stack without deleting its local data with:
+
+```powershell
+supabase stop
+```
+
 ## Start the app
 
 Start the backend:

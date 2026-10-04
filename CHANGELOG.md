@@ -4,6 +4,14 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-04
 
+### Local Supabase PostgreSQL Foundation
+
+- Initialized a project-scoped local Supabase stack under `supabase/` and populated ignored backend/frontend runtime environment files with local Docker credentials.
+- Added SQLAlchemy, Psycopg, Pydantic Settings, and Alembic with a reproducible initial migration for the drama catalog, Supabase Auth profiles, watchlists, ratings, preferences, searches, recommendations, and interactions.
+- Enabled Row Level Security on all 14 application tables, allowed public catalog reads, restricted user-owned rows to the authenticated owner, and linked seven user-bearing tables to `auth.users`.
+- Added an idempotent catalog importer that validates the CSV, FAISS metadata order, and all local poster mappings before committing. Imported 2,081 dramas, 31 genres, 2,158 keywords, 4,490 people, and their normalized relationships into local PostgreSQL without storing online poster URLs.
+- Validation: Alembic reported no schema drift; a repeated import preserved all counts; catalog indexes covered 0-2,080 exactly; anonymous catalog reads succeeded and anonymous profile writes were rejected.
+
 ### Next.js Frontend Reliability and Deployment Refinement
 
 - Fixed Discover filter controls becoming stale after browser back/forward navigation by resynchronizing their draft state with the current URL.
