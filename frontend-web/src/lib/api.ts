@@ -14,11 +14,15 @@ const dramaSchema = z
     Genre: z.string().optional(),
     Description: z.string().optional(),
     "Release Years": z.string().optional(),
+    drama_id: z.number().optional(),
     rating_value: stringOrNumber.optional(),
     episodes: stringOrNumber.optional(),
     Image: z.string().optional(),
-    image_url: z.string().optional(),
     image_id: z.string().optional(),
+    poster_original_path: z.string().optional(),
+    poster_thumbnail_path: z.string().optional(),
+    poster_original_url: z.string().url().optional(),
+    poster_thumbnail_url: z.string().url().optional(),
     watchers: z.number().optional(),
   })
   .passthrough();
@@ -34,6 +38,10 @@ const recommendationSchema = z.object({
 export const API_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8001"
 ).replace(/\/$/, "");
+const SUPABASE_URL = (
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321"
+).replace(/\/$/, "");
+const POSTER_STORAGE_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/drama-posters/`;
 
 export class ApiError extends Error {
   constructor(
@@ -97,8 +105,7 @@ async function apiRequest<T>(
 
 export function resolvePosterUrl(value?: string): string | null {
   if (!value) return null;
-  if (value.startsWith("/drama-images/")) return `${API_URL}${value}`;
-  return null;
+  return value.startsWith(POSTER_STORAGE_PREFIX) ? value : null;
 }
 
 export async function searchDramas(filters: SearchFilters, signal?: AbortSignal) {

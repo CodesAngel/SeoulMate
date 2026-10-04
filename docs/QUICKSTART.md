@@ -56,17 +56,9 @@ After adding dramas or changing the text used for recommendations, rebuild with 
 
 This reads `data/final/kdrama_dataset.csv`, generates embeddings, and replaces the index and metadata. It does not train a model or download posters. Restart the backend afterwards. When changing the embedding model, rebuild the index with that same model and ensure the backend uses it too.
 
-## Poster downloads
+## Poster originals
 
-Local posters are optional; the backend can fall back to dataset poster URLs. Download missing ID-based posters with:
-
-```powershell
-.\.venv\Scripts\python.exe scrapers\DramaList_Scrapper\steps\step3_download_images.py
-```
-
-Files go into `scrapers/DramaList_Scrapper/output/drama_image_by_id/`; failures are recorded in `drama_image_by_id_report.csv` in the same output directory. Rerunning skips saved poster IDs. Restart the backend to discover new files.
-
-The backend no longer reads `output/drama_image/`. Poster changes alone do not require an index rebuild: the backend joins existing metadata to the final CSV at startup to obtain missing poster URLs and IDs, and reads per-drama watcher counts from that CSV when available.
+The complete original poster collection is stored under `scrapers/DramaList_Scrapper/output/drama_image_by_id/`. The backend no longer serves this folder or uses external poster URLs at runtime. It joins FAISS results to PostgreSQL by stable catalog position and returns the corresponding Supabase Storage URLs.
 
 ## Prepare and upload posters to local Storage
 
@@ -78,7 +70,7 @@ The Storage pipeline uses only the existing originals in `drama_image_by_id`; it
 .\.venv\Scripts\python.exe scripts\upload_posters_to_storage.py
 ```
 
-The uploader creates the public `drama-posters` bucket when needed and upserts objects at `dramas/{drama_id}/original.jpg` and `dramas/{drama_id}/thumbnail.webp`. It verifies every object's Storage metadata, public HTTP size and content type, and database association before updating `dramas.poster_key`. Detailed manifests are written under `data/reports/`.
+The uploader creates the public `drama-posters` bucket when needed and upserts objects at `dramas/{drama_id}/original.jpg` and `dramas/{drama_id}/thumbnail.webp`. It verifies every object's Storage metadata, public HTTP size and content type, and database association before updating `dramas.poster_original_key` and `dramas.poster_thumbnail_key`. Detailed manifests are written under `data/reports/`.
 
 ## Check the API
 

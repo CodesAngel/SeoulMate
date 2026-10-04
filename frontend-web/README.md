@@ -8,7 +8,7 @@ Streamlit remains available under `frontend/` for internal model testing and ana
 
 - Natural-language K-drama discovery with genre, year, rating, and sorting filters
 - Responsive poster-led home and result pages
-- Local posters served by FastAPI; external poster URLs are not rendered
+- Supabase Storage thumbnails on cards and original posters on detail pages; external poster hosts are not rendered
 - Shareable drama detail pages with cast, themes, ratings, and similar titles
 - Browser-persistent watchlist
 - Anonymous local viewer identity connected to backend personalization

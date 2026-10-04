@@ -71,10 +71,10 @@ export default function HomePage() {
           </div>
           <div className="hero-art" aria-hidden={!feature}>
             <div className="hero-poster-back">
-              <PosterImage src={dramas[1]?.Image} alt={dramas[1]?.Title || "Featured drama"} />
+              <PosterImage src={dramas[1]?.poster_thumbnail_url ?? dramas[1]?.Image} alt={dramas[1]?.Title || "Featured drama"} />
             </div>
             <div className="hero-poster-main">
-              <PosterImage src={feature?.Image} alt={feature?.Title || "Featured drama"} priority />
+              <PosterImage src={feature?.poster_thumbnail_url ?? feature?.Image} alt={feature?.Title || "Featured drama"} priority />
             </div>
             {feature && (
               <div className="hero-feature-label">

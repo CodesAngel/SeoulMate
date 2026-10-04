@@ -1,6 +1,6 @@
 # Supabase PostgreSQL migration plan
 
-Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, and verified local poster Storage migration are complete; hosted deployment, authentication, and application cutover remain.
+Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, and poster URL cutover are complete; hosted deployment, authentication, and the remaining application-data cutover remain.
 
 ## Implementation progress
 
@@ -196,7 +196,7 @@ Use `scrapers/DramaList_Scrapper/output/drama_image_by_id/` as the source. It is
       `- thumbnail.webp
    ```
 
-6. Store the original poster key in PostgreSQL and derive the thumbnail key from the same drama ID.
+6. Store both the original and thumbnail object paths in PostgreSQL.
 7. Use card thumbnails on lists and recommendations, originals on detail pages, lazy loading, and long browser cache headers.
 8. Remove online poster fallback after the Storage mapping passes validation.
 

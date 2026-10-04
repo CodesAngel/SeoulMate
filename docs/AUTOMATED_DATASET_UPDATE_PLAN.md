@@ -37,7 +37,7 @@ Adding a drama does not require model retraining. Retraining is a separate impro
 3. Refresh discovery pages even if cached HTML exists. Define coverage that includes new and upcoming eligible dramas; a popular-shows listing alone may not discover every addition. Refresh airing/upcoming dramas daily and completed dramas less often. Support a periodic wider reconciliation.
 4. Fetch only new or due records, with bounded concurrency, timeouts, and backoff. Existing skip-if-saved behavior must be extended so changed pages and records can actually refresh. Incomplete fetches must not remove existing dramas.
 5. Reuse cleaning steps to prepare a candidate final CSV. Keep valid existing values when a partial fetch returns blank fields. Preserve the application's current eligibility rules.
-6. Download missing poster IDs using the candidate CSV and the current ID-based downloader. Poster failures are reported and retried later; usable URL fallback allows the release to proceed.
+6. Add missing original posters to the candidate ID-based collection, generate their WebP thumbnails, and upload both variants. Missing poster objects block the release because runtime delivery has no external URL fallback.
 7. For the first version, fully rebuild FAISS and metadata only when the dataset changed, using the current production model. A later optimization can refresh metadata alone or encode only changed records. Never mix vectors from different models.
 8. Validate, activate, restart, and run health checks. Keep the last successful release for rollback.
 

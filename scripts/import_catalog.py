@@ -269,8 +269,11 @@ def import_catalog(
             [
                 {
                     "id": drama_ids[drama["source_key"]],
-                    "poster_key": (
+                    "poster_original_key": (
                         f"dramas/{drama_ids[drama['source_key']]}/original.jpg"
+                    ),
+                    "poster_thumbnail_key": (
+                        f"dramas/{drama_ids[drama['source_key']]}/thumbnail.webp"
                     ),
                 }
                 for drama in dramas

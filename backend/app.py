@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Query, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from sqlalchemy import select
 from typing import Optional
 import os
 import pickle
@@ -20,10 +20,9 @@ import unicodedata
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
-import csv
 import math
 import sys
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
@@ -36,6 +35,9 @@ from analytics import get_tracker
 # Import Phase 2 enhancements
 from user_profile import get_profile_manager
 from personalization import get_personalization_engine
+from database.models import Drama
+from database.session import SessionLocal
+from database.settings import get_database_settings
 
 # ======================================================
 # CONFIGURATION
@@ -43,12 +45,6 @@ from personalization import get_personalization_engine
 MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
-DATASET_CSV = PROJECT_DIR / "data" / "final" / "kdrama_dataset.csv"
-# Posters saved by scrapers/DramaList_Scrapper/steps/step3_download_images.py as
-# "<Title> (<Year>) [<ID>].jpg"; looked up by ID, falling back to the poster URL.
-DRAMA_IMAGE_DIR = (
-    PROJECT_DIR / "scrapers" / "DramaList_Scrapper" / "output" / "drama_image_by_id"
-)
 # Override to point the backend at an alternate training tree, e.g.
 # SEOULMATE_TRAINING_DIR="training-new/output" to test the training-new artifacts
 # without touching the production default.
@@ -76,13 +72,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-if DRAMA_IMAGE_DIR.is_dir():
-    app.mount(
-        "/drama-images",
-        StaticFiles(directory=str(DRAMA_IMAGE_DIR)),
-        name="drama-images",
-    )
 
 # ======================================================
 # STAGE 1 — LOAD MODELS & INDEXES
@@ -134,86 +123,75 @@ with open(os.path.join(INDEX_DIR, "meta.pkl"), "rb") as f:
     metadata = pickle.load(f)
 
 
-# Matches the "[ID].ext" suffix of a saved poster. Keep in sync with step3_download_images.py.
-POSTER_ID_PATTERN = re.compile(r"\[([^\[\]]+)\]\.[A-Za-z0-9]+$")
-
-
-def dataset_row_key(title, aired):
-    """Join key between meta.pkl records and dataset CSV rows. Title alone is not
-    unique ("Bad Guy" 2010 and 2024), and some CSV titles have double spaces."""
-    clean = lambda value: re.sub(r"\s+", " ", str(value or "")).strip().casefold()
-    return clean(title), clean(aired)
-
-
-def poster_id_from_url(image_url):
-    """'https://i.mydramalist.com/73PkAD_4f.jpg' -> '73PkAD_4f'."""
-    if not image_url:
-        return None
-    return os.path.splitext(os.path.basename(urlparse(str(image_url)).path))[0] or None
-
-
-def load_dataset_extras():
-    """(title, aired) -> poster URL and watcher count; meta.pkl stores neither."""
-    extras = {}
-    try:
-        with open(DATASET_CSV, encoding="utf-8-sig", newline="") as f:
-            for row in csv.DictReader(f):
-                try:
-                    watchers = float(str(row.get("watchers", "")).replace(",", ""))
-                except ValueError:
-                    watchers = 0.0
-                extras[dataset_row_key(row.get("title"), row.get("aired"))] = {
-                    "image_url": (row.get("image") or "").strip() or None,
-                    "watchers": watchers,
-                }
-    except OSError as e:
-        print(f"Dataset CSV unavailable ({e}); no poster URLs or watcher counts.")
-    return extras
-
-
-def attach_dataset_extras(dramas):
-    """Give each drama its poster URL/ID and watcher count, and set `Image`.
-
-    `Image` is the local poster (/drama-images/<file>) when a file with the drama's
-    ID exists, otherwise the MyDramaList poster URL. `image_id` / `image_url`
-    already in a record (from a future index rebuild) win over the CSV join.
-    """
-    extras = load_dataset_extras()
-    local_files = {}
-    if DRAMA_IMAGE_DIR.is_dir():
-        for path in DRAMA_IMAGE_DIR.iterdir():
-            match = POSTER_ID_PATTERN.search(path.name)
-            if match and path.is_file():
-                local_files[match.group(1)] = path.name
-
-    counts = Counter()
-    for drama in dramas:
-        extra = extras.get(dataset_row_key(drama.get("Title"), drama.get("Release Years")))
-        if not extra:
-            counts["not in csv"] += 1
-        extra = extra or {}
-        image_url = drama.get("image_url") or extra.get("image_url")
-        image_id = drama.get("image_id") or poster_id_from_url(image_url)
-        drama["image_url"], drama["image_id"] = image_url, image_id
-        drama["watchers"] = extra.get("watchers", drama.get("watchers", 0.0))
-
-        if image_id in local_files:
-            drama["Image"] = f"/drama-images/{quote(local_files[image_id], safe='')}"
-            counts["local"] += 1
-        elif image_url:
-            drama["Image"] = image_url
-            counts["url"] += 1
-        else:
-            drama.pop("Image", None)
-            counts["none"] += 1
-    return counts
-
-
-poster_counts = attach_dataset_extras(metadata)
-print(
-    f"Posters: {poster_counts['local']} local, {poster_counts['url']} via URL, "
-    f"{poster_counts['none']} missing; {poster_counts['not in csv']} dramas not found in the dataset CSV."
+POSTER_BUCKET = "drama-posters"
+SUPABASE_PUBLIC_OBJECT_URL = (
+    f"{get_database_settings().supabase_url.rstrip('/')}/storage/v1/object/public/"
+    f"{POSTER_BUCKET}"
 )
+
+
+def public_storage_url(object_key):
+    return f"{SUPABASE_PUBLIC_OBJECT_URL}/{quote(object_key, safe='/')}"
+
+
+def attach_catalog_storage(dramas):
+    """Attach canonical PostgreSQL IDs, metadata, and public Storage URLs."""
+
+    with SessionLocal() as session:
+        catalog_rows = list(
+            session.execute(
+                select(
+                    Drama.id,
+                    Drama.catalog_index,
+                    Drama.title,
+                    Drama.image_id,
+                    Drama.watchers,
+                    Drama.poster_original_key,
+                    Drama.poster_thumbnail_key,
+                ).order_by(Drama.catalog_index)
+            ).all()
+        )
+    if len(catalog_rows) != len(dramas):
+        raise RuntimeError(
+            f"Catalog mismatch: {len(dramas)} FAISS records and "
+            f"{len(catalog_rows)} PostgreSQL records"
+        )
+
+    rows_by_position = {row.catalog_index: row for row in catalog_rows}
+    if set(rows_by_position) != set(range(len(dramas))):
+        raise RuntimeError("PostgreSQL catalog positions do not match the FAISS index")
+
+    for position, drama in enumerate(dramas):
+        row = rows_by_position[position]
+        if not row.poster_original_key or not row.poster_thumbnail_key:
+            raise RuntimeError(f"Drama {row.id} is missing a Storage object path")
+        if re.sub(r"\s+", " ", row.title).strip().casefold() != re.sub(
+            r"\s+", " ", str(drama.get("Title", ""))
+        ).strip().casefold():
+            raise RuntimeError(
+                f"Catalog title mismatch at position {position}: "
+                f"{row.title!r} != {drama.get('Title')!r}"
+            )
+
+        original_url = public_storage_url(row.poster_original_key)
+        thumbnail_url = public_storage_url(row.poster_thumbnail_key)
+        drama.pop("image_url", None)
+        drama.update(
+            {
+                "drama_id": row.id,
+                "image_id": row.image_id,
+                "watchers": float(row.watchers or 0),
+                "poster_original_path": row.poster_original_key,
+                "poster_thumbnail_path": row.poster_thumbnail_key,
+                "poster_original_url": original_url,
+                "poster_thumbnail_url": thumbnail_url,
+                "Image": thumbnail_url,
+            }
+        )
+
+
+attach_catalog_storage(metadata)
+print(f"Posters: {len(metadata)} PostgreSQL mappings attached from Supabase Storage.")
 
 titles = [m["Title"] for m in metadata]
 corpus = [
@@ -1004,7 +982,7 @@ def build_similarity_features(dramas):
     genre_idf = idf(Counter(g for s in genre_sets.values() for g in s))
     keyword_idf = idf(Counter(k for s in keyword_sets.values() for k in s))
 
-    # `watchers` comes from attach_dataset_extras() (per record, so same-title dramas differ).
+    # `watchers` comes from PostgreSQL (per record, so same-title dramas differ).
     max_log_watchers = math.log1p(max((m.get("watchers", 0) for m in dramas), default=0)) or 1.0
     prior = {}
     for m in dramas:
@@ -2811,7 +2789,9 @@ def get_drama_details(
 
     if not matches:
         raise HTTPException(status_code=404, detail=f"Drama '{drama_title}' not found")
-    return {"drama": matches[0]}
+    drama = matches[0].copy()
+    drama["Image"] = drama.get("poster_original_url")
+    return {"drama": drama}
 
 
 # ======================================================

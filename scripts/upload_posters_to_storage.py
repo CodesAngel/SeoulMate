@@ -213,6 +213,7 @@ def build_upload_tasks(args: argparse.Namespace) -> tuple[list[dict[str, Any]], 
                     "size_bytes": local_path.stat().st_size,
                     "sha256": digest,
                     "database_original_key": f"dramas/{drama.id}/original.jpg",
+                    "database_thumbnail_key": f"dramas/{drama.id}/thumbnail.webp",
                 }
             )
     return tasks, len(dramas)
@@ -303,19 +304,28 @@ def storage_metadata() -> dict[str, dict[str, Any]]:
 def update_and_verify_database(tasks: list[dict[str, Any]], drama_count: int) -> None:
     original_tasks = [task for task in tasks if task["variant"] == "original"]
     mappings = [
-        {"id": task["drama_id"], "poster_key": task["database_original_key"]}
+        {
+            "id": task["drama_id"],
+            "poster_original_key": task["database_original_key"],
+            "poster_thumbnail_key": task["database_thumbnail_key"],
+        }
         for task in original_tasks
     ]
     with SessionLocal.begin() as session:
         session.bulk_update_mappings(Drama, mappings)
 
     with SessionLocal() as session:
-        rows = session.execute(select(Drama.id, Drama.poster_key)).all()
-    actual = {row.id: row.poster_key for row in rows}
+        rows = session.execute(
+            select(Drama.id, Drama.poster_original_key, Drama.poster_thumbnail_key)
+        ).all()
+    actual = {
+        row.id: (row.poster_original_key, row.poster_thumbnail_key) for row in rows
+    }
     mismatches = [
         task["drama_id"]
         for task in original_tasks
-        if actual.get(task["drama_id"]) != task["database_original_key"]
+        if actual.get(task["drama_id"])
+        != (task["database_original_key"], task["database_thumbnail_key"])
     ]
     if len(actual) != drama_count or mismatches:
         raise ValueError(
@@ -352,6 +362,7 @@ def write_reports(
                 "http_content_length": public["http_content_length"],
                 "http_content_type": public["http_content_type"],
                 "database_original_key": task["database_original_key"],
+                "database_thumbnail_key": task["database_thumbnail_key"],
             }
         )
     csv_report.parent.mkdir(parents=True, exist_ok=True)

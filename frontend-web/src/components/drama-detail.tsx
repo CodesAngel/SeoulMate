@@ -42,7 +42,7 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
     <>
       <div className="shell detail-shell">
         <section className="detail-hero">
-          <div className="detail-poster"><PosterImage src={drama.Image} alt={`${drama.Title} poster`} priority sizes="(max-width: 780px) 76vw, 340px" /></div>
+          <div className="detail-poster"><PosterImage src={drama.poster_original_url ?? drama.Image} alt={`${drama.Title} poster`} priority sizes="(max-width: 780px) 76vw, 340px" /></div>
           <div className="detail-copy">
             <span className="eyebrow">{drama.Network || "Korean drama"}</span>
             <h1 className="display">{drama.Title}</h1>

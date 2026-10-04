@@ -87,7 +87,7 @@ Local posters are optional. To download missing posters:
 .\.venv\Scripts\python.exe scrapers\DramaList_Scrapper\steps\step3_download_images.py
 ```
 
-Posters are saved by image ID in `scrapers/DramaList_Scrapper/output/drama_image_by_id/`. The backend falls back to MyDramaList URLs when local files are unavailable. Restart it after downloading. Poster updates alone do not require an index rebuild; details are in the [quick start](docs/QUICKSTART.md#poster-downloads).
+Poster originals are preserved in `scrapers/DramaList_Scrapper/output/drama_image_by_id/`. The production UI receives public Supabase Storage URLs from FastAPI, using WebP thumbnails on cards and original JPEGs on detail pages. Runtime poster delivery has no external image fallback; details are in the [quick start](docs/QUICKSTART.md#prepare-and-upload-posters-to-local-storage).
 
 ## Evaluation
 

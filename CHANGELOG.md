@@ -18,6 +18,8 @@ Important project history reconstructed from Git commits and project documentati
 - Generated and verified 2,081 aspect-ratio-preserving WebP card thumbnails at up to 480x720 and quality 80. The thumbnails occupy 80.62 MiB, reducing their size by 73.3% compared with the originals.
 - Created the public local `drama-posters` bucket and uploaded 4,162 objects under `dramas/{drama_id}/original.jpg` and `dramas/{drama_id}/thumbnail.webp` without downloading external images.
 - Verified every object's path, byte size, content type, public URL, and PostgreSQL association. Updated the catalog importer to preserve the deterministic Storage key on subsequent imports.
+- Added separate PostgreSQL paths for original and thumbnail objects. FastAPI now joins FAISS metadata to the PostgreSQL catalog at startup and returns public Storage URLs, while Next.js uses WebP thumbnails on cards and original JPEGs on detail pages.
+- Removed the runtime local-folder mount and external poster URL fallback from FastAPI. Next.js only accepts URLs from the configured `drama-posters` Supabase bucket.
 
 ### Next.js Frontend Reliability and Deployment Refinement
 

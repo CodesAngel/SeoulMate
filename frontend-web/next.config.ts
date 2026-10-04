@@ -1,20 +1,22 @@
 import type { NextConfig } from "next";
 
-const apiUrl = new URL(
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8001",
+const supabaseUrl = new URL(
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
 );
-const isLocalApi = ["127.0.0.1", "localhost"].includes(apiUrl.hostname);
+const isLocalSupabase = ["127.0.0.1", "localhost"].includes(
+  supabaseUrl.hostname,
+);
 
 const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowLocalIP:
-      process.env.NODE_ENV !== "production" && isLocalApi,
+      process.env.NODE_ENV !== "production" && isLocalSupabase,
     remotePatterns: [
       {
-        protocol: apiUrl.protocol === "https:" ? "https" : "http",
-        hostname: apiUrl.hostname,
-        port: apiUrl.port,
-        pathname: "/drama-images/**",
+        protocol: supabaseUrl.protocol === "https:" ? "https" : "http",
+        hostname: supabaseUrl.hostname,
+        port: supabaseUrl.port,
+        pathname: "/storage/v1/object/public/drama-posters/**",
       },
     ],
   },

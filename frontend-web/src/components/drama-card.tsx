@@ -45,7 +45,7 @@ export function DramaCard({
   return (
     <article className="drama-card">
       <Link href={href} className="poster-frame" onClick={logClick}>
-        <PosterImage src={drama.Image} alt={`${drama.Title} poster`} priority={priority} />
+        <PosterImage src={drama.poster_thumbnail_url ?? drama.Image} alt={`${drama.Title} poster`} priority={priority} />
         <span className="genre-pill">{firstGenre(drama.Genre)}</span>
         <span className="card-gradient" />
       </Link>

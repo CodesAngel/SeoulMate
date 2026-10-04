@@ -93,7 +93,8 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
                     Drama.id,
                     Drama.source_key,
                     Drama.image_id,
-                    Drama.poster_key,
+                    Drama.poster_original_key,
+                    Drama.poster_thumbnail_key,
                     Drama.title,
                     Drama.aired,
                 ).order_by(Drama.id)
@@ -141,7 +142,8 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
     for drama in dramas:
         image_id = drama.image_id or ""
         expected_name = expected_filename(drama.title, drama.aired, image_id)
-        expected_key = f"dramas/{drama.id}/original.jpg"
+        expected_original_key = f"dramas/{drama.id}/original.jpg"
+        expected_thumbnail_key = f"dramas/{drama.id}/thumbnail.webp"
         matches = files_by_id.get(image_id, [])
 
         mapping_problems: list[str] = []
@@ -149,8 +151,10 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
             mapping_problems.append("missing_database_image_id")
         if drama.source_key != image_id:
             mapping_problems.append("source_key_image_id_mismatch")
-        if drama.poster_key != expected_key:
-            mapping_problems.append("poster_key_mismatch")
+        if drama.poster_original_key != expected_original_key:
+            mapping_problems.append("poster_original_key_mismatch")
+        if drama.poster_thumbnail_key != expected_thumbnail_key:
+            mapping_problems.append("poster_thumbnail_key_mismatch")
         if mapping_problems:
             database_mapping_mismatches.append(
                 {

@@ -1,4 +1,5 @@
 export type Drama = {
+  drama_id?: number;
   Title: string;
   Genre?: string;
   Description?: string;
@@ -11,8 +12,11 @@ export type Drama = {
   episodes?: string | number;
   keywords?: string;
   Image?: string;
-  image_url?: string;
   image_id?: string;
+  poster_original_path?: string;
+  poster_thumbnail_path?: string;
+  poster_original_url?: string;
+  poster_thumbnail_url?: string;
   watchers?: number;
   boost_multiplier?: number;
   boost_details?: Record<string, number>;
