@@ -43,6 +43,32 @@ export type RatingEntry = {
   updated_at?: string;
 };
 
+export type AccountProfile = {
+  id: string;
+  display_name: string | null;
+  avatar_path: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AccountStatistics = {
+  saved_total: number;
+  active_total: number;
+  planned: number;
+  watching: number;
+  completed: number;
+  paused: number;
+  dropped: number;
+  ratings_total: number;
+  average_rating: number | null;
+};
+
+export type AccountProfileResponse = {
+  profile: AccountProfile;
+  statistics: AccountStatistics;
+};
+
 export type UserStatistics = {
   total_interactions: number;
   total_clicks: number;

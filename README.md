@@ -96,6 +96,8 @@ The Next.js application uses Supabase Auth with server-refreshed cookie sessions
 
 Every signup creates a matching row in `public.profiles`. FastAPI validates Supabase access tokens through the project's JWKS endpoint; `GET /auth/me` is the reference protected endpoint. Signed-in watchlists, viewing statuses, and ratings are stored in PostgreSQL and restored on later sessions. Guest saves remain in the browser and merge into the account after sign-in. The generated taste profile and preference learning still use legacy runtime storage pending their PostgreSQL migration.
 
+The protected `/account` area supports display-name updates, per-user avatar uploads, password changes, active profile statistics, sign-out, and permanent account deletion. Avatars use the public `avatars` Storage bucket with owner-scoped upload policies and a 2 MB JPEG/PNG/WebP limit. Account deletion removes the avatar and legacy profile artifacts, deletes the Supabase Auth user, and cascades through PostgreSQL-owned data.
+
 ## Dataset and posters
 
 The final dataset is `data/final/kdrama_dataset.csv`. After adding dramas or changing recommendation text, rebuild the index with the existing model and restart the backend. New dramas do not require model retraining.

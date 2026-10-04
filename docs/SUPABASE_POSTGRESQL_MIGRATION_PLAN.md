@@ -14,6 +14,7 @@ Date: 2026-10-04. Status: implementation in progress. The local database foundat
 - [x] Add Supabase Auth to Next.js and JWT verification to FastAPI.
 - [x] Generate poster thumbnails and upload the local poster collection to Storage.
 - [x] Migrate frontend watchlists, viewing statuses, and ratings.
+- [x] Add profile management, avatar Storage, password changes, statistics, and account deletion.
 - [ ] Migrate generated profiles, learned preferences, and analytics events.
 - [ ] Validate and deploy the schema and catalog to the hosted project.
 

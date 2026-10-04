@@ -56,6 +56,8 @@ After signing in, save a drama and open `/watchlist` to set its status to Planne
 
 The authenticated application endpoints are `GET/PUT/DELETE /me/watchlist`, `POST /me/watchlist/merge`, and `GET/PUT/DELETE /me/ratings`. They obtain the user ID from the verified access token; clients do not send a user ID for ownership.
 
+Open `/account` to edit the display name, upload or remove an avatar, change the password, inspect saved/watching/completed/rating statistics, sign out, or permanently delete the account. Avatar uploads accept JPEG, PNG, and WebP files up to 2 MB. Deletion requires typing `DELETE` and removes the Auth user, PostgreSQL-owned rows, avatar object, and matching legacy profile data.
+
 ## Index rebuilding
 
 The backend needs `training/faiss_index/index.faiss` and `meta.pkl`. If these already match your dataset and model, ordinary startup does not require rebuilding.

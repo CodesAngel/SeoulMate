@@ -4,6 +4,14 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-04
 
+### Account Management and Profile Statistics
+
+- Added authenticated profile read/update endpoints and an account dashboard for editing display names, uploading/removing avatars, changing passwords, signing out, and permanently deleting an account.
+- Added a public `avatars` Supabase Storage bucket with a 2 MB limit, JPEG/PNG/WebP validation, and RLS policies that restrict inserts, updates, and deletes to the authenticated user's own folder.
+- Added live PostgreSQL statistics for total saved and active titles, current watching/completed counts, rating count, and average personal rating.
+- Account deletion now removes the avatar, deletes the Supabase Auth user, cascades profiles/watchlists/ratings/preferences through PostgreSQL, nulls activity associations according to the existing foreign keys, and purges matching legacy profile and analytics records.
+- Validation: disposable accounts proved profile updates, avatar upload and public delivery, cross-folder Storage rejection, password replacement, statistics, Auth deletion, database cascades, avatar removal, and legacy profile cleanup.
+
 ### Persistent Authenticated Watchlists and Ratings
 
 - Added authenticated FastAPI CRUD endpoints under `/me/watchlist` and `/me/ratings`. Every operation derives ownership from the verified Supabase JWT and never accepts a client-selected user ID.

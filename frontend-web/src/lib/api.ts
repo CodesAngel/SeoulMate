@@ -7,6 +7,7 @@ import type {
   RatingEntry,
   WatchlistEntry,
   WatchStatus,
+  AccountProfileResponse,
 } from "@/lib/types";
 import { z } from "zod";
 
@@ -49,6 +50,27 @@ const ratingEntrySchema = z.object({
   rating: z.number().min(1).max(10),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
+});
+const accountProfileResponseSchema = z.object({
+  profile: z.object({
+    id: z.string().uuid(),
+    display_name: z.string().nullable(),
+    avatar_path: z.string().nullable(),
+    avatar_url: z.string().url().nullable(),
+    created_at: z.string(),
+    updated_at: z.string(),
+  }),
+  statistics: z.object({
+    saved_total: z.number().int().nonnegative(),
+    active_total: z.number().int().nonnegative(),
+    planned: z.number().int().nonnegative(),
+    watching: z.number().int().nonnegative(),
+    completed: z.number().int().nonnegative(),
+    paused: z.number().int().nonnegative(),
+    dropped: z.number().int().nonnegative(),
+    ratings_total: z.number().int().nonnegative(),
+    average_rating: z.number().nullable(),
+  }),
 });
 
 export const API_URL = (
@@ -188,6 +210,36 @@ export function resetProfile(userId: string, signal?: AbortSignal) {
     `/profile/${encodeURIComponent(userId)}`,
     { method: "DELETE", signal },
   );
+}
+
+export async function getMyAccountProfile(
+  accessToken: string,
+  signal?: AbortSignal,
+): Promise<AccountProfileResponse> {
+  const response = await apiRequest<AccountProfileResponse>("/me/profile", {
+    headers: bearerHeaders(accessToken),
+    signal,
+  });
+  return accountProfileResponseSchema.parse(response);
+}
+
+export async function updateMyAccountProfile(
+  accessToken: string,
+  update: { display_name?: string; avatar_path?: string | null },
+): Promise<AccountProfileResponse> {
+  const response = await apiRequest<AccountProfileResponse>("/me/profile", {
+    method: "PATCH",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify(update),
+  });
+  return accountProfileResponseSchema.parse(response);
+}
+
+export function deleteMyAccount(accessToken: string) {
+  return apiRequest<void>("/me/account", {
+    method: "DELETE",
+    headers: bearerHeaders(accessToken),
+  });
 }
 
 export async function getMyWatchlist(accessToken: string, signal?: AbortSignal) {
