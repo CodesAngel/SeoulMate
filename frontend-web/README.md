@@ -11,13 +11,21 @@ Streamlit remains available under `frontend/` for internal model testing and ana
 - Supabase Storage thumbnails on cards and original posters on detail pages; external poster hosts are not rendered
 - Shareable drama detail pages with cast, themes, ratings, and similar titles
 - Browser-persistent watchlist
-- Anonymous local viewer identity connected to backend personalization
+- Supabase email/password registration, login, logout, session refresh, and password recovery
+- Authenticated identity with anonymous fallback for the existing personalization flow
 - Rating and taste-profile interface
 - Loading, empty, error, image-fallback, and reduced-motion states
 
 ## Run locally
 
-Start the FastAPI backend from the repository root:
+Start Docker Desktop and the local Supabase stack from the repository root:
+
+```powershell
+supabase start
+.\.venv\Scripts\python.exe -m alembic upgrade head
+```
+
+Then start the FastAPI backend:
 
 ```powershell
 .\scripts\run_backend.ps1
@@ -29,7 +37,7 @@ Then start this frontend:
 .\scripts\run_web_frontend.ps1
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000`. Local confirmation and password-reset emails are captured at `http://127.0.0.1:54324`; they are not sent externally.
 
 The frontend uses `http://127.0.0.1:8001` by default. To use another API address, copy `.env.example` to `.env.local` and change `NEXT_PUBLIC_API_URL` before building or starting the app. Set `NEXT_PUBLIC_SITE_URL` to the public frontend origin so canonical and social metadata use the deployed URL.
 
@@ -53,5 +61,10 @@ npm run start
 | `/drama/[title]` | Drama information and similar recommendations |
 | `/watchlist` | Saved dramas in the current browser |
 | `/profile` | Taste profile, activity, and rating form |
+| `/auth/login` | Email/password sign in |
+| `/auth/sign-up` | Account registration |
+| `/auth/forgot-password` | Request a password-reset email |
+| `/auth/update-password` | Set a password after opening the recovery link |
+| `/account` | Protected account details and sign out |
 
-The watchlist and anonymous viewer ID currently use `localStorage`. They can move to PostgreSQL-backed accounts when authentication is introduced.
+The watchlist still uses `localStorage`, and the current taste-profile API still writes legacy local JSON. A signed-in Supabase user ID now replaces the anonymous viewer ID in the browser. Migrating watchlists, ratings, and profile data to the existing PostgreSQL tables is the next application-data phase.

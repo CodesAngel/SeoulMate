@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { AuthProvider } from "@/components/auth-provider";
 
 const siteUrl = new URL(
   process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
@@ -43,11 +44,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body>
         <a className="skip-link" href="#main-content">Skip to content</a>
-        <AppProvider>
-          <SiteHeader />
-          <main id="main-content">{children}</main>
-          <SiteFooter />
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <SiteHeader />
+            <main id="main-content">{children}</main>
+            <SiteFooter />
+          </AppProvider>
+        </AuthProvider>
       </body>
     </html>
   );

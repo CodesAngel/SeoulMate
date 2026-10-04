@@ -44,6 +44,14 @@ The default API is `http://127.0.0.1:8001`; interactive API documentation is at 
 
 The default internal frontend is `http://localhost:8501`. The production Next.js frontend has separate instructions in [frontend-web/README.md](../frontend-web/README.md).
 
+## Test local authentication
+
+Open `http://localhost:3000/auth/sign-up` and create an account with a password of at least eight characters. Local development automatically confirms new email addresses. The database trigger creates the matching `public.profiles` row, and `/account` is protected by the server-side Supabase session.
+
+Password-reset messages are captured locally in Mailpit. Request one at `http://localhost:3000/auth/forgot-password`, open `http://127.0.0.1:54324`, and follow the link to choose a new password. Production should enable email confirmations and configure a real SMTP provider.
+
+FastAPI exposes `GET /auth/me` as the reference protected route. It accepts `Authorization: Bearer <access-token>`, verifies the token against Supabase's JWKS, and returns the authenticated user ID, email, and role. Existing discovery routes remain public.
+
 ## Index rebuilding
 
 The backend needs `training/faiss_index/index.faiss` and `meta.pkl`. If these already match your dataset and model, ordinary startup does not require rebuilding.

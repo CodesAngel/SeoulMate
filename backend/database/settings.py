@@ -15,6 +15,7 @@ class DatabaseSettings(BaseSettings):
     supabase_url: str
     supabase_publishable_key: str
     supabase_secret_key: str
+    frontend_url: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(
         env_file=BACKEND_DIR / ".env",

@@ -15,6 +15,7 @@ The system combines semantic search, lexical search, calibrated ranking indexes,
 - Cross-encoder reranking with curated priors and calibrated generated fallbacks.
 - Personalized recommendations based on ratings and recorded user interactions.
 - Drama detail pages, poster images, and a browser-persistent watchlist.
+- Email/password accounts with Supabase Auth, server-refreshed sessions, password recovery, and verified FastAPI bearer tokens.
 - Internal Streamlit interface for model testing, analytics, and profile exploration.
 
 ## Architecture
@@ -23,7 +24,7 @@ The FastAPI backend serves the Next.js frontend and internal Streamlit interface
 
 | Component | Technology |
 | --- | --- |
-| Web interface | Next.js, React, TypeScript, Tailwind CSS |
+| Web interface | Next.js, React, TypeScript, Supabase SSR, Tailwind CSS |
 | API | FastAPI, Uvicorn |
 | Semantic retrieval | Sentence Transformers, FAISS |
 | Lexical retrieval and matching | BM25Plus, RapidFuzz |
@@ -53,13 +54,24 @@ The backend loads models from `training/models/` and requires `index.faiss` and 
 
 This uses an existing embedding model; it does not retrain it. The index and backend must use the same embedding model. See the [training guide](training/README.md) for artifact preparation and model selection.
 
-### 3. Start the backend
+### 3. Start local Supabase
+
+Start Docker Desktop, then run:
+
+```powershell
+supabase start
+.\.venv\Scripts\python.exe -m alembic upgrade head
+```
+
+This starts the local database, Auth, Storage, Studio, and Mailpit services described in the [quick start](docs/QUICKSTART.md).
+
+### 4. Start the backend
 
 ```powershell
 .\scripts\run_backend.ps1
 ```
 
-### 4. Start the web interface
+### 5. Start the web interface
 
 In a second terminal:
 
@@ -74,8 +86,15 @@ The launcher installs npm dependencies if `node_modules` is absent. For environm
 | Web interface | http://localhost:3000 |
 | API | http://127.0.0.1:8001 |
 | Interactive API documentation | http://127.0.0.1:8001/docs |
+| Local email inbox | http://127.0.0.1:54324 |
 
 To use the internal Streamlit interface, run `.\scripts\run_frontend.ps1` in another terminal and open `http://localhost:8501`.
+
+## Authentication
+
+The Next.js application uses Supabase Auth with server-refreshed cookie sessions. Create an account at `/auth/sign-up`, sign in at `/auth/login`, manage the current session at `/account`, and request password recovery at `/auth/forgot-password`. Local authentication emails are captured by Mailpit at `http://127.0.0.1:54324`.
+
+Every signup creates a matching row in `public.profiles`. FastAPI validates Supabase access tokens through the project's JWKS endpoint; `GET /auth/me` is the reference protected endpoint. The watchlist and existing taste-profile data remain browser-local or in legacy runtime storage until the next PostgreSQL application-data migration.
 
 ## Dataset and posters
 

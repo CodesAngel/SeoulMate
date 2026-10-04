@@ -11,6 +11,7 @@ import {
 } from "react";
 import { logInteraction } from "@/lib/api";
 import type { Drama } from "@/lib/types";
+import { useAuth } from "@/components/auth-provider";
 
 type AppContextValue = {
   ready: boolean;
@@ -32,6 +33,7 @@ function dramaKey(drama: Drama) {
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -45,7 +47,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }),
   );
   const [ready, setReady] = useState(false);
-  const [userId, setUserId] = useState("");
+  const [anonymousUserId, setAnonymousUserId] = useState("");
   const [sessionId, setSessionId] = useState("");
   const [watchlist, setWatchlist] = useState<Drama[]>([]);
   const [notice, setNotice] = useState("");
@@ -58,7 +60,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem("seoulmate:session", storedSession);
     // This effect intentionally hydrates state from browser-only storage after SSR.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUserId(storedUser);
+    setAnonymousUserId(storedUser);
     setSessionId(storedSession);
 
     try {
@@ -71,6 +73,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
     setReady(true);
   }, []);
+
+  const userId = user?.id ?? anonymousUserId;
 
   useEffect(() => {
     if (ready) {

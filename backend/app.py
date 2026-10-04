@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, HTTPException, status
+from fastapi import Depends, FastAPI, Query, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -38,6 +38,7 @@ from personalization import get_personalization_engine
 from database.models import Drama
 from database.session import SessionLocal
 from database.settings import get_database_settings
+from auth import AuthenticatedUser, require_user
 
 # ======================================================
 # CONFIGURATION
@@ -65,9 +66,16 @@ app = FastAPI(
     description="Intelligent K-Drama recommendations with AI-powered query understanding and user analytics",
 )
 
+database_settings = get_database_settings()
+frontend_origins = {
+    database_settings.frontend_url.rstrip("/"),
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+}
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=sorted(frontend_origins),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -2677,6 +2685,12 @@ def root():
         ],
         "docs": "/docs",
     }
+
+
+@app.get("/auth/me", tags=["Authentication"])
+def get_current_user(current_user: AuthenticatedUser = Depends(require_user)):
+    """Return the identity carried by a verified Supabase access token."""
+    return {"user": current_user.model_dump(mode="json")}
 
 
 @app.get("/analyze")

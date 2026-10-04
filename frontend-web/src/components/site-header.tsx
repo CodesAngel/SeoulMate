@@ -6,6 +6,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Heart, Menu, Search, UserRound, X } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { useApp } from "@/components/app-provider";
+import { useAuth } from "@/components/auth-provider";
 
 const navItems = [
   { href: "/discover", label: "Discover" },
@@ -17,6 +18,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { watchlist } = useApp();
+  const { user, loading: authLoading } = useAuth();
   const [query, setQuery] = useState("");
   const [menuOpenedAt, setMenuOpenedAt] = useState<string | null>(null);
   const menuOpen = menuOpenedAt === pathname;
@@ -74,8 +76,13 @@ export function SiteHeader() {
             <Heart size={19} />
             {watchlist.length > 0 && <span>{watchlist.length}</span>}
           </Link>
-          <Link href="/profile" className="avatar-button" aria-label="Taste profile">
+          <Link
+            href={user ? "/account" : "/auth/login"}
+            className="auth-link"
+            aria-label={user ? `Account for ${user.email ?? "signed-in user"}` : "Sign in"}
+          >
             <UserRound size={18} />
+            <span>{authLoading ? "…" : user ? "Account" : "Sign in"}</span>
           </Link>
           <button
             type="button"
@@ -111,6 +118,12 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <Link
+            href={user ? "/account" : "/auth/login"}
+            onClick={() => setMenuOpenedAt(null)}
+          >
+            {user ? "Account" : "Sign in"}
+          </Link>
         </div>
       )}
     </header>

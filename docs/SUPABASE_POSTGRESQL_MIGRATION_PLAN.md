@@ -1,6 +1,6 @@
 # Supabase PostgreSQL migration plan
 
-Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, and poster URL cutover are complete; hosted deployment, authentication, and the remaining application-data cutover remain.
+Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, poster URL cutover, and local authentication foundation are complete; hosted deployment and the remaining application-data cutover remain.
 
 ## Implementation progress
 
@@ -11,7 +11,7 @@ Date: 2026-10-04. Status: implementation in progress. The local database foundat
 - [x] Enable and verify Row Level Security and Supabase Auth foreign keys.
 - [x] Validate and import all 2,081 dramas with stable FAISS positions and local poster IDs.
 - [ ] Integrate FastAPI reads and writes with PostgreSQL.
-- [ ] Add Supabase Auth to Next.js and JWT verification to FastAPI.
+- [x] Add Supabase Auth to Next.js and JWT verification to FastAPI.
 - [x] Generate poster thumbnails and upload the local poster collection to Storage.
 - [ ] Migrate frontend watchlists, ratings, profiles, and preferences.
 - [ ] Validate and deploy the schema and catalog to the hosted project.
