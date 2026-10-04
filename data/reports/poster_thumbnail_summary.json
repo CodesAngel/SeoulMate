@@ -1,0 +1,26 @@
+{
+  "average_thumbnail_bytes": 40623.97,
+  "complete": true,
+  "duplicate_thumbnail_content": {
+    "2941820599ef77761f5b214389331859bb03469112dd879cb173005e610b06f1": [
+      "QJKVK7_4f.webp",
+      "XdwWLn_4f.webp"
+    ],
+    "aa844e30639937e967054e5c95c51daac8da3d514eb45088c3786ddf9a5430ad": [
+      "4QLgQ_4f.webp",
+      "xRgQ0_4f.webp"
+    ]
+  },
+  "generated_thumbnails": 2081,
+  "largest_thumbnail_bytes": 107540,
+  "max_height": 720,
+  "max_width": 480,
+  "missing_outputs": [],
+  "quality": 80,
+  "size_reduction_percent": 73.3,
+  "smallest_thumbnail_bytes": 3206,
+  "source_bytes": 316620261,
+  "thumbnail_bytes": 84538476,
+  "unexpected_outputs": [],
+  "webp_method": 6
+}

@@ -1,0 +1,27 @@
+{
+  "complete_one_to_one_mapping": true,
+  "content_duplicate_review_required": true,
+  "database_dramas": 2081,
+  "database_mapping_mismatches": [],
+  "duplicate_database_image_ids": {},
+  "duplicate_file_content": {
+    "5c307a7f122ed84249e5ea61f0961699df43ecae3b08a8758b8539dd4ebe3d24": [
+      "scrapers/DramaList_Scrapper/output/drama_image_by_id/Our Beloved Summer (2021) [4QLgQ_4f].jpg",
+      "scrapers/DramaList_Scrapper/output/drama_image_by_id/Our Beloved Summer_ The Movie (2022) [xRgQ0_4f].jpg"
+    ],
+    "d90e0b4042f84b5ae35fc1a1ca66f39f90730e7ad53f951eac6ce5837a479c0b": [
+      "scrapers/DramaList_Scrapper/output/drama_image_by_id/Death's Game (2023) [QJKVK7_4f].jpg",
+      "scrapers/DramaList_Scrapper/output/drama_image_by_id/Death's Game Part 2 (2024) [XdwWLn_4f].jpg"
+    ]
+  },
+  "duplicate_file_image_ids": {},
+  "matched_dramas": 2081,
+  "misnamed_files": [],
+  "missing_drama_ids": [],
+  "non_jpeg_files": [],
+  "poster_bytes": 316620261,
+  "poster_files": 2081,
+  "unparseable_files": [],
+  "unreadable_files": [],
+  "unrecognized_file_ids": {}
+}
