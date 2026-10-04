@@ -8,20 +8,6 @@ Welcome to SeoulMate an AI-powered Korean drama recommendation system built to u
 
 The system combines semantic search, lexical search, calibrated ranking indexes, a cross-encoder reranker, and user preference learning to help users discover relevant K-dramas from queries such as `romantic comedy`, `school bullying`, `contract marriage`, `hospital setting`, or `dramas like Crash Landing on You`.
 
-## Current Performance
-
-Latest live backend reference (2026-10-03; production models with the 2,081-drama index; 61-search test set, exact title matching):
-
-| Metric | Score |
-| --- | ---: |
-| Overall Accuracy | `87.05%` |
-| Precision@3 | `60.66%` |
-| Recall@10 | `94.48%` |
-| MRR | `0.992` |
-| NDCG@10 | `0.943` |
-| Filter Success Rate | `100%` |
-| Avg Response Time (uncached) | `28 ms` |
-
 ## Features
 
 - Hybrid search combining FAISS semantic retrieval and BM25Plus lexical matching.
