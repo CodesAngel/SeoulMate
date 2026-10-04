@@ -162,7 +162,6 @@ def load_source(
                 "alternate_names": split_values(row.get("alternate_names")),
                 "description": (row.get("description") or "").strip() or None,
                 "image_id": image_id,
-                "poster_key": f"originals/{image_id}.jpg",
                 "publisher": (row.get("publisher") or "").strip() or None,
                 "rating_value": optional_decimal(row.get("rating_value")),
                 "rating_count": optional_int(row.get("rating_count")),
@@ -238,7 +237,6 @@ def import_catalog(
                         "alternate_names": excluded.alternate_names,
                         "description": excluded.description,
                         "image_id": excluded.image_id,
-                        "poster_key": excluded.poster_key,
                         "publisher": excluded.publisher,
                         "rating_value": excluded.rating_value,
                         "rating_count": excluded.rating_count,
@@ -266,6 +264,18 @@ def import_catalog(
         upsert_names(Person, person_names)
 
         drama_ids = dict(session.execute(select(Drama.source_key, Drama.id)).all())
+        session.bulk_update_mappings(
+            Drama,
+            [
+                {
+                    "id": drama_ids[drama["source_key"]],
+                    "poster_key": (
+                        f"dramas/{drama_ids[drama['source_key']]}/original.jpg"
+                    ),
+                }
+                for drama in dramas
+            ],
+        )
         genre_ids = dict(session.execute(select(Genre.name, Genre.id)).all())
         keyword_ids = dict(session.execute(select(Keyword.name, Keyword.id)).all())
         person_ids = dict(session.execute(select(Person.name, Person.id)).all())

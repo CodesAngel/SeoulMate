@@ -1,0 +1,21 @@
+{
+  "bucket": "drama-posters",
+  "bucket_allowed_mime_types": [
+    "image/jpeg",
+    "image/webp"
+  ],
+  "bucket_file_size_limit": 10485760,
+  "bucket_public": true,
+  "complete": true,
+  "database_dramas": 2081,
+  "metadata_mismatches": [],
+  "missing_objects": [],
+  "original_bytes": 316620261,
+  "thumbnail_bytes": 84538476,
+  "total_bytes": 401158737,
+  "unexpected_objects": [],
+  "uploaded_objects": 4162,
+  "verified_database_associations": 2081,
+  "verified_public_urls": 4162,
+  "verified_storage_metadata": 4162
+}

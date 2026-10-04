@@ -68,6 +68,18 @@ Files go into `scrapers/DramaList_Scrapper/output/drama_image_by_id/`; failures 
 
 The backend no longer reads `output/drama_image/`. Poster changes alone do not require an index rebuild: the backend joins existing metadata to the final CSV at startup to obtain missing poster URLs and IDs, and reads per-drama watcher counts from that CSV when available.
 
+## Prepare and upload posters to local Storage
+
+The Storage pipeline uses only the existing originals in `drama_image_by_id`; it does not download external images. Audit the originals, generate the WebP card variants, and upload both variants to local Supabase:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\audit_poster_inventory.py
+.\.venv\Scripts\python.exe scripts\generate_poster_thumbnails.py
+.\.venv\Scripts\python.exe scripts\upload_posters_to_storage.py
+```
+
+The uploader creates the public `drama-posters` bucket when needed and upserts objects at `dramas/{drama_id}/original.jpg` and `dramas/{drama_id}/thumbnail.webp`. It verifies every object's Storage metadata, public HTTP size and content type, and database association before updating `dramas.poster_key`. Detailed manifests are written under `data/reports/`.
+
 ## Check the API
 
 ```powershell

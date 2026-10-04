@@ -84,10 +84,11 @@ def generate_one(task: dict[str, Any]) -> dict[str, Any]:
 
     size_bytes = target.stat().st_size
     return {
+        "drama_id": task["drama_id"],
         "image_id": task["image_id"],
         "source_filename": source.name,
         "source_sha256": source_hash,
-        "thumbnail_key": f"cards/{task['image_id']}.webp",
+        "thumbnail_key": f"dramas/{task['drama_id']}/thumbnail.webp",
         "thumbnail_filename": target.name,
         "width": width,
         "height": height,
@@ -144,6 +145,7 @@ def load_tasks(
         source_bytes += source.stat().st_size
         tasks.append(
             {
+                "drama_id": int(row["drama_id"]),
                 "image_id": image_id,
                 "source": str(source),
                 "source_sha256": row["sha256"],

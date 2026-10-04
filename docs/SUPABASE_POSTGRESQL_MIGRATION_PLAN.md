@@ -1,6 +1,6 @@
 # Supabase PostgreSQL migration plan
 
-Date: 2026-10-04. Status: implementation in progress. The local database foundation and catalog migration are complete; hosted deployment, authentication, Storage, and application cutover remain.
+Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, and verified local poster Storage migration are complete; hosted deployment, authentication, and application cutover remain.
 
 ## Implementation progress
 
@@ -12,7 +12,7 @@ Date: 2026-10-04. Status: implementation in progress. The local database foundat
 - [x] Validate and import all 2,081 dramas with stable FAISS positions and local poster IDs.
 - [ ] Integrate FastAPI reads and writes with PostgreSQL.
 - [ ] Add Supabase Auth to Next.js and JWT verification to FastAPI.
-- [ ] Generate poster thumbnails and upload the local poster collection to Storage.
+- [x] Generate poster thumbnails and upload the local poster collection to Storage.
 - [ ] Migrate frontend watchlists, ratings, profiles, and preferences.
 - [ ] Validate and deploy the schema and catalog to the hosted project.
 
@@ -185,17 +185,18 @@ Use `scrapers/DramaList_Scrapper/output/drama_image_by_id/` as the source. It is
 
 1. Keep every original JPG unchanged.
 2. Generate a WebP card thumbnail locally while preserving aspect ratio.
-3. Use the same image identifier for the original and thumbnail.
+3. Associate both variants with the same numeric PostgreSQL drama ID.
 4. Verify both variants for all 2,081 dramas before upload.
 5. Upload into a public bucket with a stable layout:
 
    ```text
    drama-posters/
-   |- originals/{image_id}.jpg
-   `- cards/{image_id}.webp
+   `- dramas/{drama_id}/
+      |- original.jpg
+      `- thumbnail.webp
    ```
 
-6. Store only the poster key or image identifier in PostgreSQL.
+6. Store the original poster key in PostgreSQL and derive the thumbnail key from the same drama ID.
 7. Use card thumbnails on lists and recommendations, originals on detail pages, lazy loading, and long browser cache headers.
 8. Remove online poster fallback after the Storage mapping passes validation.
 

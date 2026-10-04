@@ -141,7 +141,7 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
     for drama in dramas:
         image_id = drama.image_id or ""
         expected_name = expected_filename(drama.title, drama.aired, image_id)
-        expected_key = f"originals/{image_id}.jpg"
+        expected_key = f"dramas/{drama.id}/original.jpg"
         matches = files_by_id.get(image_id, [])
 
         mapping_problems: list[str] = []

@@ -12,6 +12,13 @@ Important project history reconstructed from Git commits and project documentati
 - Added an idempotent catalog importer that validates the CSV, FAISS metadata order, and all local poster mappings before committing. Imported 2,081 dramas, 31 genres, 2,158 keywords, 4,490 people, and their normalized relationships into local PostgreSQL without storing online poster URLs.
 - Validation: Alembic reported no schema drift; a repeated import preserved all counts; catalog indexes covered 0-2,080 exactly; anonymous catalog reads succeeded and anonymous profile writes were rejected.
 
+### Local Supabase Poster Storage
+
+- Audited all 2,081 database-to-original poster mappings, including readable JPEG validation and SHA-256 manifests; no posters were missing, misnamed, or associated with duplicate image IDs.
+- Generated and verified 2,081 aspect-ratio-preserving WebP card thumbnails at up to 480x720 and quality 80. The thumbnails occupy 80.62 MiB, reducing their size by 73.3% compared with the originals.
+- Created the public local `drama-posters` bucket and uploaded 4,162 objects under `dramas/{drama_id}/original.jpg` and `dramas/{drama_id}/thumbnail.webp` without downloading external images.
+- Verified every object's path, byte size, content type, public URL, and PostgreSQL association. Updated the catalog importer to preserve the deterministic Storage key on subsequent imports.
+
 ### Next.js Frontend Reliability and Deployment Refinement
 
 - Fixed Discover filter controls becoming stale after browser back/forward navigation by resynchronizing their draft state with the current URL.
