@@ -31,7 +31,7 @@ Then start this frontend:
 
 Open `http://localhost:3000`.
 
-The frontend uses `http://127.0.0.1:8001` by default. To use another API address, copy `.env.example` to `.env.local` and change `NEXT_PUBLIC_API_URL` before building or starting the app.
+The frontend uses `http://127.0.0.1:8001` by default. To use another API address, copy `.env.example` to `.env.local` and change `NEXT_PUBLIC_API_URL` before building or starting the app. Set `NEXT_PUBLIC_SITE_URL` to the public frontend origin so canonical and social metadata use the deployed URL.
 
 ## Commands
 
@@ -39,6 +39,7 @@ The frontend uses `http://127.0.0.1:8001` by default. To use another API address
 npm install
 npm run dev
 npm run lint
+npm run typecheck
 npm run build
 npm run start
 ```

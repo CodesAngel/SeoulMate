@@ -8,6 +8,7 @@ import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
 import { PosterImage } from "@/components/poster-image";
 import { getDrama, rateDrama, searchDramas } from "@/lib/api";
+import { dramaKey } from "@/lib/drama";
 
 function list(value?: string, limit = 10) {
   return (value || "").split(",").map((item) => item.trim()).filter(Boolean).slice(0, limit);
@@ -17,7 +18,7 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
   const { ready, userId, sessionId, isSaved, toggleSaved } = useApp();
   const [rating, setRating] = useState("9");
   const [message, setMessage] = useState("");
-  const dramaQuery = useQuery({ queryKey: ["drama", title, aired], queryFn: () => getDrama(title, aired) });
+  const dramaQuery = useQuery({ queryKey: ["drama", title, aired], queryFn: ({ signal }) => getDrama(title, aired, signal) });
   const similarQuery = useQuery({
     queryKey: ["similar", title, userId],
     queryFn: ({ signal }) => searchDramas({ query: `dramas like ${title}`, similarTo: title, topN: 5, userId, sessionId }, signal),
@@ -80,7 +81,7 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
         <div className="shell">
           <div className="section-heading"><div><span className="eyebrow">Keep the feeling</span><h2 className="display">More like {drama.Title}</h2></div></div>
           {similarQuery.isLoading ? <DramaGridSkeleton count={5} /> : (
-            <div className="drama-grid">{(similarQuery.data?.recommendations || []).map((item, index) => <DramaCard key={`${item.Title}-${index}`} drama={item} position={index + 1} />)}</div>
+            <div className="drama-grid">{(similarQuery.data?.recommendations || []).map((item, index) => <DramaCard key={dramaKey(item)} drama={item} position={index + 1} />)}</div>
           )}
         </div>
       </section>

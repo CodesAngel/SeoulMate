@@ -18,6 +18,7 @@ import re
 import random
 import unicodedata
 from collections import Counter, defaultdict
+from datetime import datetime
 from pathlib import Path
 import csv
 import math
@@ -1207,6 +1208,18 @@ def drama_start_year(drama):
     return int(years[0]) if years else 9999
 
 
+def drama_start_date(drama):
+    aired = str(drama.get("Release Years", "") or "")
+    full_date = re.search(r"\b[A-Z][a-z]{2} \d{1,2}, (?:19|20)\d{2}\b", aired)
+    if full_date:
+        try:
+            return datetime.strptime(full_date.group(0), "%b %d, %Y").toordinal()
+        except ValueError:
+            pass
+    start_year = drama_start_year(drama)
+    return 0 if start_year == 9999 else datetime(start_year, 1, 1).toordinal()
+
+
 def franchise_siblings(seed_drama, candidates):
     """Other seasons/parts of the seed's franchise, oldest first.
 
@@ -2380,14 +2393,22 @@ def recommend(
     # Sorting
     if sort_by:
         reverse = sort_order == "desc"
+
+        def sortable_value(result):
+            if sort_by in {"release_year", "date_published"}:
+                return drama_start_date(result)
+            field = "watchers" if sort_by == "popularity" else sort_by
+            value = result.get(field, 0)
+            if field in {"watchers", "rating_value", "rating_count", "episodes"}:
+                try:
+                    return float(value or 0)
+                except (TypeError, ValueError):
+                    return 0.0
+            return str(value or "")
+
         filtered = sorted(
             filtered,
-            key=lambda r: (
-                float(r.get(sort_by, 0))
-                if isinstance(r.get(sort_by, 0), (int, float, str))
-                and str(r.get(sort_by, 0)).replace(".", "", 1).isdigit()
-                else str(r.get(sort_by, ""))
-            ),
+            key=sortable_value,
             reverse=reverse,
         )
     elif top_rated:
@@ -2721,7 +2742,7 @@ def get_recommendations(
     screenwriters: str = Query(None, description="Screenwriters filter"),
     sort_by: str = Query(
         None,
-        description="Sort by field (e.g., rating_value, popularity, date_published, episodes, duration)",
+        description="Sort by field (e.g., rating_value, watchers, release_year, episodes, duration)",
     ),
     sort_order: str = Query("desc", description="Sort order: asc or desc"),
     similar_to: str = Query(None, description="Find dramas similar to this title"),

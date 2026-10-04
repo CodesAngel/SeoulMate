@@ -33,7 +33,8 @@ export function PosterImage({
       src={resolved}
       alt={alt}
       fill
-      priority={priority}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       sizes={sizes}
       className="poster-img"
       onError={() => setFailed(true)}

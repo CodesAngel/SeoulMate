@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Heart, Menu, Search, UserRound, X } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { useApp } from "@/components/app-provider";
@@ -18,14 +18,24 @@ export function SiteHeader() {
   const router = useRouter();
   const { watchlist } = useApp();
   const [query, setQuery] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpenedAt, setMenuOpenedAt] = useState<string | null>(null);
+  const menuOpen = menuOpenedAt === pathname;
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpenedAt(null);
+    }
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen]);
 
   function submit(event: FormEvent) {
     event.preventDefault();
     const value = query.trim();
     if (!value) return;
     router.push(`/discover?q=${encodeURIComponent(value)}`);
-    setMenuOpen(false);
+    setMenuOpenedAt(null);
   }
 
   return (
@@ -40,7 +50,8 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
-              className={pathname.startsWith(item.href) ? "active" : ""}
+              className={pathname === item.href || pathname.startsWith(`${item.href}/`) ? "active" : ""}
+              aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? "page" : undefined}
             >
               {item.label}
             </Link>
@@ -55,7 +66,7 @@ export function SiteHeader() {
             placeholder="Search a mood, actor, or story"
             aria-label="Search dramas"
           />
-          <kbd>↵</kbd>
+          <kbd aria-hidden="true">↵</kbd>
         </form>
 
         <div className="header-actions">
@@ -67,9 +78,11 @@ export function SiteHeader() {
             <UserRound size={18} />
           </Link>
           <button
+            type="button"
             className="mobile-menu-button"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => setMenuOpenedAt(menuOpen ? null : pathname)}
             aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
             aria-label="Toggle navigation"
           >
             {menuOpen ? <X /> : <Menu />}
@@ -78,7 +91,7 @@ export function SiteHeader() {
       </div>
 
       {menuOpen && (
-        <div className="mobile-menu">
+        <div className="mobile-menu" id="mobile-navigation">
           <form className="mobile-search" onSubmit={submit} role="search">
             <Search size={18} />
             <input
@@ -89,7 +102,12 @@ export function SiteHeader() {
             />
           </form>
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpenedAt(null)}
+              aria-current={pathname === item.href || pathname.startsWith(`${item.href}/`) ? "page" : undefined}
+            >
               {item.label}
             </Link>
           ))}

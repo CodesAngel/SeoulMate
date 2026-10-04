@@ -52,11 +52,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("seoulmate:user") || createId("viewer");
+    const storedSession =
+      sessionStorage.getItem("seoulmate:session") || createId("session");
     localStorage.setItem("seoulmate:user", storedUser);
+    sessionStorage.setItem("seoulmate:session", storedSession);
     // This effect intentionally hydrates state from browser-only storage after SSR.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setUserId(storedUser);
-    setSessionId(createId("session"));
+    setSessionId(storedSession);
 
     try {
       const storedList = JSON.parse(
@@ -69,6 +72,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setReady(true);
   }, []);
 
+  useEffect(() => {
+    if (ready) {
+      localStorage.setItem("seoulmate:watchlist", JSON.stringify(watchlist));
+    }
+  }, [ready, watchlist]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timeout = setTimeout(() => setNotice(""), 2800);
+    return () => clearTimeout(timeout);
+  }, [notice]);
+
   const isSaved = useCallback(
     (drama: Drama) => watchlist.some((item) => dramaKey(item) === dramaKey(drama)),
     [watchlist],
@@ -76,12 +91,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const toggleSaved = useCallback(
     (drama: Drama) => {
-      const removing = watchlist.some((item) => dramaKey(item) === dramaKey(drama));
-      const next = removing
-        ? watchlist.filter((item) => dramaKey(item) !== dramaKey(drama))
-        : [drama, ...watchlist];
-      setWatchlist(next);
-      localStorage.setItem("seoulmate:watchlist", JSON.stringify(next));
+      const removing = isSaved(drama);
+      setWatchlist((current) =>
+        current.some((item) => dramaKey(item) === dramaKey(drama))
+          ? current.filter((item) => dramaKey(item) !== dramaKey(drama))
+          : [drama, ...current],
+      );
       setNotice(removing ? "Removed from your list" : "Saved to your list");
 
       if (userId && sessionId) {
@@ -93,7 +108,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }).catch(() => undefined);
       }
     },
-    [sessionId, userId, watchlist],
+    [isSaved, sessionId, userId],
   );
 
   const value = useMemo(
@@ -106,7 +121,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       <AppContext.Provider value={value}>
         {children}
         {notice && (
-          <div className="app-toast" role="status" onAnimationEnd={() => setNotice("")}>
+          <div className="app-toast" role="status" aria-live="polite">
             {notice}
           </div>
         )}

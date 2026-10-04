@@ -4,6 +4,17 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-04
 
+### Next.js Frontend Reliability and Deployment Refinement
+
+- Fixed Discover filter controls becoming stale after browser back/forward navigation by resynchronizing their draft state with the current URL.
+- Fixed sorting end to end: "Most watched" now uses the backend's `watchers` field, and "Newest" uses a release-date sort that understands the dataset's aired-date strings. The backend retains `popularity` and `date_published` as compatibility aliases.
+- Kept anonymous analytics sessions stable across reloads in the same browser tab with `sessionStorage`, made watchlist updates safe during rapid toggles, and moved watchlist persistence into a state-synchronization effect.
+- Made poster optimization deployment-aware by deriving the allowed FastAPI image host from `NEXT_PUBLIC_API_URL` and permitting local-IP optimization only during development.
+- Added API timeouts, typed HTTP errors, request cancellation for detail/profile navigation, stronger recommendation response validation, and reliable `keepalive` interaction logging.
+- Added route loading/error boundaries, a keyboard skip link, live error/status announcements, Escape and route-change handling for mobile navigation, richer social/search metadata, stable drama keys, stronger profile types, and a dedicated `npm run typecheck` command.
+- Updated the public accuracy label to the current exact-match baseline, **87.05%**.
+- Validation: ESLint, TypeScript, Python compilation, and the Next.js production build passed; live `watchers` and full-date newest sorting returned correctly ordered results; accuracy remained **87.05%** with filters 100%, franchise ordering 10/10, and the focused search regression suite 33/33.
+
 ### Production Next.js Frontend
 
 - Added `frontend-web/`, a production user interface built with Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query, Zod, and Lucide icons. Streamlit remains available as the internal testing and analytics interface.

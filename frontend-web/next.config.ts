@@ -1,12 +1,21 @@
 import type { NextConfig } from "next";
 
+const apiUrl = new URL(
+  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8001",
+);
+const isLocalApi = ["127.0.0.1", "localhost"].includes(apiUrl.hostname);
+
 const nextConfig: NextConfig = {
   images: {
-    // The trusted FastAPI service serves posters from 127.0.0.1 in local development.
-    dangerouslyAllowLocalIP: true,
+    dangerouslyAllowLocalIP:
+      process.env.NODE_ENV !== "production" && isLocalApi,
     remotePatterns: [
-      { protocol: "http", hostname: "127.0.0.1", port: "8001" },
-      { protocol: "http", hostname: "localhost", port: "8001" },
+      {
+        protocol: apiUrl.protocol === "https:" ? "https" : "http",
+        hostname: apiUrl.hostname,
+        port: apiUrl.port,
+        pathname: "/drama-images/**",
+      },
     ],
   },
 };
