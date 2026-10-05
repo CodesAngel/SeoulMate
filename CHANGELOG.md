@@ -4,6 +4,10 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-04
 
+### Local Service Shutdown Documentation
+
+- Documented how to stop the backend, frontend, and Streamlit processes normally with `Ctrl+C`, terminate an orphaned backend listener on port 8001 from PowerShell, verify that the port is free, and stop the local Supabase stack separately.
+
 ### Account Management and Profile Statistics
 
 - Added authenticated profile read/update endpoints and an account dashboard for editing display names, uploading/removing avatars, changing passwords, signing out, and permanently deleting an account.

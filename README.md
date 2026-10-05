@@ -90,6 +90,28 @@ The launcher installs npm dependencies if `node_modules` is absent. For environm
 
 To use the internal Streamlit interface, run `.\scripts\run_frontend.ps1` in another terminal and open `http://localhost:8501`.
 
+### Stop local services
+
+Press `Ctrl+C` in each terminal that is running the backend, Next.js frontend, or Streamlit interface. If the backend terminal is no longer available but port 8001 is still occupied, stop its process from PowerShell:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8001 -State Listen |
+    Select-Object -ExpandProperty OwningProcess |
+    ForEach-Object { Stop-Process -Id $_ -Force }
+```
+
+Confirm that the backend stopped by running the following command. No output means nothing is listening on port 8001:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue
+```
+
+Stop the local Supabase containers separately when they are no longer needed:
+
+```powershell
+supabase stop
+```
+
 ## Authentication
 
 The Next.js application uses Supabase Auth with server-refreshed cookie sessions. Create an account at `/auth/sign-up`, sign in at `/auth/login`, manage the current session at `/account`, and request password recovery at `/auth/forgot-password`. Local authentication emails are captured by Mailpit at `http://127.0.0.1:54324`.
