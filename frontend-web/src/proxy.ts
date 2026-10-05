@@ -1,7 +1,9 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
 
 export async function proxy(request: NextRequest) {
+  if (IS_MOCK_MODE) return NextResponse.next();
   return updateSession(request);
 }
 

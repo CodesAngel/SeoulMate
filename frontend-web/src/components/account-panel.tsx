@@ -11,6 +11,7 @@ import {
   updateMyAccountProfile,
 } from "@/lib/api";
 import type { AccountProfileResponse } from "@/lib/types";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
 
 const ALLOWED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
@@ -117,27 +118,38 @@ export function AccountPanel({
       let avatarPath = account?.profile.avatar_path ?? null;
       if (avatarFile) {
         avatarPath = `${user.id}/avatar`;
-        const { error } = await supabase.storage
-          .from("avatars")
-          .upload(avatarPath, avatarFile, {
-            upsert: true,
-            contentType: avatarFile.type,
-            cacheControl: "3600",
-          });
-        if (error) throw error;
+        if (!IS_MOCK_MODE) {
+          const { error } = await supabase.storage
+            .from("avatars")
+            .upload(avatarPath, avatarFile, {
+              upsert: true,
+              contentType: avatarFile.type,
+              cacheControl: "3600",
+            });
+          if (error) throw error;
+        }
       }
-      const response = await updateMyAccountProfile(accessToken, {
+      let response = await updateMyAccountProfile(accessToken, {
         display_name: cleanedName,
         avatar_path: avatarPath,
       });
-      const { error: metadataError } = await supabase.auth.updateUser({
-        data: { display_name: cleanedName },
-      });
-      if (metadataError) throw metadataError;
+      if (IS_MOCK_MODE) {
+        if (avatarPreview) {
+          response = {
+            ...response,
+            profile: { ...response.profile, avatar_url: avatarPreview },
+          };
+        }
+      } else {
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: { display_name: cleanedName },
+        });
+        if (metadataError) throw metadataError;
+      }
       setAccount(response);
       setDisplayName(response.profile.display_name || cleanedName);
       setAvatarFile(null);
-      setAvatarPreview("");
+      if (!IS_MOCK_MODE) setAvatarPreview("");
       setProfileMessage("Profile updated.");
       router.refresh();
     } catch (error) {
@@ -178,6 +190,14 @@ export function AccountPanel({
       return;
     }
     setPasswordPending(true);
+    if (IS_MOCK_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      setPasswordPending(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordMessage("Password updated in this mock preview.");
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setPasswordPending(false);
     if (error) {
@@ -213,7 +233,8 @@ export function AccountPanel({
       const accessToken = await getAccessToken();
       if (!accessToken) throw new Error("Your session has expired. Please sign in again.");
       await deleteMyAccount(accessToken);
-      await supabase.auth.signOut({ scope: "local" });
+      if (IS_MOCK_MODE) await signOut();
+      else await supabase.auth.signOut({ scope: "local" });
       localStorage.removeItem("seoulmate:watchlist");
       router.replace("/");
       router.refresh();

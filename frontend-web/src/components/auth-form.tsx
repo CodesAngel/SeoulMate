@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { supabase } = useAuth();
+  const { supabase, signInMock } = useAuth();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +26,12 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setMessage("");
 
     try {
+      if (IS_MOCK_MODE) {
+        signInMock(email || undefined, displayName.trim() || undefined);
+        router.replace("/account");
+        router.refresh();
+        return;
+      }
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,

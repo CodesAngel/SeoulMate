@@ -1,3 +1,8 @@
+param(
+    [ValidateSet("api", "mock")]
+    [string]$Mode = "api"
+)
+
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -8,5 +13,6 @@ if (-not (Test-Path (Join-Path $frontendRoot "node_modules"))) {
     & npm.cmd install --prefix $frontendRoot
 }
 
-Write-Host "Starting SeoulMate web frontend at http://localhost:3000" -ForegroundColor Green
+$env:NEXT_PUBLIC_DATA_MODE = $Mode
+Write-Host "Starting SeoulMate web frontend at http://localhost:3000 in $Mode mode" -ForegroundColor Green
 & npm.cmd run dev --prefix $frontendRoot

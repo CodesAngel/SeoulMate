@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
@@ -14,6 +15,13 @@ export default function UpdatePasswordPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
+    if (IS_MOCK_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      setPending(false);
+      router.replace("/account");
+      router.refresh();
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password });
     setPending(false);
     if (error) {

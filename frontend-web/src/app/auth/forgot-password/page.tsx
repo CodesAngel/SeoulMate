@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
 
 export default function ForgotPasswordPage() {
   const { supabase } = useAuth();
@@ -14,6 +15,12 @@ export default function ForgotPasswordPage() {
     event.preventDefault();
     setPending(true);
     setMessage("");
+    if (IS_MOCK_MODE) {
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      setPending(false);
+      setMessage("Mock recovery email sent. No email service was contacted.");
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/confirm?next=/auth/update-password`,
     });

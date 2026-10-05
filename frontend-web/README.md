@@ -16,6 +16,7 @@ Streamlit remains available under `frontend/` for internal model testing and ana
 - Authenticated identity with anonymous fallback for the existing personalization flow
 - Rating and taste-profile interface
 - Loading, empty, error, image-fallback, and reduced-motion states
+- Switchable `api` and `mock` data modes for frontend work with or without backend services
 
 ## Run locally
 
@@ -41,6 +42,22 @@ Then start this frontend:
 Open `http://localhost:3000`. Local confirmation and password-reset emails are captured at `http://127.0.0.1:54324`; they are not sent externally.
 
 The frontend uses `http://127.0.0.1:8001` by default. To use another API address, copy `.env.example` to `.env.local` and change `NEXT_PUBLIC_API_URL` before building or starting the app. Set `NEXT_PUBLIC_SITE_URL` to the public frontend origin so canonical and social metadata use the deployed URL.
+
+### Data modes
+
+The launcher uses the existing real API integration by default:
+
+```powershell
+.\scripts\run_web_frontend.ps1 -Mode api
+```
+
+For frontend-only design work, run mock mode. FastAPI, PostgreSQL, and Supabase can remain stopped:
+
+```powershell
+.\scripts\run_web_frontend.ps1 -Mode mock
+```
+
+Mock mode supplies representative dramas, local poster assets, a signed-in preview account, watchlist statuses, ratings, taste-profile data, and account statistics. Its mutations are temporary and reset when the development server restarts. Stop and restart Next.js when changing modes because `NEXT_PUBLIC_DATA_MODE` is compiled into the client bundle. You can also set `NEXT_PUBLIC_DATA_MODE=api` or `NEXT_PUBLIC_DATA_MODE=mock` in `.env.local`; the launcher's `-Mode` value takes precedence for that process.
 
 ## Commands
 

@@ -16,6 +16,7 @@ The system combines semantic search, lexical search, calibrated ranking indexes,
 - Personalized recommendations based on ratings and recorded user interactions.
 - Drama detail pages, poster images, an account-synced watchlist, viewing statuses, and personal ratings.
 - Email/password accounts with Supabase Auth, server-refreshed sessions, password recovery, and verified FastAPI bearer tokens.
+- Switchable real API and self-contained mock modes for frontend development.
 - Internal Streamlit interface for model testing, analytics, and profile exploration.
 
 ## Architecture
@@ -80,6 +81,14 @@ In a second terminal:
 ```
 
 The launcher installs npm dependencies if `node_modules` is absent. For environment configuration, see the [web frontend guide](frontend-web/README.md).
+
+To work only on the frontend while FastAPI and Supabase are stopped, launch the same application with representative mock data and local posters:
+
+```powershell
+.\scripts\run_web_frontend.ps1 -Mode mock
+```
+
+Use `-Mode api` or omit `-Mode` to restore the existing real backend integration. Restart the Next.js development server when switching modes.
 
 | Service | Default address |
 | --- | --- |

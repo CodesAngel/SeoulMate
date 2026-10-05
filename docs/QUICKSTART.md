@@ -1,6 +1,16 @@
 # SeoulMate quick start
 
-Updated: 2026-10-04. Run these commands from `D:\Projects\SeoulMate` with the existing virtual environment and dependencies installed. See the [root README](../README.md) for full setup.
+Updated: 2026-10-06. Run these commands from `D:\Projects\SeoulMate` with the existing virtual environment and dependencies installed. See the [root README](../README.md) for full setup.
+
+## Frontend-only mock mode
+
+To review or redesign the Next.js interface without starting Docker, Supabase, or FastAPI, run:
+
+```powershell
+.\scripts\run_web_frontend.ps1 -Mode mock
+```
+
+This uses representative local data and posters across discovery, details, watchlist, taste profile, authentication, and account screens. Restart with `-Mode api` or omit the argument to reconnect the existing real services.
 
 ## Start the local database
 

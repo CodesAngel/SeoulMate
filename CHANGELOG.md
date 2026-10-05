@@ -2,6 +2,14 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-06
+
+### Switchable Frontend Data Modes
+
+- Added explicit `api` and `mock` frontend modes while retaining the real FastAPI and Supabase integration as the default.
+- Added a self-contained mock adapter for discovery, drama details, watchlists, ratings, taste profiles, accounts, authentication previews, and profile statistics, with ten local WebP poster assets and no runtime backend dependency.
+- Added `scripts/run_web_frontend.ps1 -Mode mock` for frontend-only design work and `-Mode api` for the real stack, plus an on-screen mock preview badge and mode documentation.
+
 ## 2026-10-04
 
 ### Local Service Shutdown Documentation

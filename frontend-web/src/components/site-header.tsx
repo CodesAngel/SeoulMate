@@ -7,6 +7,7 @@ import { Heart, Menu, Search, UserRound, X } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { useApp } from "@/components/app-provider";
 import { useAuth } from "@/components/auth-provider";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
 
 const navItems = [
   { href: "/discover", label: "Discover" },
@@ -46,6 +47,7 @@ export function SiteHeader() {
         <Link href="/" className="header-brand">
           <BrandMark />
         </Link>
+        {IS_MOCK_MODE && <span className="mock-mode-badge">Mock preview</span>}
 
         <nav className="desktop-nav" aria-label="Primary navigation">
           {navItems.map((item) => (

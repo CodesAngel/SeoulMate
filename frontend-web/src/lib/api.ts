@@ -10,6 +10,8 @@ import type {
   AccountProfileResponse,
 } from "@/lib/types";
 import { z } from "zod";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
+import * as mock from "@/lib/mock-data";
 
 const stringOrNumber = z.union([z.string(), z.number()]);
 const dramaSchema = z
@@ -149,10 +151,12 @@ function bearerHeaders(accessToken: string) {
 
 export function resolvePosterUrl(value?: string): string | null {
   if (!value) return null;
+  if (IS_MOCK_MODE && value.startsWith("/mock-posters/")) return value;
   return value.startsWith(POSTER_STORAGE_PREFIX) ? value : null;
 }
 
 export async function searchDramas(filters: SearchFilters, signal?: AbortSignal) {
+  if (IS_MOCK_MODE) return mock.mockSearch(filters, signal);
   const params = new URLSearchParams({
     title: filters.query,
     top_n: String(filters.topN ?? 12),
@@ -174,6 +178,7 @@ export async function searchDramas(filters: SearchFilters, signal?: AbortSignal)
 }
 
 export async function getDrama(title: string, aired?: string, signal?: AbortSignal) {
+  if (IS_MOCK_MODE) return mock.mockGetDrama(title, signal);
   const query = aired ? `?aired=${encodeURIComponent(aired)}` : "";
   const response = await apiRequest<{ drama: Drama }>(
     `/dramas/${encodeURIComponent(title)}${query}`,
@@ -184,6 +189,7 @@ export async function getDrama(title: string, aired?: string, signal?: AbortSign
 }
 
 export function getProfile(userId: string, signal?: AbortSignal) {
+  if (IS_MOCK_MODE) return mock.mockGetProfile(userId, signal);
   return apiRequest<ProfileResponse>(`/profile/${encodeURIComponent(userId)}`, {
     signal,
   });
@@ -195,6 +201,7 @@ export function rateDrama(
   rating: number,
   signal?: AbortSignal,
 ) {
+  if (IS_MOCK_MODE) return mock.mockRateLegacy();
   const params = new URLSearchParams({
     drama_title: dramaTitle,
     rating: String(rating),
@@ -206,6 +213,7 @@ export function rateDrama(
 }
 
 export function resetProfile(userId: string, signal?: AbortSignal) {
+  if (IS_MOCK_MODE) return mock.mockResetProfile();
   return apiRequest<{ success: boolean; message: string }>(
     `/profile/${encodeURIComponent(userId)}`,
     { method: "DELETE", signal },
@@ -216,6 +224,7 @@ export async function getMyAccountProfile(
   accessToken: string,
   signal?: AbortSignal,
 ): Promise<AccountProfileResponse> {
+  if (IS_MOCK_MODE) return mock.mockGetAccount(signal);
   const response = await apiRequest<AccountProfileResponse>("/me/profile", {
     headers: bearerHeaders(accessToken),
     signal,
@@ -227,6 +236,7 @@ export async function updateMyAccountProfile(
   accessToken: string,
   update: { display_name?: string; avatar_path?: string | null },
 ): Promise<AccountProfileResponse> {
+  if (IS_MOCK_MODE) return mock.mockUpdateAccount(update);
   const response = await apiRequest<AccountProfileResponse>("/me/profile", {
     method: "PATCH",
     headers: bearerHeaders(accessToken),
@@ -236,6 +246,7 @@ export async function updateMyAccountProfile(
 }
 
 export function deleteMyAccount(accessToken: string) {
+  if (IS_MOCK_MODE) return mock.mockDeleteAccount();
   return apiRequest<void>("/me/account", {
     method: "DELETE",
     headers: bearerHeaders(accessToken),
@@ -243,6 +254,7 @@ export function deleteMyAccount(accessToken: string) {
 }
 
 export async function getMyWatchlist(accessToken: string, signal?: AbortSignal) {
+  if (IS_MOCK_MODE) return mock.mockGetWatchlist(signal);
   const response = await apiRequest<{ items: WatchlistEntry[] }>("/me/watchlist", {
     headers: bearerHeaders(accessToken),
     signal,
@@ -254,6 +266,7 @@ export async function mergeMyWatchlist(
   accessToken: string,
   items: Array<{ drama_id: number; status: WatchStatus }>,
 ) {
+  if (IS_MOCK_MODE) return mock.mockMergeWatchlist(items);
   const response = await apiRequest<{ items: WatchlistEntry[] }>("/me/watchlist/merge", {
     method: "POST",
     headers: bearerHeaders(accessToken),
@@ -267,6 +280,7 @@ export async function saveMyWatchlistItem(
   dramaId: number,
   status: WatchStatus,
 ) {
+  if (IS_MOCK_MODE) return mock.mockSaveWatchlistItem(dramaId, status);
   const response = await apiRequest<{ item: WatchlistEntry }>(`/me/watchlist/${dramaId}`, {
     method: "PUT",
     headers: bearerHeaders(accessToken),
@@ -276,6 +290,7 @@ export async function saveMyWatchlistItem(
 }
 
 export function removeMyWatchlistItem(accessToken: string, dramaId: number) {
+  if (IS_MOCK_MODE) return mock.mockRemoveWatchlistItem(dramaId);
   return apiRequest<void>(`/me/watchlist/${dramaId}`, {
     method: "DELETE",
     headers: bearerHeaders(accessToken),
@@ -283,6 +298,7 @@ export function removeMyWatchlistItem(accessToken: string, dramaId: number) {
 }
 
 export async function getMyRatings(accessToken: string, signal?: AbortSignal) {
+  if (IS_MOCK_MODE) return mock.mockGetRatings(signal);
   const response = await apiRequest<{ items: RatingEntry[] }>("/me/ratings", {
     headers: bearerHeaders(accessToken),
     signal,
@@ -295,6 +311,7 @@ export async function saveMyRating(
   dramaId: number,
   rating: number,
 ) {
+  if (IS_MOCK_MODE) return mock.mockSaveRating(dramaId, rating);
   const response = await apiRequest<{
     item: RatingEntry;
     watchlist_item: WatchlistEntry;
@@ -317,6 +334,7 @@ export function logInteraction(input: {
   position?: number;
   searchId?: string;
 }) {
+  if (IS_MOCK_MODE) return Promise.resolve({ status: "mocked" });
   return apiRequest<{ status: string }>("/analytics/interaction", {
     method: "POST",
     keepalive: true,

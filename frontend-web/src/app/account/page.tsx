@@ -1,8 +1,18 @@
 import { redirect } from "next/navigation";
 import { AccountPanel } from "@/components/account-panel";
 import { createClient } from "@/lib/supabase/server";
+import { IS_MOCK_MODE } from "@/lib/data-mode";
+import { MOCK_USER_EMAIL, MOCK_USER_NAME } from "@/lib/mock-data";
 
 export default async function AccountPage() {
+  if (IS_MOCK_MODE) {
+    return (
+      <>
+        <section className="page-hero"><div className="shell"><span className="eyebrow">Your account</span><h1 className="display">Welcome, {MOCK_USER_NAME}</h1><p>Manage your SeoulMate session and continue shaping your K-drama taste.</p></div></section>
+        <section className="shell account-page"><AccountPanel email={MOCK_USER_EMAIL} displayName={MOCK_USER_NAME} /></section>
+      </>
+    );
+  }
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims?.sub) redirect("/auth/login");
