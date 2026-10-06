@@ -3582,9 +3582,32 @@ button:disabled { cursor: not-allowed; opacity: .58; }
     grid-template-columns: 1fr;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 780px) {
   .trending-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 14px;
+    padding-bottom: 10px;
+    padding-inline: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(23, 28, 42, 0.18) transparent;
+  }
+  .trending-grid::-webkit-scrollbar {
+    height: 5px;
+  }
+  .trending-grid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .trending-grid::-webkit-scrollbar-thumb {
+    background: rgba(23, 28, 42, 0.18);
+    border-radius: 999px;
+  }
+  .trending-card,
+  .trending-card-skeleton {
+    flex: 0 0 min(285px, 82vw);
+    scroll-snap-align: start;
   }
   .post-type-selector-grid {
     grid-template-columns: 1fr;
