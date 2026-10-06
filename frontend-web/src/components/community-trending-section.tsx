@@ -1,12 +1,14 @@
 "use client";
 
+import { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { ArrowRight, Flame, MessageSquare, ShieldCheck, ShieldAlert, Heart } from "lucide-react";
+import { ArrowRight, Flame, MessageSquare, ShieldCheck, ShieldAlert, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { getCommunityTrending } from "@/lib/api";
 import { PosterImage } from "@/components/poster-image";
 
 export function CommunityTrendingSection() {
+  const scrollRef = useRef<HTMLDivElement>(null);
   const { data: trendingPosts, isLoading, isError } = useQuery({
     queryKey: ["community-trending"],
     queryFn: ({ signal }) => getCommunityTrending(signal),
@@ -16,6 +18,15 @@ export function CommunityTrendingSection() {
   if (isError) {
     // Fail gracefully: don't break the homepage recommendations if community endpoint fails
     return null;
+  }
+
+  function handleScroll(direction: "left" | "right") {
+    if (!scrollRef.current) return;
+    const scrollAmount = 300;
+    scrollRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
   }
 
   return (
@@ -30,24 +41,50 @@ export function CommunityTrendingSection() {
               Trending in the community
             </h2>
           </div>
-          <Link href="/community" className="text-link see-all-link">
-            <span>See all discussions</span>
-            <ArrowRight size={16} />
-          </Link>
+          <div className="trending-header-actions">
+            <div className="trending-scroll-controls" aria-label="Scroll trending items">
+              <button
+                type="button"
+                className="trending-scroll-btn"
+                onClick={() => handleScroll("left")}
+                aria-label="Scroll discussions left"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                type="button"
+                className="trending-scroll-btn"
+                onClick={() => handleScroll("right")}
+                aria-label="Scroll discussions right"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <Link href="/community" className="text-link see-all-link">
+              <span>See all discussions</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="trending-grid">
+          <div className="trending-grid" ref={scrollRef}>
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="trending-card-skeleton" />
             ))}
           </div>
         ) : (
-          <div className="trending-grid">
+          <div
+            className="trending-grid"
+            ref={scrollRef}
+            tabIndex={0}
+            role="region"
+            aria-label="Trending community discussions"
+          >
             {trendingPosts?.map((post) => {
               const postTypeLabel =
                 post.post_type === "recommendation"
-                  ? "Recommendations"
+                  ? "Recommendation"
                   : post.post_type === "review"
                   ? "Review"
                   : "Discussion";
@@ -73,7 +110,7 @@ export function CommunityTrendingSection() {
                   </div>
 
                   <div className="trending-card-content">
-                    <h3 className="trending-card-title">{post.short_title}</h3>
+                    <h3 className="trending-card-title">{post.short_title || post.title}</h3>
 
                     <div className="trending-card-badges">
                       {!post.contains_spoilers ? (
@@ -87,9 +124,7 @@ export function CommunityTrendingSection() {
                           <span>Spoiler</span>
                         </span>
                       )}
-                      {post.post_type !== "discussion" && (
-                        <span className="post-type-chip">{postTypeLabel}</span>
-                      )}
+                      <span className={`post-type-chip post-type-${post.post_type}`}>{postTypeLabel}</span>
                     </div>
 
                     <div className="trending-card-footer">

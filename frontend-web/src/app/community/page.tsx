@@ -31,11 +31,13 @@ export default function CommunityPage() {
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get("q") || "";
   const initialTab = searchParams.get("tab") || "trending";
+  const initialDrama = searchParams.get("drama_id") || "";
 
   const { user, getAccessToken } = useAuth();
   const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [searchInput, setSearchInput] = useState(initialSearch);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [selectedDramaId, setSelectedDramaId] = useState<string>(initialDrama);
   const [page, setPage] = useState(1);
 
   // Map activeTab to filters
@@ -59,6 +61,7 @@ export default function CommunityPage() {
       "community-feed",
       activeTab,
       searchQuery,
+      selectedDramaId,
       page,
       user?.id,
     ],
@@ -70,6 +73,7 @@ export default function CommunityPage() {
           limit: 10,
           post_type: postTypeParam,
           search: searchQuery || undefined,
+          drama_id: selectedDramaId ? Number(selectedDramaId) : undefined,
           sort: sortParam,
         },
         token,
@@ -146,25 +150,50 @@ export default function CommunityPage() {
           </button>
         </form>
 
-        {/* Filter Tabs */}
-        <div className="community-filter-tabs" role="tablist">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isSelected = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={isSelected}
-                className={`community-tab-btn ${isSelected ? "active" : ""}`}
-                onClick={() => handleTabChange(tab.id)}
-              >
-                <Icon size={15} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+        {/* Filters Group: Optional Drama Filter & Tabs */}
+        <div className="community-filters-group">
+          <select
+            className="community-drama-filter-select"
+            value={selectedDramaId}
+            onChange={(e) => {
+              setSelectedDramaId(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Filter discussions by drama"
+          >
+            <option value="">All dramas</option>
+            <option value="101">Crash Landing on You</option>
+            <option value="102">Hospital Playlist</option>
+            <option value="103">Business Proposal</option>
+            <option value="104">Twenty-Five Twenty-One</option>
+            <option value="105">Vincenzo</option>
+            <option value="106">Extraordinary Attorney Woo</option>
+            <option value="107">Alchemy of Souls</option>
+            <option value="108">Moving</option>
+            <option value="109">Lovely Runner</option>
+            <option value="110">My Mister</option>
+          </select>
+
+          {/* Filter Tabs */}
+          <div className="community-filter-tabs" role="tablist">
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  className={`community-tab-btn ${isSelected ? "active" : ""}`}
+                  onClick={() => handleTabChange(tab.id)}
+                >
+                  <Icon size={15} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

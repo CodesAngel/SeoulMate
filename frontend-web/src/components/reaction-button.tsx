@@ -37,7 +37,7 @@ export function ReactionButton({
 
     if (!user) {
       const returnUrl = encodeURIComponent(pathname || "/community");
-      router.push(`/auth?returnUrl=${returnUrl}`);
+      router.push(`/auth/login?returnUrl=${returnUrl}`);
       return;
     }
 

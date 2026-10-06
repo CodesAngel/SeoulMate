@@ -90,7 +90,7 @@ export default function NewPostPage() {
     setError("");
 
     if (!user) {
-      router.push(`/auth?returnUrl=${encodeURIComponent("/community/new")}`);
+      router.push(`/auth/login?returnUrl=${encodeURIComponent("/community/new")}`);
       return;
     }
 
@@ -131,7 +131,7 @@ export default function NewPostPage() {
           <h2>Sign in to start a discussion</h2>
           <p>You need to be signed in to create discussions, post reviews, and share recommendations.</p>
           <Link
-            href={`/auth?returnUrl=${encodeURIComponent("/community/new")}`}
+            href={`/auth/login?returnUrl=${encodeURIComponent("/community/new")}`}
             className="primary-button"
           >
             Sign in now
