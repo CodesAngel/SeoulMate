@@ -66,7 +66,7 @@ export function CommunityComments({
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!user) {
-      router.push(`/auth?returnUrl=${encodeURIComponent(pathname)}`);
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(pathname)}`);
       return;
     }
 
@@ -200,7 +200,7 @@ export function CommunityComments({
         <div className="comment-signin-prompt">
           <p>Want to join this discussion?</p>
           <Link
-            href={`/auth?returnUrl=${encodeURIComponent(pathname)}`}
+            href={`/auth/login?returnUrl=${encodeURIComponent(pathname)}`}
             className="primary-button prompt-signin-btn"
           >
             Sign in to comment

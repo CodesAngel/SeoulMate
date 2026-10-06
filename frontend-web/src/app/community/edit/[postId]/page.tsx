@@ -93,7 +93,7 @@ export default function EditPostPage({
     setError("");
 
     if (!user) {
-      router.push(`/auth?returnUrl=${encodeURIComponent(`/community/edit/${postId}`)}`);
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(`/community/edit/${postId}`)}`);
       return;
     }
 

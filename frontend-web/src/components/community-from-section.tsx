@@ -2,11 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Bookmark, MessageSquare, MoreHorizontal } from "lucide-react";
 import { getHomepageCommunity } from "@/lib/api";
 import { PosterImage } from "@/components/poster-image";
 import { ReactionButton } from "@/components/reaction-button";
 import { SpoilerContent } from "@/components/spoiler-content";
+import { useAuth } from "@/components/auth-provider";
 
 function formatRelativeTime(dateStr: string): string {
   try {
@@ -26,6 +28,9 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 export function CommunityFromSection() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user } = useAuth();
   const { data: posts, isLoading, isError } = useQuery({
     queryKey: ["homepage-community-feed"],
     queryFn: ({ signal }) => getHomepageCommunity(signal),
@@ -35,6 +40,14 @@ export function CommunityFromSection() {
   if (isError) {
     // Fail gracefully: homepage continues working
     return null;
+  }
+
+  function handleBookmarkClick(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!user) {
+      router.push(`/auth/login?returnUrl=${encodeURIComponent(pathname || "/")}`);
+      return;
+    }
   }
 
   return (
@@ -63,87 +76,111 @@ export function CommunityFromSection() {
           </div>
         ) : (
           <div className="community-cards-grid">
-            {posts?.map((post) => (
-              <article key={post.id} className="community-feed-card">
-                {/* Author row */}
-                <div className="feed-card-header">
-                  <div className="feed-author-info">
-                    <div className="feed-author-avatar">
-                      {post.author.avatar_url ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={post.author.avatar_url} alt={post.author.display_name} />
-                      ) : (
-                        <div className="author-avatar-fallback">
-                          {post.author.display_name.slice(0, 1).toUpperCase()}
-                        </div>
-                      )}
+            {posts?.map((post) => {
+              const dramaTitle = post.drama?.title;
+              const posterUrl = post.drama?.poster_thumbnail_url;
+
+              return (
+                <article key={post.id} className="community-feed-card">
+                  {/* Author row */}
+                  <div className="feed-card-header">
+                    <div className="feed-author-info">
+                      <div className="feed-author-avatar">
+                        {post.author.avatar_url ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={post.author.avatar_url} alt={post.author.display_name} />
+                        ) : (
+                          <div className="author-avatar-fallback">
+                            {post.author.display_name.slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <strong className="feed-author-name">{post.author.display_name}</strong>
+                        <span className="feed-post-time">
+                          {formatRelativeTime(post.created_at)}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <strong className="feed-author-name">{post.author.display_name}</strong>
-                      <span className="feed-post-time">
-                        {formatRelativeTime(post.created_at)}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    className="feed-more-btn"
-                    aria-label="Post options"
-                  >
-                    <MoreHorizontal size={18} />
-                  </button>
-                </div>
-
-                {/* Post body */}
-                <div className="feed-card-body">
-                  <SpoilerContent isSpoiler={post.contains_spoilers} previewOnly>
-                    <Link href={`/community/${post.id}`} className="feed-card-text-link">
-                      <p className="feed-post-text">{post.body}</p>
-                    </Link>
-                  </SpoilerContent>
-                </div>
-
-                {/* Drama Banner / Image */}
-                {post.drama && (
-                  <Link href={`/community/${post.id}`} className="feed-card-media-banner">
-                    <div className="feed-media-container">
-                      <PosterImage
-                        src={post.drama.poster_thumbnail_url}
-                        alt={post.drama.title}
-                      />
-                    </div>
-                  </Link>
-                )}
-
-                {/* Footer Actions */}
-                <div className="feed-card-footer">
-                  <div className="feed-actions-left">
-                    <ReactionButton
-                      postId={post.id}
-                      initialLiked={Boolean(post.is_liked_by_me)}
-                      initialCount={post.like_count}
-                    />
-
-                    <Link
-                      href={`/community/${post.id}#comments`}
-                      className="feed-comment-link"
-                      aria-label={`${post.comment_count} comments`}
+                    <button
+                      type="button"
+                      className="feed-more-btn"
+                      aria-label="Post options"
                     >
-                      <MessageSquare size={17} />
-                      <span>{post.comment_count}</span>
-                    </Link>
+                      <MoreHorizontal size={18} />
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="feed-bookmark-btn"
-                    aria-label="Save discussion"
-                  >
-                    <Bookmark size={17} />
-                  </button>
-                </div>
-              </article>
-            ))}
+                  {/* Post body */}
+                  <div className="feed-card-body">
+                    <SpoilerContent isSpoiler={post.contains_spoilers} previewOnly>
+                      <Link href={`/community/${post.id}`} className="feed-card-text-link">
+                        <p className="feed-post-text">{post.body}</p>
+                      </Link>
+                    </SpoilerContent>
+                  </div>
+
+                  {/* Associated Drama Title & Poster Media Banner */}
+                  {dramaTitle && (
+                    <Link
+                      href={`/drama/${encodeURIComponent(dramaTitle)}`}
+                      className="feed-card-media-banner"
+                      title={`View ${dramaTitle} details`}
+                    >
+                      <div className="feed-media-container">
+                        {posterUrl ? (
+                          <PosterImage
+                            src={posterUrl}
+                            alt={dramaTitle}
+                          />
+                        ) : (
+                          <div className="feed-media-fallback">
+                            <span>{dramaTitle}</span>
+                          </div>
+                        )}
+                        <div className="feed-media-overlay">
+                          <span className="feed-media-drama-badge">Associated Drama</span>
+                          <span className="feed-media-drama-title">{dramaTitle}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  )}
+
+                  {/* Footer Actions */}
+                  <div className="feed-card-footer">
+                    <div className="feed-actions-left">
+                      <ReactionButton
+                        postId={post.id}
+                        initialLiked={Boolean(post.is_liked_by_me)}
+                        initialCount={post.like_count}
+                      />
+
+                      <Link
+                        href={
+                          user
+                            ? `/community/${post.id}#comments`
+                            : `/auth/login?returnUrl=${encodeURIComponent(`/community/${post.id}#comments`)}`
+                        }
+                        className="feed-comment-link"
+                        aria-label={`${post.comment_count} comments`}
+                      >
+                        <MessageSquare size={17} />
+                        <span>{post.comment_count}</span>
+                      </Link>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="feed-bookmark-btn"
+                      aria-label="Save discussion"
+                      onClick={handleBookmarkClick}
+                    >
+                      <Bookmark size={17} />
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

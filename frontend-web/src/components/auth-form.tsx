@@ -26,9 +26,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     setMessage("");
 
     try {
+      const returnUrl = searchParams.get("returnUrl") || "/account";
       if (IS_MOCK_MODE) {
         signInMock(email || undefined, displayName.trim() || undefined);
-        router.replace("/account");
+        router.replace(returnUrl);
         router.refresh();
         return;
       }
@@ -51,7 +52,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         if (error) throw error;
       }
 
-      router.replace("/account");
+      router.replace(returnUrl);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Authentication failed.");

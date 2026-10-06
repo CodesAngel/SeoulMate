@@ -4,6 +4,19 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-06
 
+### Community MVP Visual Presentation & Design System
+
+- Implemented pixel-faithful visual presentation for the SeoulMate community MVP based directly on the design reference and editorial design system.
+- Standardized color system across all community components: Deep mulberry (`#2D1738`), Ink navy (`#151827`), Berry (`#C63C6D`), Muted orchid (`#9A78B5`), Soft lavender (`#EEE8F5`), Cool mist (`#F5F6FA`), Warm white (`#FFFCF8`), Rating amber (`#E3A72F`), and White cards (`#FFFFFF`).
+- Navigation: Configured berry accent (`#C63C6D`) for active and hover states on the primary navigation "Community" item.
+- Homepage "Trending in the community": Exactly 4 compact discussion cards in one row on desktop, 2 columns on tablet, and horizontally scrollable snap-cards on mobile with accessible left/right scroll controls; cards feature 68x90px rounded poster thumbnails, Georgia serif titles in deep mulberry, spoiler-safe/post-type chips, participant avatar stacks, and comment/like metrics with berry "See all discussions" link.
+- Homepage "From the community": Exactly 3 review cards in one row on desktop; features author avatar bubble, display name, relative timestamp, 3-line clamped text, associated drama title & poster overlay media banner, heart reaction with pulse animation, comment link, and berry pill button "Join the conversation".
+- Community Feed (`/community`): Editorial header with warm white backdrop, deep mulberry serif title, berry primary action button, toolbar with live search, optional drama catalog filter dropdown, and filter tabs (Trending, Recent, Reviews, Recommendations) with berry active indicator.
+- Post Composer (`/community/new` & edit): Polished card layout, interactive post-type selectors with berry highlight, character counters, catalog combobox with prefilled ratings, and spoiler protection toggle.
+- Post Detail (`/community/[postId]`): Sophisticated editorial presentation, full author metadata with exact dates, associated drama link banner, spoiler guard with click-to-reveal, heart reaction button, oldest-first comments stream, and owner edit/delete options.
+- Auth Return Preservation: Fixed all guest participation triggers across feed, reaction buttons, and comments to redirect to `/auth/login?returnUrl=...` and restore the user's return destination upon login.
+- Validated with TypeScript (`tsc --noEmit`), ESLint, Next.js production build, and Python test suite `tests/test_community_system.py`.
+
 ### Community System (Phase 1)
 
 - Added a spoiler-safe K-drama community where visitors can read discussions, reviews, and recommendations, and authenticated users can publish posts, comments, and like/unlike posts.
