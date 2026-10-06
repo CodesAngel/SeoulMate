@@ -149,3 +149,97 @@ export type ProfileResponse = {
 };
 
 export type InteractionType = "click" | "watchlist_add" | "watchlist_remove";
+
+export type PostType = "discussion" | "review" | "recommendation";
+
+export type CommunityAuthor = {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+};
+
+export type CommunityDrama = {
+  drama_id: number;
+  title: string;
+  poster_thumbnail_url: string | null;
+  rating_value: number | null;
+  year: string | null;
+};
+
+export type CommunityPost = {
+  id: string;
+  post_type: PostType;
+  title: string;
+  body: string;
+  rating: number | null;
+  contains_spoilers: boolean;
+  created_at: string;
+  updated_at: string;
+  like_count: number;
+  comment_count: number;
+  author: CommunityAuthor;
+  drama: CommunityDrama | null;
+  is_liked_by_me?: boolean;
+  is_author?: boolean;
+};
+
+export type CommunityComment = {
+  id: string;
+  post_id: string;
+  body: string;
+  contains_spoilers: boolean;
+  created_at: string;
+  updated_at: string;
+  author: CommunityAuthor;
+  is_author?: boolean;
+};
+
+export type TrendingCommunityPost = {
+  id: string;
+  title: string;
+  short_title: string;
+  post_type: PostType;
+  contains_spoilers: boolean;
+  like_count: number;
+  comment_count: number;
+  drama_id: number | null;
+  drama_title: string | null;
+  drama_poster_thumbnail_url: string | null;
+  participant_avatars: string[];
+};
+
+export type CommunityPostsResponse = {
+  posts: CommunityPost[];
+  total: number;
+  page: number;
+  has_more: boolean;
+};
+
+export type CreatePostPayload = {
+  post_type: PostType;
+  title: string;
+  body: string;
+  drama_id?: number | null;
+  rating?: number | null;
+  contains_spoilers: boolean;
+};
+
+export type UpdatePostPayload = {
+  post_type?: PostType;
+  title?: string;
+  body?: string;
+  drama_id?: number | null;
+  rating?: number | null;
+  contains_spoilers?: boolean;
+};
+
+export type CreateCommentPayload = {
+  body: string;
+  contains_spoilers: boolean;
+};
+
+export type UpdateCommentPayload = {
+  body?: string;
+  contains_spoilers?: boolean;
+};
+

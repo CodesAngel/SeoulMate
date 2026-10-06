@@ -4,6 +4,22 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-06
 
+### Community System (Phase 1)
+
+- Added a spoiler-safe K-drama community where visitors can read discussions, reviews, and recommendations, and authenticated users can publish posts, comments, and like/unlike posts.
+- Created Alembic migration `f2c84d1e9a73_add_community_system.py` adding `community_posts`, `community_comments`, and `community_reactions` with CheckConstraints, foreign key cascades (`CASCADE` on user, `SET NULL` on drama), and comprehensive Row Level Security (RLS) policies.
+- Implemented FastAPI community router with public read endpoints (`/community/posts`, `/community/posts/{id}`, `/community/posts/{id}/comments`, `/community/trending`) and authenticated mutation endpoints with strict token ownership verification.
+- Added deterministic trending algorithm: $\text{score} = \text{likes} + (\text{comments} \times 2) + \text{recency\_bonus}$ with a 7-day decay window, ensuring exactly 4 top-ranking items for homepage trending.
+- Added two homepage community sections matching the SeoulMate design mockups: "Trending in the community" (4 items with thumbnails, badges, avatars) and "From the community" (3 cards with author metadata, media banner, and reaction bar), isolated so that any community request issue never breaks homepage discovery.
+- Added "Community" to the primary navigation linking to `/community`.
+- Created `/community` feed with Trending, Recent, Reviews, Recommendations tabs, search, and button-based "Load more".
+- Created dedicated `/community/new` composer with drama catalog search combobox, star rating (1–10) prefilled from user ratings, and spoiler toggle.
+- Created `/community/[postId]` detail page with oldest-first comments stream, spoiler masking, author edit/delete actions, and confirmation modals.
+- Created `/community/edit/[postId]` editor allowing post owners to update content, spoiler state, and review ratings.
+- Added click-to-reveal `SpoilerContent` guard preventing spoiler text leakage in feeds, previews, metadata, and search results.
+- Extended frontend mock adapter (`mock-data.ts`) with 8+ seeded discussions, reviews, recommendations, multi-user comments, likes, and in-memory CRUD operations capable of running without Supabase or FastAPI.
+- Validation: ESLint passed (0 errors), TypeScript passed (0 errors), Next.js production builds passed in both API and mock modes, and full test suite `tests/test_community_system.py` verified anonymous read/rejection, owner author mutations, cross-user 403 blocks, idempotent likes, oldest-first comments, and foreign key cascades.
+
 ### Switchable Frontend Data Modes
 
 - Added explicit `api` and `mock` frontend modes while retaining the real FastAPI and Supabase integration as the default.

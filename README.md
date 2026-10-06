@@ -15,6 +15,7 @@ The system combines semantic search, lexical search, calibrated ranking indexes,
 - Cross-encoder reranking with curated priors and calibrated generated fallbacks.
 - Personalized recommendations based on ratings and recorded user interactions.
 - Drama detail pages, poster images, an account-synced watchlist, viewing statuses, and personal ratings.
+- Spoiler-safe K-drama community: public reading, authenticated discussions, reviews (with 1–10 scores), recommendations, oldest-first comments, optimistic likes, and drama catalog associations.
 - Email/password accounts with Supabase Auth, server-refreshed sessions, password recovery, and verified FastAPI bearer tokens.
 - Switchable real API and self-contained mock modes for frontend development.
 - Internal Streamlit interface for model testing, analytics, and profile exploration.
@@ -128,6 +129,73 @@ The Next.js application uses Supabase Auth with server-refreshed cookie sessions
 Every signup creates a matching row in `public.profiles`. FastAPI validates Supabase access tokens through the project's JWKS endpoint; `GET /auth/me` is the reference protected endpoint. Signed-in watchlists, viewing statuses, and ratings are stored in PostgreSQL and restored on later sessions. Guest saves remain in the browser and merge into the account after sign-in. The generated taste profile and preference learning still use legacy runtime storage pending their PostgreSQL migration.
 
 The protected `/account` area supports display-name updates, per-user avatar uploads, password changes, active profile statistics, sign-out, and permanent account deletion. Avatars use the public `avatars` Storage bucket with owner-scoped upload policies and a 2 MB JPEG/PNG/WebP limit. Account deletion removes the avatar and legacy profile artifacts, deletes the Supabase Auth user, and cascades through PostgreSQL-owned data.
+
+## Community system (Phase 1)
+
+SeoulMate includes a spoiler-safe K-drama community where visitors can read discussions, reviews, and recommendations, and signed-in members can share insights and join conversations.
+
+### Community routes
+
+| Route | Purpose | Access |
+| --- | --- | --- |
+| `/community` | Feed with Trending, Recent, Reviews, Recommendations tabs, search, and drama filtering | Public read |
+| `/community/new` | Post composer for discussions, reviews (with 1–10 scores), and recommendations linked to dramas | Authenticated |
+| `/community/[postId]` | Complete post detail, full markdown/body, associated drama links, reaction heart, and comments | Public read, authenticated comments |
+| `/community/edit/[postId]` | Post editor for authors to update their title, body, spoiler flag, and review rating | Post author only |
+
+### Homepage community sections
+
+- **Trending in the community**: Four engagement-ranked posts placed after the statistics strip and before "Start with these", showing drama thumbnails, short titles, post type badges, spoiler tags, comment/like counts, and participant avatars.
+- **From the community**: Three recent community posts placed after the mood section, showing author avatars, relative post timestamps, drama poster banners, like buttons, comment links, and a "Join the conversation" CTA.
+
+### Database migration and security
+
+The database schema is managed via Alembic migration `backend/migrations/versions/f2c84d1e9a73_add_community_system.py`:
+- `community_posts`: UUID primary key, `user_id` referencing `profiles(id)` (CASCADE), nullable `drama_id` referencing `dramas(id)` (SET NULL), post type (`discussion`, `review`, `recommendation`), title (max 120 chars), body (max 2,000 chars), rating (1.0–10.0), `contains_spoilers` boolean, timestamps with triggers.
+- `community_comments`: UUID primary key, `post_id` (CASCADE), `user_id` (CASCADE), body (max 1,000 chars), `contains_spoilers` boolean, timestamps.
+- `community_reactions`: `post_id` (CASCADE), `user_id` (CASCADE), `reaction_type` (`like`), unique constraint on `(post_id, user_id, reaction_type)`.
+- Row Level Security (RLS) is enabled on all community tables: anonymous users have read-only access; authenticated members can only create content under their own identity, edit/delete their own posts/comments, and add/remove their own reactions.
+
+### API endpoints
+
+- **Public**:
+  - `GET /community/posts`: List posts with cursor/page pagination, post-type filtering, search query, drama filter, and trending or recent sorting.
+  - `GET /community/posts/{post_id}`: Fetch single post with drama details, author profile, reaction counts, and author permissions.
+  - `GET /community/posts/{post_id}/comments`: Fetch comments ordered oldest-first.
+  - `GET /community/trending`: Returns top 4 posts ranked by deterministic score.
+- **Authenticated**:
+  - `POST /community/posts`: Create a discussion, review, or recommendation (201 Created).
+  - `PATCH /community/posts/{post_id}`: Edit post title, body, rating, or spoiler status (author only).
+  - `DELETE /community/posts/{post_id}`: Delete post and cascade reactions/comments (204 No Content, author only).
+  - `POST /community/posts/{post_id}/comments`: Post a comment (201 Created).
+  - `PATCH /community/comments/{comment_id}`: Edit comment body or spoiler flag (author only).
+  - `DELETE /community/comments/{comment_id}`: Delete comment (204 No Content, author only).
+  - `PUT /community/posts/{post_id}/like`: Like a post (idempotent, increments count).
+  - `DELETE /community/posts/{post_id}/like`: Unlike a post (decrements count).
+
+### Deterministic trending formula
+
+Trending posts are calculated deterministically without ML models or heavy background workers:
+$$\text{Trending Score} = \text{Likes} + (\text{Comments} \times 2) + \text{Recency Bonus}$$
+where the recency bonus awards up to 21 points for posts active within the last 7 days ($(\max(0, 7 - \text{age}_{\text{days}})) \times 3$).
+
+### Spoiler behavior
+
+Any post or comment marked with `contains_spoilers: true` initially masks its text behind a "Contains spoilers — Reveal" guard. Previews in the homepage sections, feed cards, search results, and page metadata never render unmasked spoiler text. Content is only revealed when the visitor explicitly clicks "Reveal".
+
+### Mock mode support
+
+Run `.\scripts\run_web_frontend.ps1 -Mode mock` to use the community system completely standalone without starting PostgreSQL, Docker, or FastAPI. Mock mode provides 8+ community posts (including the 4 trending and 3 homepage items), multi-user comments, spoiler guards, and interactive in-memory CRUD operations (create, edit, delete posts and comments, toggle likes) that reset upon dev-server restart.
+
+### Phase 1 MVP boundaries
+
+Features deliberately excluded from Phase 1 and reserved for subsequent phases:
+- Nested comment threads / replies
+- User follow graphs and direct messaging
+- Custom image/media uploads in post bodies
+- Multiple reaction emojis (only "like" is supported in Phase 1)
+- WebSocket-based real-time push notifications
+- Moderation review dashboards
 
 ## Dataset and posters
 

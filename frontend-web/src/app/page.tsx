@@ -9,6 +9,8 @@ import { useApp } from "@/components/app-provider";
 import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
 import { PosterImage } from "@/components/poster-image";
+import { CommunityTrendingSection } from "@/components/community-trending-section";
+import { CommunityFromSection } from "@/components/community-from-section";
 import { searchDramas } from "@/lib/api";
 import { MOOD_LINKS, QUICK_PROMPTS } from "@/lib/constants";
 import { dramaKey } from "@/lib/drama";
@@ -91,6 +93,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <CommunityTrendingSection />
+
       <section className="section">
         <div className="shell">
           <div className="section-heading">
@@ -125,6 +129,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <CommunityFromSection />
     </>
   );
 }

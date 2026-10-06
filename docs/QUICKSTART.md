@@ -68,6 +68,22 @@ The authenticated application endpoints are `GET/PUT/DELETE /me/watchlist`, `POS
 
 Open `/account` to edit the display name, upload or remove an avatar, change the password, inspect saved/watching/completed/rating statistics, sign out, or permanently delete the account. Avatar uploads accept JPEG, PNG, and WebP files up to 2 MB. Deletion requires typing `DELETE` and removes the Auth user, PostgreSQL-owned rows, avatar object, and matching legacy profile data.
 
+## Test the community system (Phase 1)
+
+1. Open `http://localhost:3000` to view the two homepage community sections:
+   - **Trending in the community**: 4 cards with drama posters, discussion titles, badges, and comment counts.
+   - **From the community**: 3 recent community posts with author avatars, drama banners, and reaction buttons.
+2. Open `http://localhost:3000/community` to browse the full feed. Filter by **Trending**, **Recent**, **Reviews**, or **Recommendations**, search by keyword, or filter by drama.
+3. Click **Start a discussion** (or navigate to `/community/new`) to publish a new post with optional drama linking, review score (1–10), and spoiler flag.
+4. Click on any post card to open its detail page at `/community/[postId]`.
+5. For posts or comments flagged with spoilers, verify the spoiler guard: content is masked with *"Contains spoilers — Reveal"* until explicitly clicked.
+6. Post, edit, or delete comments on the post detail page (comments render in chronological oldest-first order).
+7. Test the heart reaction button: clicking likes or unlikes the post with instant optimistic feedback and automatic rollback on failure.
+8. To run tests covering API endpoints, authorization guards, deterministic trending scores, and database foreign key cascades:
+   ```powershell
+   .\.venv\Scripts\python.exe -u tests\test_community_system.py
+   ```
+
 ## Index rebuilding
 
 The backend needs `training/faiss_index/index.faiss` and `meta.pkl`. If these already match your dataset and model, ordinary startup does not require rebuilding.

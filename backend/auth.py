@@ -70,3 +70,37 @@ def require_user(
         email=email if isinstance(email, str) else None,
         role=role,
     )
+
+
+def optional_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> AuthenticatedUser | None:
+    """Optionally validate a Supabase JWT without failing anonymous visitors."""
+    if credentials is None or credentials.scheme.lower() != "bearer":
+        return None
+
+    settings = get_database_settings()
+    issuer = f"{settings.supabase_url.rstrip('/')}/auth/v1"
+
+    try:
+        signing_key = get_jwks_client().get_signing_key_from_jwt(credentials.credentials)
+        claims: dict[str, Any] = jwt.decode(
+            credentials.credentials,
+            signing_key.key,
+            algorithms=["ES256", "RS256"],
+            audience="authenticated",
+            issuer=issuer,
+        )
+        subject = UUID(claims["sub"])
+        role = claims.get("role")
+        if role != "authenticated":
+            return None
+        email = claims.get("email")
+        return AuthenticatedUser(
+            id=subject,
+            email=email if isinstance(email, str) else None,
+            role=role,
+        )
+    except Exception:
+        return None
+

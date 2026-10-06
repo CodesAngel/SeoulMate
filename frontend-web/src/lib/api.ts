@@ -8,6 +8,15 @@ import type {
   WatchlistEntry,
   WatchStatus,
   AccountProfileResponse,
+  CommunityComment,
+  CommunityPost,
+  CommunityPostsResponse,
+  CreateCommentPayload,
+  CreatePostPayload,
+  PostType,
+  TrendingCommunityPost,
+  UpdateCommentPayload,
+  UpdatePostPayload,
 } from "@/lib/types";
 import { z } from "zod";
 import { IS_MOCK_MODE } from "@/lib/data-mode";
@@ -149,7 +158,7 @@ function bearerHeaders(accessToken: string) {
   return { Authorization: `Bearer ${accessToken}` };
 }
 
-export function resolvePosterUrl(value?: string): string | null {
+export function resolvePosterUrl(value?: string | null): string | null {
   if (!value) return null;
   if (IS_MOCK_MODE && value.startsWith("/mock-posters/")) return value;
   return value.startsWith(POSTER_STORAGE_PREFIX) ? value : null;
@@ -348,3 +357,174 @@ export function logInteraction(input: {
     }),
   });
 }
+
+// ==========================================
+// COMMUNITY APIS
+// ==========================================
+
+export async function getCommunityPosts(
+  filters?: {
+    page?: number;
+    limit?: number;
+    post_type?: PostType;
+    search?: string;
+    drama_id?: number;
+    sort?: "trending" | "recent";
+  },
+  accessToken?: string | null,
+  signal?: AbortSignal,
+): Promise<CommunityPostsResponse> {
+  if (IS_MOCK_MODE) return mock.mockGetCommunityPosts(filters, undefined, signal);
+  const params = new URLSearchParams();
+  if (filters?.page) params.set("page", String(filters.page));
+  if (filters?.limit) params.set("limit", String(filters.limit));
+  if (filters?.post_type) params.set("post_type", filters.post_type);
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.drama_id) params.set("drama_id", String(filters.drama_id));
+  if (filters?.sort) params.set("sort", filters.sort);
+
+  const headers = accessToken ? bearerHeaders(accessToken) : undefined;
+  return apiRequest<CommunityPostsResponse>(`/community/posts?${params}`, {
+    headers,
+    signal,
+  });
+}
+
+export async function getCommunityTrending(signal?: AbortSignal): Promise<TrendingCommunityPost[]> {
+  if (IS_MOCK_MODE) return mock.mockGetCommunityTrending(signal);
+  return apiRequest<TrendingCommunityPost[]>("/community/trending", { signal });
+}
+
+export async function getHomepageCommunity(signal?: AbortSignal): Promise<CommunityPost[]> {
+  if (IS_MOCK_MODE) return mock.mockGetHomepageCommunity(signal);
+  const res = await apiRequest<CommunityPostsResponse>("/community/posts?limit=3&sort=recent", { signal });
+  return res.posts;
+}
+
+export async function getCommunityPost(
+  postId: string,
+  accessToken?: string | null,
+  signal?: AbortSignal,
+): Promise<CommunityPost> {
+  if (IS_MOCK_MODE) return mock.mockGetCommunityPost(postId, undefined, signal);
+  const headers = accessToken ? bearerHeaders(accessToken) : undefined;
+  return apiRequest<CommunityPost>(`/community/posts/${encodeURIComponent(postId)}`, {
+    headers,
+    signal,
+  });
+}
+
+export async function getCommunityComments(
+  postId: string,
+  accessToken?: string | null,
+  signal?: AbortSignal,
+): Promise<CommunityComment[]> {
+  if (IS_MOCK_MODE) return mock.mockGetCommunityComments(postId, undefined, signal);
+  const headers = accessToken ? bearerHeaders(accessToken) : undefined;
+  return apiRequest<CommunityComment[]>(`/community/posts/${encodeURIComponent(postId)}/comments`, {
+    headers,
+    signal,
+  });
+}
+
+export async function createCommunityPost(
+  payload: CreatePostPayload,
+  accessToken: string,
+): Promise<CommunityPost> {
+  if (IS_MOCK_MODE) return mock.mockCreateCommunityPost(payload, mock.MOCK_USER_ID);
+  return apiRequest<CommunityPost>("/community/posts", {
+    method: "POST",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCommunityPost(
+  postId: string,
+  payload: UpdatePostPayload,
+  accessToken: string,
+): Promise<CommunityPost> {
+  if (IS_MOCK_MODE) return mock.mockUpdateCommunityPost(postId, payload, mock.MOCK_USER_ID);
+  return apiRequest<CommunityPost>(`/community/posts/${encodeURIComponent(postId)}`, {
+    method: "PATCH",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCommunityPost(
+  postId: string,
+  accessToken: string,
+): Promise<void> {
+  if (IS_MOCK_MODE) return mock.mockDeleteCommunityPost(postId, mock.MOCK_USER_ID);
+  await apiRequest<void>(`/community/posts/${encodeURIComponent(postId)}`, {
+    method: "DELETE",
+    headers: bearerHeaders(accessToken),
+  });
+}
+
+export async function createCommunityComment(
+  postId: string,
+  payload: CreateCommentPayload,
+  accessToken: string,
+): Promise<CommunityComment> {
+  if (IS_MOCK_MODE) return mock.mockCreateCommunityComment(postId, payload, mock.MOCK_USER_ID);
+  return apiRequest<CommunityComment>(`/community/posts/${encodeURIComponent(postId)}/comments`, {
+    method: "POST",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateCommunityComment(
+  commentId: string,
+  payload: UpdateCommentPayload,
+  accessToken: string,
+): Promise<CommunityComment> {
+  if (IS_MOCK_MODE) return mock.mockUpdateCommunityComment(commentId, payload, mock.MOCK_USER_ID);
+  return apiRequest<CommunityComment>(`/community/comments/${encodeURIComponent(commentId)}`, {
+    method: "PATCH",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteCommunityComment(
+  commentId: string,
+  accessToken: string,
+): Promise<void> {
+  if (IS_MOCK_MODE) return mock.mockDeleteCommunityComment(commentId, mock.MOCK_USER_ID);
+  await apiRequest<void>(`/community/comments/${encodeURIComponent(commentId)}`, {
+    method: "DELETE",
+    headers: bearerHeaders(accessToken),
+  });
+}
+
+export async function likeCommunityPost(
+  postId: string,
+  accessToken: string,
+): Promise<{ success: boolean; liked: boolean; like_count: number }> {
+  if (IS_MOCK_MODE) return mock.mockLikeCommunityPost(postId);
+  return apiRequest<{ success: boolean; liked: boolean; like_count: number }>(
+    `/community/posts/${encodeURIComponent(postId)}/like`,
+    {
+      method: "PUT",
+      headers: bearerHeaders(accessToken),
+    },
+  );
+}
+
+export async function unlikeCommunityPost(
+  postId: string,
+  accessToken: string,
+): Promise<{ success: boolean; liked: boolean; like_count: number }> {
+  if (IS_MOCK_MODE) return mock.mockUnlikeCommunityPost(postId);
+  return apiRequest<{ success: boolean; liked: boolean; like_count: number }>(
+    `/community/posts/${encodeURIComponent(postId)}/like`,
+    {
+      method: "DELETE",
+      headers: bearerHeaders(accessToken),
+    },
+  );
+}
+

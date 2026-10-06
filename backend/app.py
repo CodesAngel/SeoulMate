@@ -40,6 +40,7 @@ from database.session import SessionLocal
 from database.settings import get_database_settings
 from auth import AuthenticatedUser, require_user
 from user_library import router as user_library_router
+from community import community_router
 
 # ======================================================
 # CONFIGURATION
@@ -82,6 +83,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(user_library_router)
+app.include_router(community_router)
 
 # ======================================================
 # STAGE 1 — LOAD MODELS & INDEXES

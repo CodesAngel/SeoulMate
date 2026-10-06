@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/discover", label: "Discover" },
+  { href: "/community", label: "Community" },
   { href: "/watchlist", label: "My list" },
   { href: "/profile", label: "Taste profile" },
   { href: "/fusion", label: "Watch Together" },

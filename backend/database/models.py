@@ -1,14 +1,16 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     DateTime,
     Float,
     ForeignKey,
     Identity,
+    Index,
     Integer,
     Numeric,
     SmallInteger,
@@ -18,7 +20,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 
@@ -278,3 +280,148 @@ class Interaction(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )
+
+
+class CommunityPost(Base):
+    __tablename__ = "community_posts"
+    __table_args__ = (
+        CheckConstraint(
+            "post_type IN ('discussion', 'review', 'recommendation')",
+            name="ck_community_posts_post_type",
+        ),
+        CheckConstraint(
+            "rating IS NULL OR (rating >= 1 AND rating <= 10)",
+            name="ck_community_posts_rating_range",
+        ),
+        CheckConstraint("length(title) <= 120", name="ck_community_posts_title_len"),
+        CheckConstraint("length(body) <= 2000", name="ck_community_posts_body_len"),
+        Index("ix_community_posts_type_created", "post_type", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=func.gen_random_uuid(),
+        default=uuid.uuid4,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("profiles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    drama_id: Mapped[int | None] = mapped_column(
+        BigInteger,
+        ForeignKey("dramas.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    post_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    rating: Mapped[Decimal | None] = mapped_column(Numeric(3, 1), nullable=True)
+    contains_spoilers: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    author: Mapped["Profile"] = relationship("Profile", lazy="joined", foreign_keys=[user_id])
+    drama: Mapped["Drama | None"] = relationship("Drama", lazy="joined", foreign_keys=[drama_id])
+    comments: Mapped[list["CommunityComment"]] = relationship(
+        "CommunityComment", back_populates="post", cascade="all, delete-orphan", passive_deletes=True
+    )
+    reactions: Mapped[list["CommunityReaction"]] = relationship(
+        "CommunityReaction", back_populates="post", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+
+class CommunityComment(Base):
+    __tablename__ = "community_comments"
+    __table_args__ = (
+        CheckConstraint("length(body) <= 1000", name="ck_community_comments_body_len"),
+        Index("ix_community_comments_post_created", "post_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=func.gen_random_uuid(),
+        default=uuid.uuid4,
+    )
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("community_posts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("profiles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    contains_spoilers: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    post: Mapped["CommunityPost"] = relationship("CommunityPost", back_populates="comments")
+    author: Mapped["Profile"] = relationship("Profile", lazy="joined", foreign_keys=[user_id])
+
+
+class CommunityReaction(Base):
+    __tablename__ = "community_reactions"
+    __table_args__ = (
+        CheckConstraint("reaction_type = 'like'", name="ck_community_reactions_type"),
+        UniqueConstraint("post_id", "user_id", "reaction_type", name="uq_community_reactions"),
+        Index("ix_community_reactions_post_id", "post_id"),
+    )
+
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("community_posts.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("profiles.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    reaction_type: Mapped[str] = mapped_column(
+        String(20), primary_key=True, server_default="like"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    post: Mapped["CommunityPost"] = relationship("CommunityPost", back_populates="reactions")
+    user: Mapped["Profile"] = relationship("Profile", lazy="joined", foreign_keys=[user_id])
+

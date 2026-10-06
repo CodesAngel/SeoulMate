@@ -11,7 +11,7 @@ export function PosterImage({
   priority = false,
   sizes = "(max-width: 640px) 44vw, (max-width: 1100px) 28vw, 220px",
 }: {
-  src?: string;
+  src?: string | null;
   alt: string;
   priority?: boolean;
   sizes?: string;

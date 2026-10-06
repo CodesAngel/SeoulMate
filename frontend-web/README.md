@@ -14,7 +14,7 @@ Streamlit remains available under `frontend/` for internal model testing and ana
 - Supabase email/password registration, login, logout, session refresh, and password recovery
 - Account profile editing, avatar upload/removal, password changes, activity statistics, and permanent deletion
 - Authenticated identity with anonymous fallback for the existing personalization flow
-- Rating and taste-profile interface
+- Spoiler-safe community feed, discussions, reviews, recommendations, drama catalog associations, and comments
 - Loading, empty, error, image-fallback, and reduced-motion states
 - Switchable `api` and `mock` data modes for frontend work with or without backend services
 
@@ -84,5 +84,9 @@ npm run start
 | `/auth/forgot-password` | Request a password-reset email |
 | `/auth/update-password` | Set a password after opening the recovery link |
 | `/account` | Profile, avatar, password, statistics, sign out, and account deletion |
+| `/community` | Community feed with trending, recent, reviews, recommendations, search, and drama filters |
+| `/community/new` | Dedicated composer for discussions, reviews, and recommendations linked to dramas |
+| `/community/[postId]` | Complete post detail, discussion thread, spoiler guard, reaction heart, and comments |
+| `/community/edit/[postId]` | Post editor for the author to update title, body, spoiler flag, and review rating |
 
-Signed-in watchlists and ratings use authenticated FastAPI endpoints and PostgreSQL. Signed-out visitors retain a browser-local guest list, which is merged into their account on sign-in without overwriting existing account statuses. The generated taste-profile API still uses legacy local JSON; preferences and profile generation are the next application-data phase.
+Signed-in watchlists and ratings use authenticated FastAPI endpoints and PostgreSQL. Signed-out visitors retain a browser-local guest list, which is merged into their account on sign-in without overwriting existing account statuses. Community posts, comments, and reactions are accessible in both real API mode and standalone mock mode.
