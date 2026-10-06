@@ -7,10 +7,23 @@ import { FormEvent, useState } from "react";
 import { useApp } from "@/components/app-provider";
 import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
+import { VibeMatrix } from "@/components/vibe-matrix";
 import { searchDramas } from "@/lib/api";
 import { dramaKey } from "@/lib/drama";
 
-const genres = ["", "Romance", "Comedy", "Thriller", "Mystery", "Fantasy", "Historical", "Action", "Family", "Medical", "Law"];
+const genres = [
+  "",
+  "Romance",
+  "Comedy",
+  "Thriller",
+  "Mystery",
+  "Fantasy",
+  "Historical",
+  "Action",
+  "Family",
+  "Medical",
+  "Law",
+];
 
 export function DiscoverClient() {
   const searchParams = useSearchParams();
@@ -34,7 +47,21 @@ export function DiscoverClient() {
 
   const result = useQuery({
     queryKey: ["discover", query, genre, year, minRating, sortBy, refresh, userId],
-    queryFn: ({ signal }) => searchDramas({ query, genre, year, minRating, sortBy, refresh, topN: 16, userId, sessionId }, signal),
+    queryFn: ({ signal }) =>
+      searchDramas(
+        {
+          query,
+          genre,
+          year,
+          minRating,
+          sortBy,
+          refresh,
+          topN: 16,
+          userId,
+          sessionId,
+        },
+        signal,
+      ),
     enabled: ready,
   });
 
@@ -52,6 +79,7 @@ export function DiscoverClient() {
     setForm({ genre: "", year: "", minRating: "", sortBy: "" });
     router.push(`/discover?q=${encodeURIComponent(query)}`);
   }
+
   function refreshResults() {
     const params = new URLSearchParams(searchParams.toString());
     params.set("refresh", String(refresh + 1));
@@ -67,31 +95,148 @@ export function DiscoverClient() {
         <div className="shell">
           <span className="eyebrow">Smart discovery</span>
           <h1 className="display">Find your next favorite.</h1>
-          <p>Showing thoughtful matches for <strong>“{query}”</strong>. Refine them below or describe a different mood in the search bar.</p>
+          <p>
+            Showing thoughtful matches for <strong>&ldquo;{query}&rdquo;</strong>. Refine them
+            below or use the AI Vibe Tuner to calibrate the atmosphere.
+          </p>
+
+          <div style={{ marginTop: 24 }}>
+            <VibeMatrix
+              onApplyVibe={(vibeQuery) => {
+                router.push(`/discover?q=${encodeURIComponent(vibeQuery)}`);
+              }}
+            />
+          </div>
         </div>
       </section>
+
       <div className="shell discover-layout">
         <aside className="filter-panel">
-          <button className="filter-toggle" type="button" onClick={() => setFiltersOpen((open) => !open)} aria-expanded={filtersOpen}><SlidersHorizontal size={17} /> Refine your match <ChevronDown size={17} /></button>
+          <button
+            className="filter-toggle"
+            type="button"
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+          >
+            <SlidersHorizontal size={17} /> Refine your match{" "}
+            <ChevronDown size={17} />
+          </button>
           <h2 className="filter-title">Refine your match</h2>
           <form className={`filter-form ${filtersOpen ? "open" : ""}`} onSubmit={applyFilters}>
-            <div className="filter-group"><label htmlFor="genre">Genre</label><select id="genre" value={form.genre} onChange={(event) => setForm({ ...form, genre: event.target.value })}>{genres.map((item) => <option key={item} value={item}>{item || "Any genre"}</option>)}</select></div>
-            <div className="filter-group"><label htmlFor="rating">Minimum rating</label><select id="rating" value={form.minRating} onChange={(event) => setForm({ ...form, minRating: event.target.value })}><option value="">Any rating</option><option value="7">7.0+</option><option value="8">8.0+</option><option value="8.5">8.5+</option><option value="9">9.0+</option></select></div>
-            <div className="filter-group"><label htmlFor="year">Release year</label><input id="year" type="number" min="1990" max="2030" placeholder="e.g. 2024" value={form.year} onChange={(event) => setForm({ ...form, year: event.target.value })} /></div>
-            <div className="filter-group"><label htmlFor="sort">Sort by</label><select id="sort" value={form.sortBy} onChange={(event) => setForm({ ...form, sortBy: event.target.value })}><option value="">Best match</option><option value="rating_value">Highest rated</option><option value="watchers">Most watched</option><option value="release_year">Newest</option></select></div>
-            <div className="filter-actions"><button className="primary-button" type="submit">Apply filters</button><button className="secondary-button" type="button" onClick={clearFilters}>Clear</button></div>
+            <div className="filter-group">
+              <label htmlFor="genre">Genre</label>
+              <select
+                id="genre"
+                value={form.genre}
+                onChange={(event) => setForm({ ...form, genre: event.target.value })}
+              >
+                {genres.map((item) => (
+                  <option key={item} value={item}>
+                    {item || "Any genre"}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label htmlFor="rating">Minimum rating</label>
+              <select
+                id="rating"
+                value={form.minRating}
+                onChange={(event) => setForm({ ...form, minRating: event.target.value })}
+              >
+                <option value="">Any rating</option>
+                <option value="7">7.0+</option>
+                <option value="8">8.0+</option>
+                <option value="8.5">8.5+</option>
+                <option value="9">9.0+</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label htmlFor="year">Release year</label>
+              <input
+                id="year"
+                type="number"
+                min="1990"
+                max="2030"
+                placeholder="e.g. 2024"
+                value={form.year}
+                onChange={(event) => setForm({ ...form, year: event.target.value })}
+              />
+            </div>
+            <div className="filter-group">
+              <label htmlFor="sort">Sort by</label>
+              <select
+                id="sort"
+                value={form.sortBy}
+                onChange={(event) => setForm({ ...form, sortBy: event.target.value })}
+              >
+                <option value="">Best match</option>
+                <option value="rating_value">Highest rated</option>
+                <option value="watchers">Most watched</option>
+                <option value="release_year">Newest</option>
+              </select>
+            </div>
+            <div className="filter-actions">
+              <button className="primary-button" type="submit">
+                Apply filters
+              </button>
+              <button className="secondary-button" type="button" onClick={clearFilters}>
+                Clear
+              </button>
+            </div>
           </form>
         </aside>
+
         <section className="discover-results">
           <div className="results-toolbar">
-            <div><span className="eyebrow">{intent ? `Understood as ${intent}` : "Your matches"}</span><h2>{result.isLoading ? "Finding the right stories…" : `${dramas.length} dramas to explore`}</h2>{result.data?.query.expanded && <p>Expanded with: {result.data.query.expanded}</p>}</div>
-            <button className="refresh-button" onClick={refreshResults} disabled={result.isFetching}><RefreshCw className={result.isFetching ? "spinning" : ""} size={15} /> {result.isFetching ? "Mixing…" : "Fresh mix"}</button>
+            <div>
+              <span className="eyebrow">{intent ? `Understood as ${intent}` : "Your matches"}</span>
+              <h2>
+                {result.isLoading
+                  ? "Finding the right stories…"
+                  : `${dramas.length} dramas to explore`}
+              </h2>
+              {result.data?.query.expanded && <p>Expanded with: {result.data.query.expanded}</p>}
+            </div>
+            <button
+              className="refresh-button"
+              onClick={refreshResults}
+              disabled={result.isFetching}
+            >
+              <RefreshCw className={result.isFetching ? "spinning" : ""} size={15} />{" "}
+              {result.isFetching ? "Mixing…" : "Fresh mix"}
+            </button>
           </div>
-          {result.isError && <div className="error-banner" role="alert">{result.error instanceof Error ? result.error.message : "Search failed"} <button type="button" onClick={() => result.refetch()}>Try again</button></div>}
-          {result.isLoading ? <DramaGridSkeleton count={8} /> : dramas.length ? (
-            <div className="drama-grid">{dramas.map((drama, index) => <DramaCard key={dramaKey(drama)} drama={drama} position={index + 1} searchId={result.data?.search_id} priority={index < 2} />)}</div>
+
+          {result.isError && (
+            <div className="error-banner" role="alert">
+              {result.error instanceof Error ? result.error.message : "Search failed"}{" "}
+              <button type="button" onClick={() => result.refetch()}>
+                Try again
+              </button>
+            </div>
+          )}
+
+          {result.isLoading ? (
+            <DramaGridSkeleton count={8} />
+          ) : dramas.length ? (
+            <div className="drama-grid">
+              {dramas.map((drama, index) => (
+                <DramaCard
+                  key={dramaKey(drama)}
+                  drama={drama}
+                  position={index + 1}
+                  searchId={result.data?.search_id}
+                  priority={index < 2}
+                />
+              ))}
+            </div>
           ) : (
-            <div className="empty-state"><SearchX size={36} /><h2>No close matches yet</h2><p>Try removing a filter or describing the feeling rather than a specific title.</p></div>
+            <div className="empty-state">
+              <SearchX size={36} />
+              <h2>No close matches yet</h2>
+              <p>Try removing a filter or using the Vibe Tuner above.</p>
+            </div>
           )}
         </section>
       </div>

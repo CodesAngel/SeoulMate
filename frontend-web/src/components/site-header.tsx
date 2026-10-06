@@ -8,11 +8,13 @@ import { BrandMark } from "@/components/brand-mark";
 import { useApp } from "@/components/app-provider";
 import { useAuth } from "@/components/auth-provider";
 import { IS_MOCK_MODE } from "@/lib/data-mode";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/discover", label: "Discover" },
   { href: "/watchlist", label: "My list" },
   { href: "/profile", label: "Taste profile" },
+  { href: "/fusion", label: "Watch Together" },
 ];
 
 export function SiteHeader() {
@@ -74,6 +76,7 @@ export function SiteHeader() {
         </form>
 
         <div className="header-actions">
+          <ThemeToggle />
           <Link href="/watchlist" className="icon-button" aria-label="My list">
             <Heart size={19} />
             {watchlist.length > 0 && <span>{watchlist.length}</span>}
