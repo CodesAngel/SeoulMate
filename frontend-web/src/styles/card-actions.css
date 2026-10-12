@@ -1,0 +1,85 @@
+/* ======================================================
+   CARD QUICK-ACTIONS & BADGES
+   ====================================================== */
+.drama-card {
+  transition: transform 220ms ease;
+}
+.drama-card:hover {
+  transform: translateY(-4px);
+}
+.poster-link-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.card-ai-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(23, 28, 42, 0.82);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 205, 98, 0.5);
+  border-radius: 999px;
+  color: var(--lemon);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.card-quick-actions {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 5;
+  display: flex;
+  gap: 5px;
+  background: rgba(18, 22, 33, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 4px;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: all 200ms ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+.drama-card:hover .card-quick-actions,
+.card-quick-actions.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.quick-status-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.62rem;
+  font-weight: 750;
+  transition: all 140ms ease;
+  cursor: pointer;
+}
+.quick-status-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+}
+.quick-status-btn.active {
+  background: var(--coral);
+  color: white;
+}

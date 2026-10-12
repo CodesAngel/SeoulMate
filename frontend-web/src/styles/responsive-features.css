@@ -1,0 +1,15 @@
+
+@media (max-width: 1050px) {
+  .kanban-board {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 780px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+  .taste-dna-wrapper {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

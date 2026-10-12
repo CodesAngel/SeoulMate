@@ -1,0 +1,2 @@
+.app-toast { position: fixed; z-index: 120; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 12px 18px; border-radius: 999px; background: var(--ink); color: white; box-shadow: 0 14px 35px rgba(0,0,0,.25); font-size: .82rem; font-weight: 800; animation: toast-life 2.5s ease both; }
+@keyframes toast-life { 0% { opacity: 0; transform: translate(-50%, 12px); } 12%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 8px); } }

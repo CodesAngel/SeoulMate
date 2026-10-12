@@ -1,0 +1,219 @@
+/* 7. COMMENTS: components/community-comments.tsx */
+.community-comments-section {
+  background: var(--c-white-card);
+  border: 1px solid var(--c-lavender-border);
+  border-radius: 24px;
+  padding: 36px;
+  box-shadow: 0 4px 24px rgba(45, 23, 56, 0.04);
+}
+.comments-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.comments-section-header h2 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--c-mulberry);
+}
+.comment-composer-form {
+  background: var(--c-mist);
+  border: 1px solid var(--c-lavender-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.comment-textarea {
+  width: 100%;
+  border: 1px solid var(--c-lavender-border);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--c-white-card);
+  color: var(--c-ink);
+  outline: none;
+  font-size: 0.88rem;
+  resize: vertical;
+  transition: border-color 140ms ease;
+}
+.comment-textarea:focus {
+  border-color: var(--c-berry);
+  box-shadow: 0 0 0 3px rgba(198, 60, 109, 0.12);
+}
+.composer-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.composer-options-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.spoiler-toggle-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #9A6700;
+  cursor: pointer;
+}
+.comment-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 750;
+  background: var(--c-berry);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+.comment-submit-btn:hover {
+  background: var(--c-berry-hover);
+}
+.comment-signin-prompt {
+  background: var(--c-mist);
+  border: 1px dashed var(--c-lavender-border);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.prompt-signin-btn {
+  margin-top: 10px;
+  display: inline-flex;
+  background: var(--c-berry);
+  color: white;
+  text-decoration: none;
+}
+.prompt-signin-btn:hover {
+  background: var(--c-berry-hover);
+}
+.comments-stream-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.comment-item-card {
+  border: 1px solid var(--c-lavender-border);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--c-white-card);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.comment-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.comment-author-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comment-avatar-bubble {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--c-lavender);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--c-berry);
+  border: 1px solid var(--c-lavender-border);
+}
+.comment-author-name {
+  font-size: 0.82rem;
+  font-weight: 750;
+  color: var(--c-ink);
+}
+.comment-timestamp {
+  font-size: 0.7rem;
+  color: var(--c-ink-soft);
+  margin-left: 6px;
+}
+.comment-author-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comment-action-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 6px;
+}
+.comment-action-btn:hover {
+  background: var(--c-mist);
+  color: var(--c-ink);
+}
+.comment-action-btn.delete {
+  color: #dc2626;
+}
+.comment-body-text {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--c-ink);
+}
+.comment-edit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.comment-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.edit-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.inline-confirm-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #991b1b;
+  font-size: 0.82rem;
+}
+.inline-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.confirm-delete-btn {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  background: #dc2626;
+  color: white;
+  border: none;
+}

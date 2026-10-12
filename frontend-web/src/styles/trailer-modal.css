@@ -1,0 +1,84 @@
+/* ======================================================
+   TRAILER MODAL
+   ====================================================== */
+.trailer-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(10, 13, 22, 0.85);
+  backdrop-filter: blur(16px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: fadeIn 200ms ease;
+}
+.trailer-modal-container {
+  width: min(880px, 100%);
+  background: #171c2a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  animation: scaleUp 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.trailer-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+}
+.trailer-modal-header h3 {
+  margin: 4px 0 0;
+  font: 600 1.25rem Georgia, serif;
+}
+.trailer-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.trailer-external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 180ms ease;
+}
+.trailer-external-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+.trailer-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.trailer-close-btn:hover {
+  background: rgba(233, 95, 77, 0.9);
+}
+.trailer-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: black;
+}
+.trailer-video-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }

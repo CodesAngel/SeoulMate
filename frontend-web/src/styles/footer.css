@@ -1,0 +1,5 @@
+.site-footer { border-top: 1px solid var(--line); padding: 48px 0; background: var(--cream); }
+.footer-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 40px; align-items: center; }
+.footer-grid p { color: #75736f; font-size: .8rem; max-width: 340px; line-height: 1.6; }
+.footer-links { display: flex; gap: 22px; font-size: .8rem; font-weight: 700; }
+.footer-note { text-align: right; justify-self: end; }

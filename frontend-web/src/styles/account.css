@@ -1,0 +1,41 @@
+.auth-page { min-height: calc(100vh - 180px); display: grid; place-items: center; padding: 64px 20px 90px; background: radial-gradient(circle at 20% 15%, rgba(230,102,85,.12), transparent 34%), var(--paper); }
+.auth-card { width: min(100%, 480px); padding: clamp(28px, 5vw, 46px); border: 1px solid var(--line); border-radius: 24px; background: var(--cream); box-shadow: var(--shadow); }
+.auth-card h1 { margin: 12px 0 12px; font-size: clamp(2.1rem, 5vw, 3rem); line-height: 1; }
+.auth-card > p { color: #686963; line-height: 1.6; }
+.auth-form { display: grid; gap: 17px; margin-top: 28px; }
+.auth-form label { display: grid; gap: 7px; }
+.auth-form label span { font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #666762; }
+.auth-form input { width: 100%; height: 48px; border: 1px solid var(--line); border-radius: 11px; padding: 0 13px; background: white; color: var(--ink); outline: 0; }
+.auth-form input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(230,102,85,.13); }
+.auth-small-link { justify-self: end; margin-top: -8px; color: var(--coral-dark); font-size: .78rem; font-weight: 750; }
+.auth-message { margin: 0; border-radius: 10px; padding: 11px 13px; background: var(--paper-deep); color: #5d5e59; font-size: .8rem; line-height: 1.5; }
+.auth-switch { margin: 0; text-align: center; font-size: .82rem; }
+.auth-switch a { color: var(--coral-dark); font-weight: 800; }
+.account-page { padding-top: 44px; padding-bottom: 100px; }
+.account-layout { max-width: 980px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.account-card { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; border: 1px solid var(--line); border-radius: 22px; background: var(--cream); padding: 28px; }
+.account-summary { grid-column: 1 / -1; }
+.account-avatar { width: 76px; height: 76px; overflow: hidden; display: grid; place-items: center; border-radius: 50%; background: var(--coral); color: white; font: 600 1.8rem Georgia, serif; }
+.account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.account-card h2 { margin: 6px 0 3px; font: 600 1.45rem Georgia, serif; }
+.account-card p { margin: 0; color: #70716c; font-size: .84rem; }
+.account-logout { display: inline-flex; align-items: center; gap: 7px; }
+.account-card .auth-message { grid-column: 1 / -1; }
+.account-section { min-width: 0; border: 1px solid var(--line); border-radius: 22px; background: var(--cream); padding: 26px; }
+.account-section-heading { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 22px; }
+.account-section-heading svg { flex: 0 0 auto; color: var(--coral-dark); margin-top: 2px; }
+.account-section-heading h2 { margin: 0; font: 600 1.35rem Georgia, serif; }
+.account-section-heading p { margin: 5px 0 0; color: #74756f; font-size: .79rem; line-height: 1.5; }
+.account-form, .account-danger { display: grid; gap: 15px; }
+.account-form label, .account-danger > label { display: grid; gap: 7px; }
+.account-form label > span, .account-danger > label > span { color: #686964; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.account-form input:not([type="file"]), .account-danger input { width: 100%; height: 46px; border: 1px solid var(--line); border-radius: 10px; background: white; padding: 0 12px; color: var(--ink); outline: 0; }
+.account-form input:focus, .account-danger input:focus { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(230,102,85,.13); }
+.avatar-upload input { width: 100%; border: 1px dashed var(--line); border-radius: 10px; background: white; padding: 11px; }
+.avatar-upload small { color: #7b7c76; font-size: .7rem; }
+.account-form-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+.account-statistics { grid-column: 1 / -1; }
+.account-stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.account-danger { grid-column: 1 / -1; border-color: #e7b1aa; background: #fff9f7; }
+.account-danger .account-section-heading { margin-bottom: 4px; }
+.account-danger .danger-button { width: auto; justify-self: start; margin-top: 0; padding-inline: 18px; }

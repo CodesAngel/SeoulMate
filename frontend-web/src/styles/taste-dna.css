@@ -1,0 +1,265 @@
+/* ======================================================
+   TASTE DNA & MODERN PROFILE
+   ====================================================== */
+.persona-hero-card {
+  background: linear-gradient(135deg, #171c2a 0%, #202738 100%);
+  color: white;
+  border-radius: 24px;
+  padding: 34px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(23, 28, 42, 0.18);
+  margin-bottom: 24px;
+}
+.persona-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 580px;
+}
+.persona-hero-content h2 {
+  font: 600 clamp(1.8rem, 3.5vw, 2.7rem) Georgia, serif;
+  margin: 10px 0 12px;
+  color: white;
+}
+.persona-hero-content p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+.persona-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.persona-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.74rem;
+  font-weight: 750;
+  color: #fff;
+}
+.persona-aura {
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(233, 95, 77, 0.5) 0%, rgba(245, 205, 98, 0.15) 50%, transparent 75%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+.taste-dna-card {
+  margin-bottom: 24px;
+}
+.taste-dna-wrapper {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 36px;
+  align-items: center;
+  margin-top: 14px;
+}
+.taste-dna-radar {
+  width: 100%;
+  max-width: 280px;
+  margin-inline: auto;
+}
+.radar-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.radar-polygon {
+  fill: rgba(233, 95, 77, 0.28);
+  stroke: var(--coral);
+  stroke-width: 2;
+  transition: all 400ms ease;
+}
+.radar-text {
+  font-size: 9px;
+  font-weight: 700;
+  fill: var(--ink-soft);
+  text-transform: capitalize;
+}
+.taste-dna-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dna-bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.dna-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+.dna-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.dna-genre-name {
+  color: var(--ink);
+  font-weight: 600;
+}
+.dna-genre-pct {
+  margin-left: auto;
+  font-weight: 800;
+  color: var(--ink);
+}
+.dna-bar-track {
+  height: 7px;
+  background: var(--paper-deep);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.dna-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 400ms ease;
+}
+.pref-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--coral-dark);
+}
+.pref-header h3 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+.pref-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pref-interactive-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  font-size: 0.76rem;
+  color: var(--ink);
+  transition: all 160ms ease;
+}
+.pref-interactive-chip:hover {
+  background: white;
+  border-color: var(--coral);
+  transform: translateY(-1px);
+}
+.pref-chip-rank {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--coral);
+}
+.pref-chip-label {
+  font-weight: 600;
+}
+.pref-chip-score {
+  font-size: 0.68rem;
+  opacity: 0.65;
+}
+.stat-summary-card {
+  margin-bottom: 20px;
+}
+.stat-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.modern-stat-box {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+.modern-stat-box .stat-icon {
+  color: var(--coral);
+}
+.modern-stat-box .stat-val {
+  font: 600 1.55rem Georgia, serif;
+  color: var(--ink);
+}
+.modern-stat-box .stat-desc {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 750;
+  color: #7d7f78;
+}
+.rate-form-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+.rate-form-modern input {
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: white;
+  color: var(--ink);
+  outline: 0;
+  font-size: 0.86rem;
+}
+.rate-form-modern input:focus {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 3px rgba(233, 95, 77, 0.15);
+}
+.star-rating-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.teach-widget-card {
+  margin-bottom: 20px;
+}
+.danger-zone-card {
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+.danger-zone-card h3 {
+  margin: 0 0 6px;
+  font: 600 1rem Georgia, serif;
+  color: #991b1b;
+}
+.status-notice-message {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.signin-prompt-box {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

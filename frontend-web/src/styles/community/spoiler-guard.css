@@ -1,0 +1,87 @@
+/* 3. SPOILER GUARD */
+.spoiler-guard-box {
+  background: rgba(227, 167, 47, 0.06);
+  border: 1px dashed rgba(227, 167, 47, 0.4);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+.spoiler-guard-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.spoiler-guard-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 750;
+  color: #9A6700;
+}
+.spoiler-guard-icon {
+  color: var(--c-amber);
+}
+.spoiler-reveal-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid rgba(227, 167, 47, 0.45);
+  background: white;
+  color: #9A6700;
+  transition: all 140ms ease;
+}
+.spoiler-reveal-button:hover {
+  background: rgba(227, 167, 47, 0.12);
+}
+.spoiler-revealed-wrapper {
+  background: rgba(227, 167, 47, 0.03);
+  border-left: 3px solid var(--c-amber);
+  border-radius: 4px 10px 10px 4px;
+  padding: 10px 14px;
+}
+.spoiler-revealed-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.spoiler-revealed-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9A6700;
+}
+.spoiler-hide-button {
+  background: transparent;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #7d7f78;
+  cursor: pointer;
+}
+.spoiler-preview-guard {
+  background: var(--c-lavender);
+  border: 1px dashed var(--c-lavender-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.spoiler-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: #583c6b;
+}
+.spoiler-preview-notice {
+  margin: 4px 0 0;
+  font-size: 0.76rem;
+  color: var(--c-ink-soft);
+}

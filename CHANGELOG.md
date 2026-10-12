@@ -2,6 +2,13 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-12
+
+### Frontend stylesheet split
+
+- Split `frontend-web/src/app/globals.css` (3,943 lines) into 32 feature files under `frontend-web/src/styles/` (`tokens`, `base`, `header`, `home`, `discover`, ..., `community/*`). `globals.css` now only imports Tailwind and these files, in the original order.
+- No visual change: the compiled production CSS is byte-identical to before (same 93,052-byte chunk, same hash).
+
 ## 2026-10-06
 
 ### Community MVP Visual Presentation & Design System

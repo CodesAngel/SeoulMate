@@ -1,0 +1,16 @@
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; overflow-x: hidden; background: var(--paper); color: var(--ink); font-family: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+body::before { display: none; }
+a { color: inherit; text-decoration: none; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .58; }
+::selection { background: rgba(198, 60, 109, 0.18); color: #151827; }
+:where(a, button, input, select):focus-visible { outline: 3px solid rgba(198, 60, 109, 0.35); outline-offset: 3px; }
+.skip-link { position: fixed; z-index: 200; top: 10px; left: 10px; transform: translateY(-150%); border-radius: 8px; background: var(--ink); color: white; padding: 10px 14px; font-weight: 800; }
+.skip-link:focus { transform: translateY(0); }
+.shell { width: min(1240px, calc(100% - 40px)); margin-inline: auto; }
+.display { font-family: Georgia, "Times New Roman", serif; font-weight: 500; letter-spacing: -.035em; }
+.eyebrow { font-size: .74rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-soft); }
+.muted { color: var(--ink-soft); }

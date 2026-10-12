@@ -1,0 +1,70 @@
+/* ======================================================
+   DARK MODE OVERRIDES FOR COMMUNITY
+====================================================== */
+[data-theme="dark"] .trending-card,
+[data-theme="dark"] .community-feed-card,
+[data-theme="dark"] .community-post-card,
+[data-theme="dark"] .composer-card-box,
+[data-theme="dark"] .community-detail-card,
+[data-theme="dark"] .community-comments-section,
+[data-theme="dark"] .community-card-skeleton-full {
+  background: var(--c-white-card);
+  border-color: var(--c-lavender-border);
+}
+[data-theme="dark"] .trending-card:hover,
+[data-theme="dark"] .community-feed-card:hover,
+[data-theme="dark"] .community-post-card:hover {
+  border-color: rgba(229, 84, 135, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(229, 84, 135, 0.12);
+}
+[data-theme="dark"] .community-search-bar,
+[data-theme="dark"] .text-input,
+[data-theme="dark"] .text-area-input,
+[data-theme="dark"] .comment-textarea {
+  background: #151b2e;
+  border-color: var(--c-lavender-border);
+  color: var(--c-ink);
+}
+[data-theme="dark"] .community-tab-btn.active {
+  background: var(--c-berry);
+  color: #FFFFFF;
+}
+[data-theme="dark"] .post-type-select-card {
+  background: #141928;
+  border-color: var(--c-lavender-border);
+}
+[data-theme="dark"] .post-type-select-card.active {
+  background: var(--c-berry-light);
+  border-color: var(--c-berry);
+}
+[data-theme="dark"] .post-drama-reference,
+[data-theme="dark"] .detail-drama-banner,
+[data-theme="dark"] .comment-composer-form,
+[data-theme="dark"] .comment-signin-prompt,
+[data-theme="dark"] .selected-drama-chip,
+[data-theme="dark"] .community-filter-tabs,
+[data-theme="dark"] .community-drama-filter-select {
+  background: #151b2e;
+  border-color: var(--c-lavender-border);
+}
+[data-theme="dark"] .comment-item-card {
+  background: #141928;
+  border-color: var(--c-lavender-border);
+}
+[data-theme="dark"] .post-menu-dropdown,
+[data-theme="dark"] .drama-search-dropdown-menu {
+  background: #151b2e;
+  border-color: var(--c-lavender-border);
+}
+[data-theme="dark"] .drama-search-option:hover,
+[data-theme="dark"] .post-menu-item:hover {
+  background: #1f2740;
+}
+[data-theme="dark"] .participant-avatar-dot {
+  border-color: #171C2B;
+}
+[data-theme="dark"] .inline-confirm-box {
+  background: #2d1515;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}

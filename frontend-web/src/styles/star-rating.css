@@ -1,0 +1,62 @@
+/* ======================================================
+   STAR RATING COMPONENT
+   ====================================================== */
+.interactive-rating-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.star-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.star-button {
+  background: transparent;
+  border: 0;
+  padding: 3px;
+  color: #d1c7bc;
+  transition: transform 140ms ease, color 140ms ease;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.star-button:hover:not(:disabled) {
+  transform: scale(1.22);
+  color: #f5b041;
+}
+.star-button.filled {
+  color: #f5b041;
+}
+.star-button.half {
+  color: #f5b041;
+}
+.star-icon {
+  pointer-events: none;
+}
+.rating-score-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245, 176, 65, 0.12);
+  border: 1px solid rgba(245, 176, 65, 0.35);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.76rem;
+}
+.rating-score-num {
+  font-weight: 800;
+  color: var(--lemon);
+}
+.rating-score-text {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.hidden-svg {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}

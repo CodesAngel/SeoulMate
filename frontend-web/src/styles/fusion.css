@@ -1,0 +1,389 @@
+/* ======================================================
+   TASTE FUSION (WATCH WITH A FRIEND)
+====================================================== */
+.fusion-container {
+  padding-block: 28px 60px;
+}
+.fusion-hero-card {
+  text-align: center;
+  max-width: 720px;
+  margin-inline: auto;
+  margin-bottom: 32px;
+}
+.fusion-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(233, 95, 77, 0.12);
+  color: var(--coral-dark);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 12px;
+}
+[data-theme="dark"] .fusion-hero-badge {
+  background: rgba(255, 94, 87, 0.18);
+  color: #ff7675;
+}
+.fusion-hero-card h1 {
+  margin: 0 0 10px;
+  font: 600 clamp(1.8rem, 3.5vw, 2.7rem) Georgia, serif;
+  color: var(--ink);
+}
+.fusion-hero-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.fusion-chamber-board {
+  display: grid;
+  grid-template-columns: 1fr 340px 1fr;
+  gap: 20px;
+  align-items: stretch;
+  margin-bottom: 40px;
+}
+.fusion-participant-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+.fusion-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.fusion-avatar-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex: 0 0 auto;
+}
+.avatar-host {
+  background: linear-gradient(135deg, rgba(233, 95, 77, 0.2), rgba(245, 205, 98, 0.25));
+  border: 1px solid rgba(233, 95, 77, 0.3);
+}
+.avatar-friend {
+  background: linear-gradient(135deg, rgba(165, 94, 234, 0.2), rgba(0, 210, 211, 0.25));
+  border: 1px solid rgba(165, 94, 234, 0.3);
+}
+.fusion-card-head h3 {
+  margin: 0;
+  font: 600 1.1rem Georgia, serif;
+  color: var(--ink);
+}
+.fusion-user-badge {
+  font-size: 0.67rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--coral);
+}
+.fusion-genre-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.fusion-genre-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fusion-genre-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fusion-genre-track {
+  height: 6px;
+  background: var(--paper-deep);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.fusion-genre-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+.fusion-archetype-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fusion-archetype-picker label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7d7f78;
+}
+.archetype-select {
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 0 12px;
+  color: var(--ink);
+  font-size: 0.85rem;
+  outline: none;
+}
+.archetype-select:focus {
+  border-color: var(--coral);
+}
+.friend-custom-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.friend-custom-input-box input {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 0 12px;
+  font-size: 0.82rem;
+  color: var(--ink);
+  outline: none;
+}
+.friend-custom-input-box input:focus {
+  border-color: var(--coral);
+}
+.fusion-reactor-column {
+  background: linear-gradient(180deg, var(--paper-deep), white);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+.fusion-core-gauge {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 10px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.gauge-circle-bg {
+  fill: none;
+  stroke: var(--paper-deep);
+  stroke-width: 10;
+}
+.gauge-circle-val {
+  fill: none;
+  stroke: var(--coral);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.gauge-center-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.gauge-pct {
+  font: 700 1.9rem Georgia, serif;
+  color: var(--ink);
+  line-height: 1;
+}
+.gauge-lbl {
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--coral);
+}
+.fusion-overlap-summary {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  width: 100%;
+}
+.fusion-balance-control {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.balance-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.fusion-ignite-btn {
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--coral), #ff7675);
+  color: white;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px rgba(233, 95, 77, 0.35);
+  transition: all 180ms ease;
+}
+.fusion-ignite-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(233, 95, 77, 0.45);
+}
+.fusion-results-card {
+  margin-top: 36px;
+}
+.fusion-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.fusion-results-header h2 {
+  margin: 0;
+  font: 600 1.45rem Georgia, serif;
+  color: var(--ink);
+}
+.fusion-shared-tropes-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.shared-trope-pill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(233, 95, 77, 0.1);
+  color: var(--coral-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid rgba(233, 95, 77, 0.2);
+}
+.fusion-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fusion-card-bridge-box {
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bridge-label {
+  font-weight: 800;
+  color: var(--coral-dark);
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+}
+.fusion-dual-affinity {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.affinity-pill-you {
+  background: rgba(233, 95, 77, 0.12);
+  color: var(--coral);
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+.affinity-pill-friend {
+  background: rgba(165, 94, 234, 0.14);
+  color: #8854d0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Dark mode for Taste Fusion */
+[data-theme="dark"] .fusion-participant-card {
+  background: #111625;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+[data-theme="dark"] .fusion-reactor-column {
+  background: linear-gradient(180deg, #161c2d, #0f1422);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 94, 87, 0.12);
+}
+[data-theme="dark"] .gauge-circle-bg {
+  stroke: #1c2338;
+}
+[data-theme="dark"] .fusion-overlap-summary {
+  background: #141928;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .archetype-select,
+[data-theme="dark"] .friend-custom-input-box input {
+  background: #141928;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .shared-trope-pill {
+  background: rgba(255, 94, 87, 0.18);
+  border-color: rgba(255, 94, 87, 0.3);
+  color: #ff7675;
+}
+[data-theme="dark"] .fusion-card-bridge-box {
+  background: #141928;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .affinity-pill-friend {
+  background: rgba(165, 94, 234, 0.22);
+  color: #c084fc;
+}
+
+@media (max-width: 950px) {
+  .fusion-chamber-board {
+    grid-template-columns: 1fr;
+  }
+  .fusion-reactor-column {
+    order: -1;
+  }
+  .vibe-sliders-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,300 @@
+/* ======================================================
+   KANBAN WATCHLIST & EPISODE TRACKER
+   ====================================================== */
+.watchlist-hero-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.view-toggle-group {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 3px;
+  gap: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  padding: 8px 14px;
+  font-size: 0.78rem;
+  font-weight: 750;
+  color: #6a6b65;
+  transition: all 160ms ease;
+  cursor: pointer;
+}
+.view-toggle-btn:hover {
+  color: var(--ink);
+}
+.view-toggle-btn.active {
+  background: var(--ink);
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.watchlist-filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.filter-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  font-size: 0.74rem;
+  font-weight: 750;
+  color: var(--ink-soft);
+  transition: all 160ms ease;
+  cursor: pointer;
+}
+.filter-pill:hover,
+.filter-pill.active {
+  background: var(--coral);
+  color: white;
+  border-color: var(--coral);
+}
+.watchlist-main-section {
+  padding: 36px 0 100px;
+}
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.kanban-column {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 480px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+}
+.kanban-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.kanban-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.kanban-header-title h3 {
+  margin: 0;
+  font: 600 0.95rem Georgia, serif;
+  color: var(--ink);
+}
+.kanban-count {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--paper-deep);
+  color: var(--ink-soft);
+}
+.kanban-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.kanban-empty-drop {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 40px 16px;
+  text-align: center;
+  color: #92938e;
+  font-size: 0.76rem;
+}
+.kanban-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+.kanban-card-inner {
+  display: flex;
+  gap: 12px;
+  position: relative;
+}
+.kanban-thumbnail {
+  position: relative;
+  display: block;
+  width: 58px;
+  height: 87px;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  flex: 0 0 58px;
+  background: #F0EDF5;
+}
+.kanban-info {
+  flex: 1;
+  min-width: 0;
+}
+.kanban-info h4 {
+  margin: 0 0 5px;
+  font: 600 0.88rem/1.25 Georgia, serif;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kanban-meta-row {
+  display: flex;
+  gap: 8px;
+  font-size: 0.7rem;
+  color: #797a74;
+}
+.kanban-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.kanban-user-rating {
+  margin-top: 4px;
+  font-size: 0.7rem;
+  color: #8c6014;
+}
+.kanban-tracker-wrap {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.kanban-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.kanban-status-select {
+  flex: 1;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-deep);
+  font-size: 0.72rem;
+  padding: 0 6px;
+  outline: 0;
+  color: var(--ink);
+}
+.kanban-remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: #a0aec0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.kanban-remove-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Episode Tracker */
+.episode-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--paper-deep);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.episode-tracker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.7rem;
+}
+.ep-label {
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #73746f;
+}
+.ep-count strong {
+  color: var(--coral-dark);
+}
+.ep-progress-bar {
+  height: 5px;
+  background: rgba(23, 28, 42, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ep-progress-fill {
+  height: 100%;
+  background: var(--coral);
+  border-radius: 999px;
+  transition: width 200ms ease;
+}
+.ep-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.ep-btn {
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: white;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: var(--ink);
+  transition: all 140ms ease;
+  cursor: pointer;
+}
+.ep-btn:hover:not(:disabled) {
+  border-color: var(--coral);
+  color: var(--coral-dark);
+}
+.ep-btn-plus {
+  background: var(--coral);
+  color: white;
+  border-color: var(--coral);
+}
+.ep-btn-plus:hover:not(:disabled) {
+  background: var(--coral-dark);
+  color: white;
+}
+.ep-completed-tag {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #2e7d32;
+}
