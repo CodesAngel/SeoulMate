@@ -10,7 +10,7 @@ with one command.
   `steps/step3_download_images.py`. `run_pipeline.py` and `README.md` stay at the top level as
   the single entry point.
 - Scraped/downloaded data lives under `output/`: `output/html_pages/`, `output/dramas_html/`,
-  `output/drama_image/`, `output/extra/`, `output/dramalist_all_dramas.csv`
+  `output/drama_image_by_id/`, `output/extra/`, `output/dramalist_all_dramas.csv`
 - `mydramalist_data.csv` and `dramalist_kdramas.xlsx` stay next to `run_pipeline.py`
 
 ## Quick start
@@ -157,18 +157,18 @@ Applies the same cleanup developed for `data/final/kdrama_dataset.csv` to **ever
 - **Run:** `python steps/step2e_clean_country_datasets.py`
 
 ### Step 3 — `steps/step3_download_images.py` (image downloader)
-Reads `title`/`image` columns from `output/by_country/cleaned/kdrama_dataset.csv` and downloads
-missing poster images asynchronously (any CSV/XLSX with `title` and `image` columns works, e.g.
-you could point it at another country's cleaned file from Step 2e instead).
+Reads `title`/`aired`/`image` columns from a dataset CSV and downloads missing posters
+asynchronously, named `<Title> (<Year>) [<ID>].jpg`. The ID is the file name of the `image` URL
+(`https://i.mydramalist.com/9oX6Gf.jpg` -> `9oX6Gf`), so dramas sharing a title don't collide.
 
-- **Input:** `output/by_country/cleaned/kdrama_dataset.csv` — **depends on Step 2e having run
-  first**; running Step 3 alone before Step 2e will fail since this file won't exist yet.
-- **Output:** `output/drama_image/<title>.jpg`
-- **Run:** `python steps/step3_download_images.py`
-- Only downloads images that are missing or corrupt (<1KB) locally. Safe to re-run/resume.
-- Matches existing files purely by filename (sanitized title + extension), not by comparing the
-  image URL — if a drama's poster URL changes upstream but the title stays the same, the old
-  image won't be re-downloaded.
+- **Input:** `run_pipeline.py` passes `output/by_country/cleaned/kdrama_dataset.csv` —
+  **depends on Step 2e having run first**. Run on its own, the script defaults to
+  `data/final/kdrama_dataset.csv` (override with `--csv`).
+- **Output:** `output/drama_image_by_id/`, plus `output/drama_image_by_id_report.csv` listing
+  failed downloads and rows without an image URL.
+- **Run:** `python steps/step3_download_images.py [--csv ...] [--out ...] [--report ...]`
+- Only downloads posters whose ID isn't in the output folder yet. Safe to re-run/resume. A changed
+  poster URL means a new ID, so the new poster is downloaded.
 - CSV reads use `encoding="utf-8-sig"` to correctly strip the BOM that Step 2d's `to_csv` writes
   (a plain `utf-8` read would otherwise misread the `title` column, as `﻿title`, and crash).
 
@@ -182,7 +182,8 @@ step2   ->  output/dramalist_all_dramas.csv (structured fields, from output/dram
 step2b  ->  output/dramalist_all_dramas.deduped.csv (deduped copy, from output/dramalist_all_dramas.csv)
 step2c  ->  output/dramalist_all_dramas.deduped.cleantitle.csv (title cleanup, from the deduped CSV)
 step2d  ->  output/by_country/<prefix>drama_dataset.csv (split by country, from the cleaned CSV)
-step3   ->  output/drama_image/   (poster images, from output/by_country/kdrama_dataset.csv)
+step2e  ->  output/by_country/cleaned/<prefix>drama_dataset.csv (per-country cleanup)
+step3   ->  output/drama_image_by_id/ (posters by ID, from output/by_country/cleaned/kdrama_dataset.csv)
 ```
 
 ## Other files

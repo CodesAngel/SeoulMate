@@ -8,7 +8,7 @@
   2c. step2c_clean_titles           - fix HTML entities, drop Special/BTS -> output/dramalist_all_dramas.deduped.cleantitle.csv
   2d. step2d_split_by_country       - split cleaned data by country       -> output/by_country/<prefix>drama_dataset.csv
   2e. step2e_clean_country_datasets - drop columns, clean fields per file -> output/by_country/cleaned/<prefix>drama_dataset.csv
-  3.  step3_download_images         - download poster images              -> drama_image/
+  3.  step3_download_images         - download poster images by ID        -> output/drama_image_by_id/
 
 Each step is independently resumable (skips work already done), so re-running
 this script after a partial run just picks up where it left off.
@@ -106,7 +106,8 @@ def run_images():
     print("\n=== Step 3/9: downloading poster images ===")
     step3_download_images.download_images_from_csv(
         rf"{BASE}\output\by_country\cleaned\kdrama_dataset.csv",
-        output_folder=rf"{BASE}\output\drama_image",
+        output_folder=step3_download_images.DEFAULT_OUTPUT,
+        report_path=step3_download_images.DEFAULT_REPORT,
     )
 
 

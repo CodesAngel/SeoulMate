@@ -2,6 +2,12 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-21
+
+### Scraper pipeline image step
+
+- `run_pipeline.py` image step now saves posters by ID into `output/drama_image_by_id/` and writes `output/drama_image_by_id_report.csv`. Previously it pointed at the old `output/drama_image/` folder and crashed because the downloader requires `report_path`.
+
 ## 2026-10-12
 
 ### Frontend stylesheet split
