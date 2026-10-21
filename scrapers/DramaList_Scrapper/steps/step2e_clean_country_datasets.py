@@ -3,10 +3,10 @@
 Applies the same cleanup logic developed for data/final/kdrama_dataset.csv to
 every file in output/by_country/ (kdrama_dataset.csv, cdrama_dataset.csv, etc.):
 
-  - Drops low-value/redundant columns: url, country (constant within a
+  - Drops low-value/redundant columns: country (constant within a
     single-country file), media_type, date_published, content_rating, ranked,
-    score, popularity. Unlike data/final's copy, 'image' is KEPT here — Step 3
-    (image downloader) reads it from this file's output.
+    score, popularity. 'url' is KEPT: its number is MyDramaList's permanent drama
+    ID, which Step 4 uses to match dramas. 'image' is kept too (poster ID).
   - Cleans 'description': strips MyDramaList's "Edit Translation" UI text,
     strips "(Source: ...)" attribution tags, collapses repeated whitespace.
     Drops rows with an empty/missing description entirely.
@@ -28,7 +28,6 @@ INPUT_DIR = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\by_countr
 OUTPUT_DIR = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\by_country\cleaned"
 
 COLUMNS_TO_DROP = [
-    "url",
     "country",
     "media_type",
     "date_published",

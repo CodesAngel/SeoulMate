@@ -19,10 +19,29 @@ with one command.
 python run_pipeline.py                                        # run all ten steps, in order
 python run_pipeline.py --skip-listing --skip-urls --skip-html  # already have output/dramas_html/, just extract + get images
 python run_pipeline.py --only images                           # run just one step
+python run_pipeline.py --refresh                               # nightly update (see below)
+python run_pipeline.py --refresh --dry-run                     # show what would be downloaded, no requests
 ```
 
 Each step skips work it's already done (existing HTML files, CSV rows, downloaded images), so
 re-running `run_pipeline.py` after a partial or failed run just resumes.
+
+### Nightly refresh (`--refresh`)
+
+- Step 0a fetches only the first 5 pages of `newest` and `popular` into
+  `output/html_pages/refresh/<YYYY-MM-DD>/`. The archived pages are never touched.
+- Step 1 downloads new dramas first, then saved pages that are due, at most 300 per run. A page
+  is due by its air state: airing daily; upcoming, ended within 60 days, or unparseable weekly;
+  completed every 90 days. "Last downloaded" is the saved file's modified time.
+- Override the limits with `--max-pages N` / `--max-fetch N`. `--dry-run` runs only Steps 0a
+  and 1 and prints what they would fetch, without requests or writing files.
+
+### Countries and refresh settings — `steps/scrape_settings.py`
+
+`INCLUDE_ORIGINS = ["Korean"]` limits Step 1 to dramas whose listing says "Korean Drama ...".
+Add origins (e.g. `"Chinese"`, `"Japanese"`) or set it to `None` to download every country.
+Pages already saved for other countries are kept but not refreshed. The refresh limits and
+intervals are set in the same file.
 
 Each step script can still be run on its own if you want to run just that step manually, e.g.
 `python steps/step1_download_html.py` (run from the `DramaList_Scrapper/` folder).
@@ -40,7 +59,9 @@ the `SOURCES` dict:
   reuse the same `page_N.html` naming without colliding:
   - `output/html_pages/popular/page_1.html` ... `page_250.html`
   - `output/html_pages/newest/page_1.html` ... `page_250.html`
-- **Run:** `python steps/step0a_download_listing_pages.py`
+- **Run:** `python steps/step0a_download_listing_pages.py [--refresh] [--max-pages N] [--dry-run]`
+- With `--refresh`, saves the first N pages (default 5) into
+  `output/html_pages/refresh/<YYYY-MM-DD>/<source>/`; re-running the same day resumes.
 - Each source's `last_page` is **hardcoded on purpose**, not auto-detected. `popular`'s
   250 is confirmed as MyDramaList's actual last page. `newest`'s 250 is **unverified** —
   check the run's output for repeated fetch errors/empty pages near the end and adjust
@@ -57,7 +78,8 @@ Since `popular` and `newest` can list the same drama, `mydramalist_data.csv` may
 duplicate `Title_URL` rows — harmless, Step 1 skips a drama it's already downloaded
 regardless of which CSV row triggered it.
 
-- **Input:** `output/html_pages/**/*.html`
+- **Input:** `output/html_pages/**/*.html` (archive and `refresh/` folders together, so the URL
+  list only grows)
 - **Output:** `mydramalist_data.csv`
 - **Run:** `python steps/step0b_extract_drama_urls.py`
 - Rewrites the whole CSV each run (not incremental) — re-run after Step 0a fetches new pages.
@@ -66,10 +88,15 @@ regardless of which CSV row triggered it.
 Reads drama URLs from `mydramalist_data.csv` (column `Title_URL`) and uses Playwright to visit
 each drama's own page and save the raw HTML.
 
-- **Input:** `mydramalist_data.csv`
+- **Input:** `mydramalist_data.csv`; with `--refresh` also `output/dramalist_all_dramas.csv`
+  (air dates) and `output/dramas_html_failed.txt` (pages Step 2 couldn't parse).
 - **Output:** `output/dramas_html/*.html`
-- **Run:** `python steps/step1_download_html.py`
-- Skips URLs already saved (`output/dramas_html/<drama_id>.html` exists). Safe to re-run/resume.
+- **Run:** `python steps/step1_download_html.py [--refresh] [--max-fetch N] [--dry-run]`
+- Only dramas allowed by `INCLUDE_ORIGINS` (see `scrape_settings.py`).
+- Without `--refresh`, downloads only URLs not saved yet. With `--refresh`, also re-downloads
+  due pages (see "Nightly refresh").
+- A downloaded page replaces the saved copy only if it contains the drama's JSON-LD block, so a
+  block/error page never overwrites good data; the old copy stays and is retried next run.
 - Hits the live site — be mindful of rate limiting before re-running on the full URL list.
 
 ### Step 2 — `steps/step2_extract_data.py` (data extractor)
@@ -83,12 +110,14 @@ section. If that entry is unavailable, it falls back to the middle segment of th
 example, `ごくせん 3 ‧ Drama ‧ 2008` produces `Drama`).
 
 - **Input:** `output/dramas_html/*.html`
-- **Output:** `output/dramalist_all_dramas.csv`
+- **Output:** `output/dramalist_all_dramas.csv`, plus `output/dramas_html_failed.txt` (pages that
+  couldn't be parsed, re-downloaded weekly by Step 1 `--refresh`)
 - **Run:** `python steps/step2_extract_data.py`
-- Skips titles already present in the output CSV (`skip_existing=True`). Safe to re-run/resume.
+- One row per MyDramaList ID (the number in the URL, which survives a renamed slug). Extracts
+  only pages not in the CSV yet or saved after the CSV was last written, replaces their rows in
+  place and rewrites the CSV — re-running never appends duplicates (`skip_existing=False`
+  re-extracts everything). Unparseable pages keep their old row, if any.
 - Multithreaded (auto-detects CPU cores), uses `lxml` for speed.
-- If the output CSV was created before `media_type` was added, rebuild it instead of appending;
-  the existing CSV header does not contain the new column.
 
 ### Step 2b — `steps/step2b_dedupe_data.py` (dedup)
 Removes duplicate rows from `output/dramalist_all_dramas.csv`, keeping the first occurrence.
@@ -141,9 +170,9 @@ Current mapping (8 countries found in the dataset):
 ### Step 2e — `steps/step2e_clean_country_datasets.py` (per-country cleanup)
 Applies the same cleanup developed for `data/final/kdrama_dataset.csv` to **every** file in
 `output/by_country/`:
-- Drops low-value/redundant columns: `url`, `country` (constant within a single-country file),
-  `media_type`, `date_published`, `content_rating`, `ranked`, `score`, `popularity`. Unlike
-  `data/final`'s copy, `image` is **kept** here — Step 3 reads it from this file's output.
+- Drops low-value/redundant columns: `country` (constant within a single-country file),
+  `media_type`, `date_published`, `content_rating`, `ranked`, `score`, `popularity`. `url` is
+  **kept** (its number is the permanent drama ID Step 4 matches on), and so is `image` (poster ID).
 - Cleans `description`: strips MyDramaList's "Edit Translation" UI text, strips
   `(Source: ...)`/`(Sources: ...)` attribution tags (case-insensitive, handles missing colons and
   malformed brackets), collapses repeated whitespace. Drops rows with an empty/missing description.
@@ -161,15 +190,18 @@ Merges `output/by_country/cleaned/kdrama_dataset.csv` into the dataset the app u
 `data/final/kdrama_dataset.csv`. Runs **before** Step 3 in `run_pipeline.py`, so posters are
 downloaded for exactly what was published.
 
-- **Matching:** a drama is identified by its poster image ID (the database's `source_key` in
-  `scripts/import_catalog.py`), then by `(title, aired)`, then by title alone when exactly one
-  existing drama with that title wasn't matched otherwise (poster and air date both changed).
+- **Matching:** a drama is identified by its MyDramaList ID (the number in `url`), then by its
+  poster image ID (the database's `source_key` in `scripts/import_catalog.py`), then by
+  `(title, aired)`, then by title alone when exactly one existing drama with that title wasn't
+  matched otherwise (poster and air date both changed).
+- **`url` migration:** if the scraped CSV has `url` and `data/final` doesn't, the column is added
+  once (in the scraper's column order) and filled in for every matched drama.
 - **Merge rules:** existing rows keep their order and new dramas are appended. Dramas missing from
   the scrape are kept, and a field that comes back blank keeps its old value. A changed poster URL
   is **held back** (old `image` kept), because changing it would change the drama's database
   identity. Held-back posters are listed in the report.
 - **Checks (any failure leaves `data/final` untouched, exit code 1):** same columns as the live
-  file; no empty `title`/`description`/`image`; unique image IDs; unique `(title, aired)`; row
+  file (apart from the one-time `url` addition); unique MyDramaList IDs; no empty `title`/`description`/`image`; unique image IDs; unique `(title, aired)`; row
   count not lower; at most `--max-new` new dramas (default 300).
 - **Output:** on success the old file is copied to `data/final/kdrama_dataset.prev.csv`, then
   replaced. When nothing changed, nothing is written. The report

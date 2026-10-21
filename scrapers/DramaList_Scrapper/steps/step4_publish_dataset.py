@@ -1,9 +1,13 @@
 # Merge the scraper's cleaned K-drama CSV into data/final/kdrama_dataset.csv.
 #
-# A drama is identified by its poster image ID (https://i.mydramalist.com/9oX6Gf.jpg ->
-# 9oX6Gf), the same key scripts/import_catalog.py uses as the database source_key. Rows
-# whose image ID is new fall back to matching on normalised (title, aired), then on title
-# alone (see merge()), so a changed poster URL or air date is recognised as the same drama.
+# A drama is identified by MyDramaList's permanent numeric ID, the number at the start of
+# its `url` (https://mydramalist.com/100-my-fair-lady -> 100). Rows without a matching ID
+# (the live file had no `url` column before 2026-10-21) fall back to the poster image ID
+# (https://i.mydramalist.com/9oX6Gf.jpg -> 9oX6Gf, the database source_key in
+# scripts/import_catalog.py), then to normalised (title, aired), then to title alone (see
+# merge()), so a changed poster URL or air date is still recognised as the same drama.
+#
+# If the scraped CSV has a `url` column and the live file doesn't, the column is added once.
 #
 # Merge rules:
 #   - Existing rows keep their order; new dramas are appended at the end.
@@ -57,6 +61,13 @@ def image_id(url):
     return os.path.splitext(os.path.basename(urlparse(str(url).strip()).path))[0]
 
 
+def mdl_id(url):
+    """'https://mydramalist.com/100-my-fair-lady' -> '100'; '' when there is no URL."""
+    slug = str(url or "").strip().rstrip("/").split("/")[-1]
+    number = slug.split("-", 1)[0]
+    return number if number.isdigit() else ""
+
+
 def title_key(title, aired):
     clean = lambda value: re.sub(r"\s+", " ", str(value or "")).strip().casefold()
     return clean(title), clean(aired)
@@ -72,6 +83,7 @@ def read_dataset(path):
 
 def merge(current, scraped):
     """Return (merged rows, stats). `current` keeps its order; new rows go last."""
+    by_mdl = {mdl_id(row.get("url")): i for i, row in enumerate(current) if mdl_id(row.get("url"))}
     by_id = {image_id(row["image"]): i for i, row in enumerate(current)}
     by_key = {title_key(row["title"], row["aired"]): i for i, row in enumerate(current)}
 
@@ -85,10 +97,12 @@ def merge(current, scraped):
         "duplicates_in_scrape": [],
     }
 
-    # Pass 1: match on image ID, then on (title, aired).
+    # Pass 1: match on MyDramaList ID, then image ID, then (title, aired).
     leftovers = []
     for row in scraped:
-        index = by_id.get(image_id(row["image"]))
+        index = by_mdl.get(mdl_id(row.get("url")))
+        if index is None:
+            index = by_id.get(image_id(row["image"]))
         if index is None:
             index = by_key.get(title_key(row["title"], row["aired"]))
         if index is None:
@@ -158,6 +172,12 @@ def validate(merged, current_count, columns, max_new):
     if duplicate_ids:
         errors.append(f"duplicate image IDs: {duplicate_ids[:10]}")
 
+    if "url" in df.columns:
+        mdl_ids = Counter(mdl_id(url) for url in df["url"] if mdl_id(url))
+        duplicate_mdl = sorted(i for i, count in mdl_ids.items() if count > 1)
+        if duplicate_mdl:
+            errors.append(f"duplicate MyDramaList IDs: {duplicate_mdl[:10]}")
+
     keys = Counter(title_key(t, a) for t, a in zip(df["title"], df["aired"]))
     duplicate_keys = sorted(k for k, count in keys.items() if count > 1)
     if duplicate_keys:
@@ -185,11 +205,19 @@ def publish_dataset(source, target, report_path, max_new=300, dry_run=False):
     current_df = read_dataset(target)
     scraped_df = read_dataset(source)
     columns = list(current_df.columns)
+    scraped_columns = list(scraped_df.columns)
 
-    if list(scraped_df.columns) != columns:
-        raise ValueError(
-            f"Column mismatch.\n  {target.name}: {columns}\n  {source}: {list(scraped_df.columns)}"
-        )
+    added_columns = []
+    if (
+        "url" in scraped_columns
+        and "url" not in columns
+        and [c for c in scraped_columns if c != "url"] == columns
+    ):
+        # One-time migration: the live file gains the `url` column, in the scraper's order.
+        current_df.insert(scraped_columns.index("url"), "url", "")
+        columns, added_columns = scraped_columns, ["url"]
+    if scraped_columns != columns:
+        raise ValueError(f"Column mismatch.\n  {target.name}: {columns}\n  {source}: {scraped_columns}")
 
     merged, stats = merge(current_df.to_dict("records"), scraped_df.to_dict("records"))
     errors = validate(merged, len(current_df), columns, max_new)
@@ -207,7 +235,8 @@ def publish_dataset(source, target, report_path, max_new=300, dry_run=False):
         "updated_count": len(stats["updated"]),
         "missing_from_scrape": stats["missing_from_scrape"],
         "embedding_text_changed": bool(stats["new"]) or bool(changed_fields & set(EMBEDDING_COLUMNS)),
-        "metadata_changed": bool(stats["new"]) or bool(changed_fields),
+        "metadata_changed": bool(stats["new"]) or bool(changed_fields) or bool(added_columns),
+        "added_columns": added_columns,
         "changed_fields": sorted(changed_fields),
         "errors": errors,
         "published": False,

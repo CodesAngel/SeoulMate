@@ -2,6 +2,8 @@
 
 Date: 2026-10-04. Status: proposal, not implemented. This document does not install a scheduled task, run scraping, download images, rebuild indexes, or retrain models.
 
+Progress (2026-10-21): the scraper side of delivery step 1 is done. That covers the image-step paths, the refresh of new and due pages (`run_pipeline.py --refresh`, Korean only via `steps/scrape_settings.py`), and a validated publish into `data/final` (`steps/step4_publish_dataset.py`). Record tracking uses file modified times instead of SQLite. Still open: candidate index builds, catalog import and poster upload in the run, release and rollback, locking and logs, and scheduling. See `scrapers/DramaList_Scrapper/README.md` and `CHANGELOG.md` (2026-10-21).
+
 ## Idea
 
 Build one Python update manager that coordinates the existing scripts. Windows Task Scheduler starts it nightly on a computer with internet access. The manager discovers new or changed dramas, prepares and validates a candidate release, then publishes it and restarts the backend. Routine runs need no manual commands; failures appear in the run log. A monitoring page can be added later.

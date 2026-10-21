@@ -160,10 +160,40 @@ def extract_mydramalist_data(file_path):
     return drama_info
 
 
+# Column order of the output CSV when it is created from scratch.
+COLUMNS = [
+    "title", "media_type", "alternate_names", "url", "description", "image", "publisher",
+    "country", "genres", "rating_value", "rating_count", "date_published", "keywords",
+    "actors", "directors", "screenwriters", "episodes", "aired", "duration", "score",
+    "ranked", "popularity", "content_rating", "watchers",
+]
+
+
+def drama_id_of(value):
+    """Drama ID from a URL or file path: '.../100-my-fair-lady(.html)' -> '100-my-fair-lady'."""
+    name = str(value or "").strip().rstrip("/").replace("\\", "/").split("/")[-1]
+    return name[:-5] if name.lower().endswith(".html") else name
+
+
+def drama_key(value):
+    """MyDramaList's permanent numeric ID ('100-my-fair-lady' -> '100'). The slug after it
+    can change when a drama is renamed, so rows are keyed on the number."""
+    drama_id = drama_id_of(value)
+    number = drama_id.split("-", 1)[0]
+    return number if number.isdigit() else drama_id
+
+
 def process_folder(
-    input_path, output_csv="output_fast.csv", max_workers=None, skip_existing=True
+    input_path, output_csv="output_fast.csv", max_workers=None, skip_existing=True, failed_list=None
 ):
-    """Process all HTML files using multithreading and lxml for maximum speed."""
+    """Extract drama pages into `output_csv`, one row per MyDramaList ID (see drama_key).
+
+    With skip_existing=True only pages not in the CSV yet, or saved after the CSV was last
+    written (re-downloaded by Step 1), are extracted; their rows replace the old ones in
+    place and new dramas are appended. skip_existing=False re-extracts everything. Pages
+    that can't be parsed keep their old row (if any) and are listed in `failed_list` for
+    Step 1 to re-download. If a drama was saved under two slugs, the newest file wins.
+    """
     if not os.path.exists(input_path):
         print(f"Path not found: {input_path}")
         return
@@ -182,26 +212,35 @@ def process_folder(
         print("No HTML files found.")
         return
 
-    # TESTING: Limit to first N files (comment out to process all)
-    # files = files[:5]  # Process only first 5 files
+    print(f"Found {len(files)} HTML files.")
 
-    print(f"Found {len(files)} HTML files. Starting extraction...")
-
-    # Skip already processed titles
-    processed_titles = set()
+    # Existing rows by drama ID; rows without a URL are leftovers from failed parses.
+    columns, rows, dropped = list(COLUMNS), {}, 0
+    csv_mtime = 0.0
     if skip_existing and os.path.exists(output_csv):
+        csv_mtime = os.path.getmtime(output_csv)
         with open(output_csv, encoding="utf-8-sig", newline="") as f:
             reader = csv.DictReader(f)
+            columns = list(reader.fieldnames)
             for row in reader:
-                processed_titles.add(row["title"])
+                if drama_id_of(row.get("url")):
+                    rows[drama_key(row["url"])] = row
+                else:
+                    dropped += 1
+    if dropped:
+        print(f"Dropping {dropped} rows without a URL (failed parses from earlier runs).")
 
-    new_files = []
+    newest = {}
     for f in files:
-        name = os.path.basename(f).replace(".html", "").strip()
-        if name not in processed_titles:
-            new_files.append(f)
+        key = drama_key(f)
+        if key not in newest or os.path.getmtime(f) > os.path.getmtime(newest[key]):
+            newest[key] = f
+    new_files = [
+        f for key, f in newest.items()
+        if key not in rows or os.path.getmtime(f) > csv_mtime
+    ]
 
-    print(f"Processing {len(new_files)} new files...")
+    print(f"Processing {len(new_files)} new or re-downloaded files...")
 
     # Use all CPU threads by default
     if max_workers is None:
@@ -209,7 +248,7 @@ def process_folder(
 
         max_workers = min(16, multiprocessing.cpu_count() * 2)
 
-    all_dramas = []
+    extracted, failed = {}, []
 
     # Parallel execution
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -217,23 +256,33 @@ def process_folder(
         for future in tqdm(
             as_completed(futures), total=len(futures), desc="Extracting", unit="file"
         ):
+            drama_id = drama_id_of(futures[future])
             result = future.result()
-            if result:
-                all_dramas.append(result)
+            if result and result.get("title"):
+                result["url"] = result.get("url") or f"https://mydramalist.com/{drama_id}"
+                extracted[drama_key(drama_id)] = result
+            else:
+                failed.append(drama_id)
 
-    # Save to CSV
-    if all_dramas:
-        write_mode = "a" if skip_existing and os.path.exists(output_csv) else "w"
-        keys = list(all_dramas[0].keys())
-        with open(output_csv, write_mode, encoding="utf-8-sig", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=keys)
-            if write_mode == "w":
-                writer.writeheader()
-            writer.writerows(all_dramas)
+    updated = sum(1 for key in extracted if key in rows)
+    rows.update(extracted)
 
-        print(f"Extracted {len(all_dramas)} dramas and saved to '{output_csv}'")
-    else:
-        print("No new dramas extracted.")
+    # Rewrite the whole CSV (via a temp file) so refreshed dramas replace their old row.
+    temp_csv = output_csv + ".tmp"
+    with open(temp_csv, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=columns, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows.values())
+    os.replace(temp_csv, output_csv)
+
+    if failed_list:
+        with open(failed_list, "w", encoding="utf-8") as f:
+            f.writelines(f"{drama_id}\n" for drama_id in sorted(failed))
+
+    print(
+        f"Extracted {len(extracted)} dramas ({len(extracted) - updated} new, {updated} updated), "
+        f"{len(failed)} pages could not be parsed. {len(rows)} rows saved to '{output_csv}'"
+    )
 
 
 if __name__ == "__main__":
@@ -242,4 +291,5 @@ if __name__ == "__main__":
         output_csv=r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\dramalist_all_dramas.csv",
         max_workers=None,
         skip_existing=True,
+        failed_list=r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\output\dramas_html_failed.txt",
     )

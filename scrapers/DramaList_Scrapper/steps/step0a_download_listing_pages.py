@@ -6,12 +6,18 @@ are saved into their own subfolder under html_pages/ (html_pages/popular/,
 html_pages/newest/), so both sources can use the same page_N.html naming without
 colliding. These listing pages are later parsed (Step 0b) to pull out each drama's
 title URL.
+
+Refresh mode (--refresh, used nightly) fetches only the first N pages of each source into
+html_pages/refresh/<YYYY-MM-DD>/<source>/, so new dramas are discovered without touching
+the archived pages. Step 0b reads every subfolder, so old and new pages are combined.
 """
 
+import argparse
 import asyncio
 import os
 import random
 import re
+from datetime import date
 from typing import Optional
 
 from playwright.async_api import Route, async_playwright, expect
@@ -84,10 +90,10 @@ async def fetch_rendered_html(url: str) -> Optional[str]:
         return None
 
 
-async def download_source(source_name, url_template, last_page):
-    print(f"\n--- Source: {source_name} ---")
-    output_dir = os.path.join(HTML_PAGES_DIR, source_name)
-    os.makedirs(output_dir, exist_ok=True)
+async def download_source(source_name, url_template, last_page, output_dir, dry_run=False):
+    print(f"\n--- Source: {source_name} -> {output_dir} ---")
+    if not dry_run:
+        os.makedirs(output_dir, exist_ok=True)
 
     for page_num in range(1, last_page + 1):
         url = url_template.format(page_num)
@@ -95,6 +101,9 @@ async def download_source(source_name, url_template, last_page):
 
         if os.path.exists(output_path):
             print(f"[{source_name}] Page {page_num} already exists — skipping.")
+            continue
+        if dry_run:
+            print(f"[{source_name}] Would fetch: {url}")
             continue
 
         print(f"\n[{source_name}] Starting page {page_num}")
@@ -115,12 +124,30 @@ async def download_source(source_name, url_template, last_page):
         await asyncio.sleep(sleep_time)
 
 
-async def main():
-    os.makedirs(HTML_PAGES_DIR, exist_ok=True)
+async def main(refresh=False, max_pages=None, dry_run=False):
+    """Full crawl into html_pages/<source>/, or with refresh=True the first max_pages
+    pages into html_pages/refresh/<today>/<source>/ (re-running the same day resumes)."""
+    root = os.path.join(HTML_PAGES_DIR, "refresh", date.today().isoformat()) if refresh else HTML_PAGES_DIR
 
     for source_name, cfg in SOURCES.items():
-        await download_source(source_name, cfg["url_template"], cfg["last_page"])
+        last_page = min(cfg["last_page"], max_pages) if max_pages else cfg["last_page"]
+        output_dir = os.path.join(root, source_name)
+        await download_source(source_name, cfg["url_template"], last_page, output_dir, dry_run)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Download MyDramaList listing pages.")
+    parser.add_argument("--refresh", action="store_true", help="fetch the first pages into html_pages/refresh/<today>/")
+    parser.add_argument("--max-pages", type=int, help="pages per source (refresh default: 5)")
+    parser.add_argument("--dry-run", action="store_true", help="print what would be fetched, send no requests")
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    args = parse_args()
+    max_pages = args.max_pages
+    if args.refresh and max_pages is None:
+        from scrape_settings import REFRESH_LISTING_PAGES
+
+        max_pages = REFRESH_LISTING_PAGES
+    asyncio.run(main(args.refresh, max_pages, args.dry_run))

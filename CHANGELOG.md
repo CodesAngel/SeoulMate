@@ -4,6 +4,14 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-21
 
+### Scraper nightly refresh
+
+- `run_pipeline.py --refresh`: Step 0a fetches the first 5 pages of `newest`/`popular` into `output/html_pages/refresh/<date>/` (archive untouched; Step 0b already reads all subfolders). Step 1 downloads new dramas first, then due pages, max 300 per run: airing daily; upcoming, recently ended (60 days) and unparseable weekly; completed every 90 days, using the saved file's modified time. `--max-pages`, `--max-fetch`, and `--dry-run` (Steps 0a and 1 only, no requests).
+- New `steps/scrape_settings.py`: `INCLUDE_ORIGINS = ["Korean"]` limits Step 1 to Korean dramas (listing "Korean Drama ..."); add origins or set `None` for more countries. Refresh limits and intervals live there too.
+- Step 1 replaces a saved page only if the new HTML contains the JSON-LD block (temp file + rename), so block/error pages never overwrite good data. All 161 unparseable saved pages (39 Korean) turned out to have no JSON-LD at all.
+- Step 2 bug fix: its skip check compared file names with titles, so a re-run re-extracted all 9,618 pages and appended them again. Rows are now keyed by the MyDramaList numeric ID, only new or re-downloaded pages are extracted, rows are replaced in place, and the CSV is rewritten. The 162 blank rows from failed parses are dropped; unparseable pages go to `output/dramas_html_failed.txt` for Step 1.
+- Step 2e keeps `url`. Step 4 matches on the MyDramaList ID first and adds `url` to `data/final` once (tested on a copy: all 2,081 rows filled, other columns identical, no index rebuild needed). Fixed a crash when neither file had `url`.
+
 ### Scraper pipeline image step
 
 - New Step 4 `steps/step4_publish_dataset.py` (in `run_pipeline.py` as `publish`, before the image step): merges the scraper's cleaned K-drama CSV into `data/final/kdrama_dataset.csv`. Matches dramas by poster image ID, then `(title, aired)`, then title alone when it's the only unmatched drama with that title. Keeps existing order, appends new dramas, never deletes, keeps old values for blank fields, and holds back poster URL changes (they would change the database identity). Validates columns, required fields, unique IDs and `(title, aired)`, no row drop, and `--max-new` (300). On success keeps `kdrama_dataset.prev.csv`; on failure leaves the live file untouched and exits 1. Report: `data/reports/dataset_publish_report.json` with `embedding_text_changed` / `metadata_changed` flags. Tested on the live data (no changes, nothing written) and scratch copies (updates, blanks, poster/air-date changes, shared "Bad Guy" title, failing checks).

@@ -201,6 +201,15 @@ Features deliberately excluded from Phase 1 and reserved for subsequent phases:
 
 The final dataset is `data/final/kdrama_dataset.csv`. After adding dramas or changing recommendation text, rebuild the index with the existing model and restart the backend. New dramas do not require model retraining.
 
+To update it from MyDramaList, run the scraper pipeline from `scrapers/DramaList_Scrapper/`:
+
+```powershell
+..\..\.venv\Scripts\python.exe run_pipeline.py --refresh --dry-run   # show what would be downloaded
+..\..\.venv\Scripts\python.exe run_pipeline.py --refresh             # nightly-style update
+```
+
+`--refresh` checks the first listing pages for new dramas and re-downloads pages that are due (airing dramas daily, completed ones every 90 days, at most 300 per run). Only Korean dramas are downloaded; `steps/scrape_settings.py` sets the countries and intervals. The publish step merges the result into `data/final/kdrama_dataset.csv` only if its checks pass, keeps `kdrama_dataset.prev.csv`, and writes `data/reports/dataset_publish_report.json`, which says whether the index needs rebuilding. Rebuilding the index, importing the catalog, and uploading posters are still manual. Details: [scraper pipeline](scrapers/DramaList_Scrapper/README.md).
+
 Local posters are optional. To download missing posters:
 
 ```powershell

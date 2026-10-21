@@ -1,5 +1,5 @@
 {
-  "run_at": "2026-10-21T17:02:14+05:00",
+  "run_at": "2026-10-21T19:14:13+05:00",
   "source": "D:\\Projects\\SeoulMate\\scrapers\\DramaList_Scrapper\\output\\by_country\\cleaned\\kdrama_dataset.csv",
   "target": "D:\\Projects\\SeoulMate\\data\\final\\kdrama_dataset.csv",
   "dry_run": false,
@@ -11,6 +11,7 @@
   "missing_from_scrape": 0,
   "embedding_text_changed": false,
   "metadata_changed": false,
+  "added_columns": [],
   "changed_fields": [],
   "errors": [],
   "published": false,
