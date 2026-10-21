@@ -208,7 +208,29 @@ To update it from MyDramaList, run the scraper pipeline from `scrapers/DramaList
 ..\..\.venv\Scripts\python.exe run_pipeline.py --refresh             # nightly-style update
 ```
 
-`--refresh` checks the first listing pages for new dramas and re-downloads pages that are due (airing dramas daily, completed ones every 90 days, at most 300 per run). Only Korean dramas are downloaded; `steps/scrape_settings.py` sets the countries and intervals. The publish step merges the result into `data/final/kdrama_dataset.csv` only if its checks pass, keeps `kdrama_dataset.prev.csv`, and writes `data/reports/dataset_publish_report.json`, which says whether the index needs rebuilding. Rebuilding the index, importing the catalog, and uploading posters are still manual. Details: [scraper pipeline](scrapers/DramaList_Scrapper/README.md).
+`--refresh` checks the first listing pages for new dramas and re-downloads pages that are due (airing dramas daily, completed ones every 90 days, at most 300 per run). Only Korean dramas are downloaded; `steps/scrape_settings.py` sets the countries and intervals. The publish step merges the result into `data/final/kdrama_dataset.csv` only if its checks pass, keeps `kdrama_dataset.prev.csv`, and writes `data/reports/dataset_publish_report.json`. Details: [scraper pipeline](scrapers/DramaList_Scrapper/README.md).
+
+### One-command update (`scripts/update_catalog.py`)
+
+From the project root, this runs the scraper and then releases the result. A release builds the index, imports the database catalog, uploads the posters and swaps in the new index:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\update_catalog.py --skip-scrape --no-db   # build + check only, no database changes
+.\.venv\Scripts\python.exe scripts\update_catalog.py                         # full update; restart the backend afterwards
+.\.venv\Scripts\python.exe scripts\update_catalog.py --restart-cmd "<command>"   # also restart + health check
+```
+
+| Stage | What it does |
+| --- | --- |
+| scrape | `run_pipeline.py --refresh` (skip with `--skip-scrape`) |
+| release-data | Live dramas keep their positions and new dramas are appended. New dramas without a downloaded poster wait for a later run. Stops with `no_changes` if nothing differs from the live release. |
+| build, validate | Builds `training/faiss_index.candidate/` with the bi-encoder the backend loads. Checks counts, dimension, row order, unchanged live positions and vectors. |
+| catalog-check | `import_catalog.py --dry-run` against the candidate |
+| catalog-import, poster-audit, thumbnails, poster-upload | Database and Supabase Storage. Uploads only new or changed posters. |
+| activate | `faiss_index/` → `faiss_index.prev/`, candidate → `faiss_index/` |
+| restart | With `--restart-cmd`: restart, wait for `--health-url`, run one test search |
+
+If anything fails after the database changed, the run rolls back. It restores the previous index and re-imports the catalog from the live release's `dataset.csv`, removing the new dramas. Each run writes `logs/update/<run id>.log` and `logs/update/status.json`. A lock file prevents two runs at once. Exit codes: 0 = released or no changes, 1 = failed or rolled back, 2 = another run is active. Without `--restart-cmd`, the backend keeps serving the old index until restarted. Building the index takes about 15 minutes on a desktop CPU (longer on a small VM). The database stages need local or hosted Supabase running. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
 
 Local posters are optional. To download missing posters:
 

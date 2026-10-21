@@ -7,22 +7,30 @@ script accepts but ignores (it only ever does one thing: a full rebuild).
 """
 
 import argparse
+import hashlib
+import json
 import os
+from datetime import datetime
 import pandas as pd
 import pickle
 from urllib.parse import urlparse
 import faiss
 from sentence_transformers import SentenceTransformer
 
-# Accepted for train_pipeline.py compatibility; this script always does a
-# full rebuild regardless of the value passed.
+# --mode is accepted for train_pipeline.py compatibility; this script always does a
+# full rebuild regardless of the value passed. --data/--out-dir/--model let an
+# unattended update (scripts/update_catalog.py) build a candidate index next to the
+# live one and pin the exact bi-encoder the backend loads.
 _parser = argparse.ArgumentParser()
 _parser.add_argument(
     "--mode",
     default="full",
     help="Accepted for pipeline compatibility; this script always does a full rebuild.",
 )
-_parser.parse_args()
+_parser.add_argument("--data", help="Dataset CSV (default: data/final/kdrama_dataset.csv)")
+_parser.add_argument("--out-dir", help="Where to write index.faiss and meta.pkl (default: training/faiss_index)")
+_parser.add_argument("--model", help="Bi-encoder folder to use (default: auto-select under training/models)")
+_args = _parser.parse_args()
 
 # ======================================================
 # 1. Config (using relative paths)
@@ -31,10 +39,10 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAINING_ROOT = os.path.dirname(SCRIPT_DIR)
 PROJECT_ROOT = os.path.dirname(TRAINING_ROOT)
 
-DATA_PATH = os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
+DATA_PATH = _args.data or os.path.join(PROJECT_ROOT, "data", "final", "kdrama_dataset.csv")
 MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 MODEL_DIR = os.path.join(TRAINING_ROOT, "models")
-INDEX_DIR = os.path.join(TRAINING_ROOT, "faiss_index")
+INDEX_DIR = _args.out_dir or os.path.join(TRAINING_ROOT, "faiss_index")
 
 os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(INDEX_DIR, exist_ok=True)
@@ -128,6 +136,12 @@ try:
 except Exception:
     selected_local = None
 
+if _args.model:
+    # An explicit --model overrides the auto-selection above.
+    if not os.path.isfile(os.path.join(_args.model, "config.json")):
+        raise SystemExit(f"--model is not a SentenceTransformer folder: {_args.model}")
+    selected_local = _args.model
+
 if selected_local:
     print(f"Using local fine-tuned model at: {selected_local}")
     model = SentenceTransformer(selected_local)
@@ -205,6 +219,21 @@ metadata = df[meta_cols].to_dict(orient="records")
 
 with open(os.path.join(INDEX_DIR, "meta.pkl"), "wb") as f:
     pickle.dump(metadata, f)
+
+# Record what this index was built from, so a later check can confirm the backend
+# loads the same model and the index matches its dataset.
+with open(DATA_PATH, "rb") as f:
+    data_sha256 = hashlib.sha256(f.read()).hexdigest()
+build_info = {
+    "built_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+    "data_path": os.path.abspath(DATA_PATH),
+    "data_sha256": data_sha256,
+    "model": os.path.abspath(selected_local) if selected_local else MODEL_NAME,
+    "rows": int(index.ntotal),
+    "dimension": int(dim),
+}
+with open(os.path.join(INDEX_DIR, "build_info.json"), "w", encoding="utf-8") as f:
+    json.dump(build_info, f, indent=2)
 
 print(f"Index and metadata saved in: {INDEX_DIR}")
 print("All done! Your FAISS index is ready for recommendations.")

@@ -389,6 +389,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--workers", type=int, default=min(16, max(1, os.cpu_count() or 1))
     )
+    parser.add_argument(
+        "--skip-unchanged",
+        action="store_true",
+        help="Upload only objects that are missing or differ in size/type in Storage.",
+    )
+    parser.add_argument(
+        "--ignore-unexpected",
+        action="store_true",
+        help="Report Storage objects with no drama instead of failing (e.g. after a rollback).",
+    )
     return parser.parse_args()
 
 
@@ -404,17 +414,27 @@ def main() -> None:
         task["storage_url"] = storage_url
         task["secret_key"] = settings.supabase_secret_key
 
+    upload_tasks = tasks
+    if args.skip_unchanged:
+        existing = storage_metadata()
+        upload_tasks = [
+            task
+            for task in tasks
+            if (item := existing.get(task["object_path"])) is None
+            or int(item.get("size", -1)) != task["size_bytes"]
+            or item.get("mimetype") != task["content_type"]
+        ]
     print(
-        f"Uploading {len(tasks)} objects for {drama_count} dramas to "
+        f"Uploading {len(upload_tasks)} of {len(tasks)} objects for {drama_count} dramas to "
         f"{BUCKET_NAME}.",
         flush=True,
     )
     uploaded: list[dict[str, Any]] = []
     with ThreadPoolExecutor(max_workers=args.workers) as executor:
-        for position, result in enumerate(executor.map(upload_one, tasks), start=1):
+        for position, result in enumerate(executor.map(upload_one, upload_tasks), start=1):
             uploaded.append(result)
-            if position % 500 == 0 or position == len(tasks):
-                print(f"Uploaded {position}/{len(tasks)}", flush=True)
+            if position % 500 == 0 or position == len(upload_tasks):
+                print(f"Uploaded {position}/{len(upload_tasks)}", flush=True)
 
     expected_paths = {task["object_path"] for task in tasks}
     metadata = storage_metadata()
@@ -431,6 +451,13 @@ def main() -> None:
             or item.get("mimetype") != task["content_type"]
         ):
             metadata_mismatches.append(task["object_path"])
+    if unexpected_objects and args.ignore_unexpected:
+        print(
+            f"Warning: {len(unexpected_objects)} Storage objects have no drama, e.g. "
+            f"{unexpected_objects[:3]}",
+            flush=True,
+        )
+        unexpected_objects = []
     if missing_objects or unexpected_objects or metadata_mismatches:
         raise ValueError(
             f"Storage metadata verification failed: {len(missing_objects)} missing, "

@@ -4,6 +4,28 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-21
 
+### One-command catalog update and safe index releases
+
+- `data/final/kdrama_dataset.csv` now has a `url` column (MyDramaList permanent ID) for all 2,081 dramas, added by the publish step's one-time migration; all other columns unchanged.
+- New `scripts/update_catalog.py`. It runs the scraper, then releases the result:
+  - **Release dataset:** live dramas keep their positions and new dramas are appended. New dramas without a downloaded poster wait. The run stops when nothing differs from the live release.
+  - **Build and checks:** builds a candidate index with the backend's bi-encoder and checks it (counts, dimension, row order, unchanged live positions, unit vectors, self-search). Then runs `import_catalog.py --dry-run`.
+  - **Database and posters:** imports the catalog, then poster audit, thumbnails and Storage upload.
+  - **Swap and restart:** swaps `faiss_index/` with `faiss_index.prev/`. Optionally restarts the backend and runs a health check plus a test search.
+  - **Rollback:** a failure after the database changed restores the previous index and re-imports the catalog from the live release's `dataset.csv` with `--prune`.
+  - **Run safety:** lock file, `logs/update/<run>.log`, `logs/update/status.json`, exit codes 0/1/2.
+- `training/steps/step3_build_index.py`: `--data`, `--out-dir`, `--model` (defaults unchanged); writes `build_info.json`.
+- `scripts/import_catalog.py --allow-extra-posters` (for rollbacks); `scripts/upload_posters_to_storage.py --skip-unchanged` (upload only new or changed objects) and `--ignore-unexpected`.
+- Poster downloader renames saved posters when a drama is retitled upstream (ID unchanged), so the poster audit doesn't fail on outdated file names.
+- Ranking indexes (`backend/ranking/indexes/`) are still generated from the old 1,922-drama metadata; `update_catalog.py --ranking-indexes` regenerates them, off by default because it changes ranking.
+- Tested offline (local Supabase was not running, so database import, poster upload, database rollback and restart are untested):
+  - `update_catalog.py --skip-scrape --no-db --force` → result `built`. The index build took 931 s (~15.5 min) on this PC; the candidate check and the `import_catalog.py` dry run passed for 2,081 dramas.
+  - Rebuilding from the current `data/final` gives vectors identical to the live index (cosine 1.000, same order); the new metadata adds `image_url`, `image_id` and `watchers`.
+  - Scratch tests: a second run exits with code 2 while one is active; swapped or missing metadata rows, a moved live drama and a different model are all rejected; release-row selection (live order kept, new dramas appended, no-poster dramas deferred, unchanged dataset → `no_changes`); index activation and rollback; poster rename on retitle.
+- Live scraper test (`--refresh`, 1 listing page per source, 5 drama pages):
+  - The URL list grew from 11,523 to 11,569, with 3 new Korean dramas.
+  - All 5 pages were saved and parsed. Alchemy of Souls was saved under its new slug and two broken saves were repaired.
+
 ### Scraper nightly refresh
 
 - `run_pipeline.py --refresh`: Step 0a fetches the first 5 pages of `newest`/`popular` into `output/html_pages/refresh/<date>/` (archive untouched; Step 0b already reads all subfolders). Step 1 downloads new dramas first, then due pages, max 300 per run: airing daily; upcoming, recently ended (60 days) and unparseable weekly; completed every 90 days, using the saved file's modified time. `--max-pages`, `--max-fetch`, and `--dry-run` (Steps 0a and 1 only, no requests).

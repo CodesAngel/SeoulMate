@@ -2,7 +2,13 @@
 
 Date: 2026-10-04. Status: proposal, not implemented. This document does not install a scheduled task, run scraping, download images, rebuild indexes, or retrain models.
 
-Progress (2026-10-21): the scraper side of delivery step 1 is done. That covers the image-step paths, the refresh of new and due pages (`run_pipeline.py --refresh`, Korean only via `steps/scrape_settings.py`), and a validated publish into `data/final` (`steps/step4_publish_dataset.py`). Record tracking uses file modified times instead of SQLite. Still open: candidate index builds, catalog import and poster upload in the run, release and rollback, locking and logs, and scheduling. See `scrapers/DramaList_Scrapper/README.md` and `CHANGELOG.md` (2026-10-21).
+Progress (2026-10-21): delivery steps 1 and 2 are implemented. The scraper refreshes new and due pages (`run_pipeline.py --refresh`, Korean only via `steps/scrape_settings.py`) and publishes into `data/final` with validation. `scripts/update_catalog.py` builds a candidate index and runs the catalog import, poster audit, thumbnails and upload. It then activates the release, with rollback, a lock, logs and `status.json`.
+
+Differences from this plan:
+- Record tracking uses file modified times instead of SQLite.
+- The release folder is `training/faiss_index/` itself, holding its `dataset.csv` and `manifest.json`, with `faiss_index.prev/` for rollback. It is not a separate versioned folder.
+
+Still open: scheduling (step 3), a monitoring page (step 4), and incremental encoding (step 5). See the README section "One-command update" and `CHANGELOG.md` (2026-10-21).
 
 ## Idea
 

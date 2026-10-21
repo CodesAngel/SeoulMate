@@ -37,7 +37,13 @@ What `backend/app.py` loads (via `TRAINING_DIR = training/`), as of 2026-10-01:
 
 To pick up new data, only the index needs rebuilding (`--mode build-index`); the models don't need
 retraining unless accuracy drops. Back up `faiss_index/` first — step 3 overwrites it in place —
-and re-run `tests/evaluation/evaluate_accuracy.py` afterwards. Current score: **87.05%** on the expanded 61-search test set, exact title matching (full
+and re-run `tests/evaluation/evaluate_accuracy.py` afterwards.
+
+Step 3 also accepts `--data <csv>`, `--out-dir <folder>` and `--model <model folder>` (defaults
+unchanged), and writes `build_info.json` (dataset hash, model, rows, dimension) next to the index.
+`scripts/update_catalog.py` uses them to build into `faiss_index.candidate/`, check it, and only
+then swap it in (old release kept in `faiss_index.prev/`), together with the PostgreSQL catalog
+and poster uploads. Prefer that over rebuilding in place. Current score: **87.05%** on the expanded 61-search test set, exact title matching (full
 comparison in `tests/reports/model_comparison_2026-09-30.md`).
 
 ## Standalone / future scripts (NOT called by `train_pipeline.py`)

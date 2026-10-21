@@ -104,7 +104,7 @@ def row_hash(row: dict[str, str]) -> str:
 
 
 def load_source(
-    csv_path: Path, meta_path: Path, poster_dir: Path
+    csv_path: Path, meta_path: Path, poster_dir: Path, *, allow_extra_posters: bool = False
 ) -> tuple[list[dict[str, Any]], dict[str, set[str]], dict[str, list[tuple[str, int]]]]:
     with csv_path.open(encoding="utf-8-sig", newline="") as handle:
         source_rows = list(csv.DictReader(handle))
@@ -188,7 +188,7 @@ def load_source(
     positions = [drama["catalog_index"] for drama in dramas]
     if set(positions) != set(range(len(metadata))):
         raise ValueError("Catalog positions are not a complete FAISS index sequence")
-    if len(poster_files) != len(dramas):
+    if len(poster_files) != len(dramas) and not allow_extra_posters:
         extras = sorted(set(poster_files) - seen_source_keys)
         raise ValueError(
             f"Poster count mismatch: {len(poster_files)} files for {len(dramas)} dramas; "
@@ -343,12 +343,19 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Delete database dramas absent from the source catalog.",
     )
+    parser.add_argument(
+        "--allow-extra-posters",
+        action="store_true",
+        help="Accept poster files with no drama in the CSV (used when rolling back a release).",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    dramas, relations, credits = load_source(args.csv, args.meta, args.posters)
+    dramas, relations, credits = load_source(
+        args.csv, args.meta, args.posters, allow_extra_posters=args.allow_extra_posters
+    )
     print(f"Validated {len(dramas)} dramas and local poster mappings.")
     print(f"Catalog indexes: 0..{len(dramas) - 1}")
     if args.dry_run:

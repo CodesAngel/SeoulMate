@@ -67,12 +67,33 @@ def poster_filename(title, aired, image_url):
 
 def existing_poster_ids(output_folder):
     """IDs already saved in the folder (files under 1 KB count as missing)."""
-    ids = set()
+    return set(existing_poster_paths(output_folder))
+
+
+def existing_poster_paths(output_folder):
+    """{ID: path} of posters already saved (files under 1 KB count as missing)."""
+    paths = {}
     for path in Path(output_folder).glob("*"):
         match = POSTER_ID_PATTERN.search(path.name)
         if match and path.is_file() and path.stat().st_size > 1024:
-            ids.add(match.group(1))
-    return ids
+            paths[match.group(1)] = path
+    return paths
+
+
+def rename_outdated(df, saved):
+    """Rename saved posters whose title/year label no longer matches the dataset (the
+    drama was retitled upstream). The ID part never changes; the poster audit
+    (scripts/audit_poster_inventory.py) expects the current label. Returns the count."""
+    renamed = 0
+    for _, row in df.iterrows():
+        path = saved.get(poster_id(row["image"]))
+        if path is None:
+            continue
+        expected = path.with_name(poster_filename(row["title"], row["aired"], row["image"]))
+        if path.name != expected.name and not expected.exists():
+            path.rename(expected)
+            renamed += 1
+    return renamed
 
 
 async def download_image(session, sem, task, output_folder, retries=3):
@@ -124,6 +145,9 @@ def download_images_from_csv(csv_path, output_folder, report_path, concurrency=1
             raise ValueError(f"The CSV must contain a '{column}' column.")
     os.makedirs(output_folder, exist_ok=True)
 
+    renamed = rename_outdated(df, existing_poster_paths(output_folder))
+    if renamed:
+        print(f"Renamed {renamed} posters to match retitled dramas.")
     have = existing_poster_ids(output_folder)
     tasks, no_url = [], []
     for _, row in df.iterrows():

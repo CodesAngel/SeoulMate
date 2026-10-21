@@ -13,6 +13,7 @@ data/final/*.prev.csv
 data/final/*.candidate.csv
 training/models/
 training/faiss_index/
+training/faiss_index.*/
 training/checkpoints/
 training/__pycache__
 .DS_Store
