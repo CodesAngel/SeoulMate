@@ -1,6 +1,6 @@
 # DramaList Scrapper
 
-Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is nine
+Scrapes drama data and posters from [MyDramaList](https://mydramalist.com). The pipeline is ten
 numbered steps, each in its own script, plus `run_pipeline.py` which runs all of them in order
 with one command.
 
@@ -16,7 +16,7 @@ with one command.
 ## Quick start
 
 ```bash
-python run_pipeline.py                                        # run all nine steps, in order
+python run_pipeline.py                                        # run all ten steps, in order
 python run_pipeline.py --skip-listing --skip-urls --skip-html  # already have output/dramas_html/, just extract + get images
 python run_pipeline.py --only images                           # run just one step
 ```
@@ -156,19 +156,38 @@ Applies the same cleanup developed for `data/final/kdrama_dataset.csv` to **ever
   in a new subfolder; the raw `output/by_country/*.csv` files are never modified.
 - **Run:** `python steps/step2e_clean_country_datasets.py`
 
+### Step 4 — `steps/step4_publish_dataset.py` (merge into the live dataset)
+Merges `output/by_country/cleaned/kdrama_dataset.csv` into the dataset the app uses,
+`data/final/kdrama_dataset.csv`. Runs **before** Step 3 in `run_pipeline.py`, so posters are
+downloaded for exactly what was published.
+
+- **Matching:** a drama is identified by its poster image ID (the database's `source_key` in
+  `scripts/import_catalog.py`), then by `(title, aired)`, then by title alone when exactly one
+  existing drama with that title wasn't matched otherwise (poster and air date both changed).
+- **Merge rules:** existing rows keep their order and new dramas are appended. Dramas missing from
+  the scrape are kept, and a field that comes back blank keeps its old value. A changed poster URL
+  is **held back** (old `image` kept), because changing it would change the drama's database
+  identity. Held-back posters are listed in the report.
+- **Checks (any failure leaves `data/final` untouched, exit code 1):** same columns as the live
+  file; no empty `title`/`description`/`image`; unique image IDs; unique `(title, aired)`; row
+  count not lower; at most `--max-new` new dramas (default 300).
+- **Output:** on success the old file is copied to `data/final/kdrama_dataset.prev.csv`, then
+  replaced. When nothing changed, nothing is written. The report
+  `data/reports/dataset_publish_report.json` lists new/updated dramas and has
+  `embedding_text_changed` (index rebuild needed) and `metadata_changed` flags.
+- **Run:** `python steps/step4_publish_dataset.py [--dry-run] [--max-new N]`
+
 ### Step 3 — `steps/step3_download_images.py` (image downloader)
 Reads `title`/`aired`/`image` columns from a dataset CSV and downloads missing posters
 asynchronously, named `<Title> (<Year>) [<ID>].jpg`. The ID is the file name of the `image` URL
 (`https://i.mydramalist.com/9oX6Gf.jpg` -> `9oX6Gf`), so dramas sharing a title don't collide.
 
-- **Input:** `run_pipeline.py` passes `output/by_country/cleaned/kdrama_dataset.csv` —
-  **depends on Step 2e having run first**. Run on its own, the script defaults to
-  `data/final/kdrama_dataset.csv` (override with `--csv`).
+- **Input:** `data/final/kdrama_dataset.csv` (override with `--csv`) — in `run_pipeline.py` it
+  runs after Step 4 has published.
 - **Output:** `output/drama_image_by_id/`, plus `output/drama_image_by_id_report.csv` listing
   failed downloads and rows without an image URL.
 - **Run:** `python steps/step3_download_images.py [--csv ...] [--out ...] [--report ...]`
-- Only downloads posters whose ID isn't in the output folder yet. Safe to re-run/resume. A changed
-  poster URL means a new ID, so the new poster is downloaded.
+- Only downloads posters whose ID isn't in the output folder yet. Safe to re-run/resume.
 - CSV reads use `encoding="utf-8-sig"` to correctly strip the BOM that Step 2d's `to_csv` writes
   (a plain `utf-8` read would otherwise misread the `title` column, as `﻿title`, and crash).
 
@@ -183,7 +202,8 @@ step2b  ->  output/dramalist_all_dramas.deduped.csv (deduped copy, from output/d
 step2c  ->  output/dramalist_all_dramas.deduped.cleantitle.csv (title cleanup, from the deduped CSV)
 step2d  ->  output/by_country/<prefix>drama_dataset.csv (split by country, from the cleaned CSV)
 step2e  ->  output/by_country/cleaned/<prefix>drama_dataset.csv (per-country cleanup)
-step3   ->  output/drama_image_by_id/ (posters by ID, from output/by_country/cleaned/kdrama_dataset.csv)
+step4   ->  data/final/kdrama_dataset.csv (validated merge, from output/by_country/cleaned/kdrama_dataset.csv)
+step3   ->  output/drama_image_by_id/ (posters by ID, from data/final/kdrama_dataset.csv)
 ```
 
 ## Other files
@@ -197,7 +217,7 @@ step3   ->  output/drama_image_by_id/ (posters by ID, from output/by_country/cle
 ## Notes
 
 - Each step's run call sits behind `if __name__ == "__main__":`, so `run_pipeline.py` can import
-  all eight modules without triggering a run on import.
+  all ten modules without triggering a run on import.
 - All paths are hardcoded to `D:\Projects\SeoulMate\scrapers\DramaList_Scrapper\...`; update them
   if you move the project.
 - Step 0b needs `beautifulsoup4` in addition to the other pipeline dependencies (`lxml`, `tqdm`,

@@ -9,6 +9,8 @@ user_profiles/
 training/.git/
 frontend/.git/
 training/training_data/
+data/final/*.prev.csv
+data/final/*.candidate.csv
 training/models/
 training/faiss_index/
 training/checkpoints/

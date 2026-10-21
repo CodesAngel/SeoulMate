@@ -1,0 +1,22 @@
+{
+  "run_at": "2026-10-21T17:02:14+05:00",
+  "source": "D:\\Projects\\SeoulMate\\scrapers\\DramaList_Scrapper\\output\\by_country\\cleaned\\kdrama_dataset.csv",
+  "target": "D:\\Projects\\SeoulMate\\data\\final\\kdrama_dataset.csv",
+  "dry_run": false,
+  "rows_before": 2081,
+  "rows_after": 2081,
+  "scraped_rows": 2081,
+  "new_count": 0,
+  "updated_count": 0,
+  "missing_from_scrape": 0,
+  "embedding_text_changed": false,
+  "metadata_changed": false,
+  "changed_fields": [],
+  "errors": [],
+  "published": false,
+  "new": [],
+  "updated": [],
+  "matched_by_title_only": [],
+  "poster_held_back": [],
+  "duplicates_in_scrape": []
+}

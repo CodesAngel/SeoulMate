@@ -8,7 +8,9 @@
   2c. step2c_clean_titles           - fix HTML entities, drop Special/BTS -> output/dramalist_all_dramas.deduped.cleantitle.csv
   2d. step2d_split_by_country       - split cleaned data by country       -> output/by_country/<prefix>drama_dataset.csv
   2e. step2e_clean_country_datasets - drop columns, clean fields per file -> output/by_country/cleaned/<prefix>drama_dataset.csv
+  4.  step4_publish_dataset         - merge + validate into data/final    -> data/final/kdrama_dataset.csv
   3.  step3_download_images         - download poster images by ID        -> output/drama_image_by_id/
+      (runs after step 4, so posters follow the published dataset)
 
 Each step is independently resumable (skips work already done), so re-running
 this script after a partial run just picks up where it left off.
@@ -19,7 +21,7 @@ dramalist_all_dramas.deduped.csv is never modified by step2c, and the raw
 output/by_country/*.csv files are never modified by step2e.
 
 Usage:
-    python run_pipeline.py                  # run all nine steps
+    python run_pipeline.py                  # run all ten steps
     python run_pipeline.py --skip-listing --skip-urls --skip-html
                                              # already have dramas_html/, just extract + get images
     python run_pipeline.py --only images    # run only the image-download step
@@ -38,20 +40,21 @@ from steps import (
     step2d_split_by_country,
     step2e_clean_country_datasets,
     step3_download_images,
+    step4_publish_dataset,
 )
 
 BASE = r"D:\Projects\SeoulMate\scrapers\DramaList_Scrapper"
 
-STEPS = ["listing", "urls", "html", "data", "dedupe", "clean", "split", "cleandata", "images"]
+STEPS = ["listing", "urls", "html", "data", "dedupe", "clean", "split", "cleandata", "publish", "images"]
 
 
 def run_listing():
-    print("\n=== Step 0a/9: downloading listing pages ===")
+    print("\n=== Step 0a/10: downloading listing pages ===")
     asyncio.run(step0a_download_listing_pages.main())
 
 
 def run_urls():
-    print("\n=== Step 0b/9: extracting drama URLs from listing pages ===")
+    print("\n=== Step 0b/10: extracting drama URLs from listing pages ===")
     step0b_extract_drama_urls.extract_from_folder(
         rf"{BASE}\output\html_pages",
         rf"{BASE}\mydramalist_data.csv",
@@ -59,12 +62,12 @@ def run_urls():
 
 
 def run_html():
-    print("\n=== Step 1/9: downloading drama pages ===")
+    print("\n=== Step 1/10: downloading drama pages ===")
     asyncio.run(step1_download_html.main())
 
 
 def run_data():
-    print("\n=== Step 2/9: extracting data to CSV ===")
+    print("\n=== Step 2/10: extracting data to CSV ===")
     step2_extract_data.process_folder(
         rf"{BASE}\output\dramas_html",
         output_csv=rf"{BASE}\output\dramalist_all_dramas.csv",
@@ -74,12 +77,12 @@ def run_data():
 
 
 def run_dedupe():
-    print("\n=== Step 2b/9: removing duplicate rows (by url) ===")
+    print("\n=== Step 2b/10: removing duplicate rows (by url) ===")
     step2b_dedupe_data.dedupe(rf"{BASE}\output\dramalist_all_dramas.csv")
 
 
 def run_clean():
-    print("\n=== Step 2c/9: cleaning titles (HTML entities, Special/BTS rows) ===")
+    print("\n=== Step 2c/10: cleaning titles (HTML entities, Special/BTS rows) ===")
     step2c_clean_titles.clean_titles(
         rf"{BASE}\output\dramalist_all_dramas.deduped.csv",
         rf"{BASE}\output\dramalist_all_dramas.deduped.cleantitle.csv",
@@ -87,7 +90,7 @@ def run_clean():
 
 
 def run_split():
-    print("\n=== Step 2d/9: splitting cleaned data by country ===")
+    print("\n=== Step 2d/10: splitting cleaned data by country ===")
     step2d_split_by_country.split_by_country(
         rf"{BASE}\output\dramalist_all_dramas.deduped.cleantitle.csv",
         rf"{BASE}\output\by_country",
@@ -95,17 +98,26 @@ def run_split():
 
 
 def run_cleandata():
-    print("\n=== Step 2e/9: cleaning each per-country dataset ===")
+    print("\n=== Step 2e/10: cleaning each per-country dataset ===")
     step2e_clean_country_datasets.clean_country_datasets(
         rf"{BASE}\output\by_country",
         rf"{BASE}\output\by_country\cleaned",
     )
 
 
+def run_publish():
+    print("\n=== Step 4/10: merging into data/final (validated) ===")
+    step4_publish_dataset.publish_dataset(
+        step4_publish_dataset.DEFAULT_SOURCE,
+        step4_publish_dataset.DEFAULT_TARGET,
+        step4_publish_dataset.DEFAULT_REPORT,
+    )
+
+
 def run_images():
-    print("\n=== Step 3/9: downloading poster images ===")
+    print("\n=== Step 3/10: downloading poster images ===")
     step3_download_images.download_images_from_csv(
-        rf"{BASE}\output\by_country\cleaned\kdrama_dataset.csv",
+        step3_download_images.DEFAULT_CSV,
         output_folder=step3_download_images.DEFAULT_OUTPUT,
         report_path=step3_download_images.DEFAULT_REPORT,
     )
@@ -120,6 +132,7 @@ RUNNERS = {
     "clean": run_clean,
     "split": run_split,
     "cleandata": run_cleandata,
+    "publish": run_publish,
     "images": run_images,
 }
 
@@ -134,6 +147,7 @@ def main():
     parser.add_argument("--skip-clean", action="store_true", help="skip step 2c (clean titles)")
     parser.add_argument("--skip-split", action="store_true", help="skip step 2d (split cleaned data by country)")
     parser.add_argument("--skip-cleandata", action="store_true", help="skip step 2e (clean each per-country dataset)")
+    parser.add_argument("--skip-publish", action="store_true", help="skip step 4 (merge into data/final)")
     parser.add_argument("--skip-images", action="store_true", help="skip step 3 (download images)")
     parser.add_argument(
         "--only",
@@ -154,6 +168,7 @@ def main():
             args.skip_clean,
             args.skip_split,
             args.skip_cleandata,
+            args.skip_publish,
             args.skip_images,
         ]
         steps_to_run = [step for step, skip in zip(STEPS, skip_flags) if not skip]

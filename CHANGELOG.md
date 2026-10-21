@@ -6,6 +6,8 @@ Important project history reconstructed from Git commits and project documentati
 
 ### Scraper pipeline image step
 
+- New Step 4 `steps/step4_publish_dataset.py` (in `run_pipeline.py` as `publish`, before the image step): merges the scraper's cleaned K-drama CSV into `data/final/kdrama_dataset.csv`. Matches dramas by poster image ID, then `(title, aired)`, then title alone when it's the only unmatched drama with that title. Keeps existing order, appends new dramas, never deletes, keeps old values for blank fields, and holds back poster URL changes (they would change the database identity). Validates columns, required fields, unique IDs and `(title, aired)`, no row drop, and `--max-new` (300). On success keeps `kdrama_dataset.prev.csv`; on failure leaves the live file untouched and exits 1. Report: `data/reports/dataset_publish_report.json` with `embedding_text_changed` / `metadata_changed` flags. Tested on the live data (no changes, nothing written) and scratch copies (updates, blanks, poster/air-date changes, shared "Bad Guy" title, failing checks).
+- The image step now reads `data/final/kdrama_dataset.csv`, after publishing.
 - `run_pipeline.py` image step now saves posters by ID into `output/drama_image_by_id/` and writes `output/drama_image_by_id_report.csv`. Previously it pointed at the old `output/drama_image/` folder and crashed because the downloader requires `report_path`.
 
 ## 2026-10-12
