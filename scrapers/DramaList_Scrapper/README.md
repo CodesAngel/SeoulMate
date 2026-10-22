@@ -26,6 +26,11 @@ python run_pipeline.py --refresh --dry-run                     # show what would
 Each step skips work it's already done (existing HTML files, CSV rows, downloaded images), so
 re-running `run_pipeline.py` after a partial or failed run just resumes.
 
+Last real run (2026-10-22): `--refresh` without extraction (URL list 9,640 -> 9,718 rows; 296 of
+300 pages downloaded, 4 blocked), then `--skip-listing --skip-urls --skip-html`. `data/final`
+went from 2,081 to 2,130 dramas (49 new, 233 updated, 3 poster changes held back); 49 posters
+downloaded; 126 saved pages couldn't be parsed. About 1,700 pages are still due for re-download.
+
 ### Nightly refresh (`--refresh`)
 
 - Step 0a fetches only the first 5 pages of `newest` and `popular` into
@@ -220,6 +225,13 @@ asynchronously, named `<Title> (<Year>) [<ID>].jpg`. The ID is the file name of 
   failed downloads and rows without an image URL.
 - **Run:** `python steps/step3_download_images.py [--csv ...] [--out ...] [--report ...]`
 - Only downloads posters whose ID isn't in the output folder yet. Safe to re-run/resume.
+- Renames a saved poster when its drama was retitled (ID unchanged), including case-only changes
+  such as `LOVE` -> `Love`, so the poster audit doesn't report it as misnamed.
+- WebP card thumbnails are not part of the pipeline. To make them without the database, run from
+  the project root:
+  `scripts/audit_poster_inventory.py --dataset`, then `scripts/generate_poster_thumbnails.py`
+  (output: `output/drama_image_cards/<ID>.webp`). Uploading them to Supabase Storage needs the
+  database — `scripts/update_catalog.py` does that.
 - CSV reads use `encoding="utf-8-sig"` to correctly strip the BOM that Step 2d's `to_csv` writes
   (a plain `utf-8` read would otherwise misread the `title` column, as `﻿title`, and crash).
 

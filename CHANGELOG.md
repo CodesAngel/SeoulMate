@@ -2,6 +2,26 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-22
+
+### First scrape that adds dramas; offline WebP thumbnails
+
+- **Refresh scrape** (`run_pipeline.py --refresh`, extraction skipped):
+  - **URL list:** 9,640 → 9,718 dramas (+78 across all countries, 14 Korean).
+  - **Drama pages:** 296 of 300 downloaded; 4 came back blocked and kept their old copies.
+  - **Backlog:** about 1,700 pages are still due for re-download.
+- **First real extract → publish → images** (`--skip-listing --skip-urls --skip-html`):
+  - **Step 2:** dropped 162 blank rows; 126 saved pages couldn't be parsed.
+  - **`data/final`:** 2,081 → **2,130 dramas**: 49 new, 233 updated, 3 poster changes held back (Room No. 9, One Spring Night, Salon De Nabi). The previous file is `kdrama_dataset.prev.csv`.
+  - **New dramas:** include Taxi Driver Season 3, Cashero, Made in Korea, Bloodhounds Season 2, The Remarried Empress, Doctor X: Mafia in White, Sign: The Way I Hear You and Love in Disguise. The full list is in `data/reports/dataset_publish_report.json`.
+  - **Posters:** 49 new posters downloaded (one retry for a timeout); 18 renamed after retitles.
+- **Offline poster audit:** `scripts/audit_poster_inventory.py --dataset [CSV]` reads dramas from `data/final` instead of PostgreSQL. Drama IDs stay blank and the database key checks are skipped; the summary records the `source`. `generate_poster_thumbnails.py` accepts that inventory.
+  - **Storage upload unchanged:** it still needs a database audit, and `update_catalog.py` keeps running one.
+  - **Result:** 2,130/2,130 posters matched; 2,130 WebP thumbnails (82 MiB, 73% smaller than the originals).
+  - **Duplicate content:** two sequel pairs share identical posters upstream (Our Beloved Summer and its movie, Death's Game Parts 1 and 2). This was already known and doesn't block the audit.
+- **Fix:** the poster downloader skipped case-only retitles on Windows (the new name "existed" as the same file); "Splash Splash LOVE" is now renamed to "Splash Splash Love".
+- **Not done yet:** index rebuild and database import of the 49 new dramas. These need Supabase running (`update_catalog.py --skip-scrape`).
+
 ## 2026-10-21
 
 ### One-command catalog update and safe index releases

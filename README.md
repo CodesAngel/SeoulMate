@@ -234,12 +234,20 @@ If anything fails after the database changed, the run rolls back. It restores th
 
 Status (2026-10-22):
 - **Done:** the first release ran against local Supabase (`--skip-scrape --force`, same 2,081 dramas). All posters and database links verified, nothing re-uploaded, and the backend started on the new index with search results unchanged (see Evaluation).
-- **Next:** a run with scraping, the first that adds new dramas. Then nightly scheduling. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
+- **Done:** scraper refresh and publish: `data/final` now has **2,130 dramas** (49 new), with 2,130 posters and 2,130 WebP thumbnails on disk.
+- **Next:** `update_catalog.py --skip-scrape` with Supabase running, to rebuild the index, import the 49 new dramas and upload their posters; then restart the backend. The search index and database still hold 2,081 dramas until then. After that, nightly scheduling. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
 
 Local posters are optional. To download missing posters:
 
 ```powershell
 .\.venv\Scripts\python.exe scrapers\DramaList_Scrapper\steps\step3_download_images.py
+```
+
+To make WebP card thumbnails without the database (the audit reads the drama list from `data/final`; the Storage upload still needs a normal database audit):
+
+```powershell
+.\.venv\Scripts\python.exe scripts\audit_poster_inventory.py --dataset
+.\.venv\Scripts\python.exe scripts\generate_poster_thumbnails.py
 ```
 
 Poster originals are preserved in `scrapers/DramaList_Scrapper/output/drama_image_by_id/`. The production UI receives public Supabase Storage URLs from FastAPI, using WebP thumbnails on cards and original JPEGs on detail pages. Runtime poster delivery has no external image fallback; details are in the [quick start](docs/QUICKSTART.md#prepare-and-upload-posters-to-local-storage).
