@@ -90,7 +90,8 @@ def rename_outdated(df, saved):
         if path is None:
             continue
         expected = path.with_name(poster_filename(row["title"], row["aired"], row["image"]))
-        if path.name != expected.name and not expected.exists():
+        # samefile: a case-only retitle on Windows "exists" as the same file
+        if path.name != expected.name and (not expected.exists() or expected.samefile(path)):
             path.rename(expected)
             renamed += 1
     return renamed

@@ -18,7 +18,14 @@ Important project history reconstructed from Git commits and project documentati
 - `scripts/import_catalog.py --allow-extra-posters` (for rollbacks); `scripts/upload_posters_to_storage.py --skip-unchanged` (upload only new or changed objects) and `--ignore-unexpected`.
 - Poster downloader renames saved posters when a drama is retitled upstream (ID unchanged), so the poster audit doesn't fail on outdated file names.
 - Ranking indexes (`backend/ranking/indexes/`) are still generated from the old 1,922-drama metadata; `update_catalog.py --ranking-indexes` regenerates them, off by default because it changes ranking.
-- Tested offline (local Supabase was not running, so database import, poster upload, database rollback and restart are untested):
+- First real release (2026-10-22, local Supabase): `update_catalog.py --skip-scrape --force` → `released` in 33 min.
+  - **Stages:** build 25.6 min, catalog import 22 s, poster audit 54 s, thumbnails 5.4 min, upload 1 min.
+  - **Uploads:** 0 of 4,162 objects needed uploading; all 4,162 Storage objects and 2,081 database links were verified.
+  - **Backend:** restarted by hand and loaded cleanly ("Posters: 2081 PostgreSQL mappings attached").
+  - **Search quality unchanged:** regression suite 33/33; evaluation 87.05% overall, P@3 60.66%, R@10 94.48%, MRR 0.992, NDCG@10 0.943, franchise 10/10 — identical to the baseline.
+  - **Rollback against the database not exercised:** nothing failed.
+  - **Known issue found (pre-existing, not from this release):** "Alchemy of Souls" gets no franchise siblings because "Alchemy of Souls Season 2: Light and Shadow" (Season N followed by a colon subtitle) isn't grouped by `franchise_siblings()`. It isn't one of the 10 franchise test cases.
+- Before that, tested offline:
   - `update_catalog.py --skip-scrape --no-db --force` → result `built`. The index build took 931 s (~15.5 min) on this PC; the candidate check and the `import_catalog.py` dry run passed for 2,081 dramas.
   - Rebuilding from the current `data/final` gives vectors identical to the live index (cosine 1.000, same order); the new metadata adds `image_url`, `image_id` and `watchers`.
   - Scratch tests: a second run exits with code 2 while one is active; swapped or missing metadata rows, a moved live drama and a different model are all rejected; release-row selection (live order kept, new dramas appended, no-poster dramas deferred, unchanged dataset → `no_changes`); index activation and rollback; poster rename on retitle.

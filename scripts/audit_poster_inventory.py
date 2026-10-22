@@ -2,6 +2,11 @@
 
 The audit is read-only. It writes a row-level CSV manifest and a JSON summary
 that can also be used to verify later Supabase Storage uploads.
+
+With --dataset, dramas are read from a dataset CSV (e.g. data/final) instead of
+the database, so thumbnails can be generated offline. That inventory has no
+drama IDs and skips the database key checks; the Storage upload needs a normal
+database audit.
 """
 
 from __future__ import annotations
@@ -14,19 +19,17 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
+from urllib.parse import urlparse
 
 from PIL import Image, UnidentifiedImageError
-from sqlalchemy import select
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 BACKEND_DIR = PROJECT_DIR / "backend"
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
-
-from database.models import Drama  # noqa: E402
-from database.session import SessionLocal  # noqa: E402
 
 
 DEFAULT_POSTERS = (
@@ -40,7 +43,8 @@ DEFAULT_CSV_REPORT = PROJECT_DIR / "data" / "reports" / "poster_inventory.csv"
 DEFAULT_JSON_REPORT = (
     PROJECT_DIR / "data" / "reports" / "poster_inventory_summary.json"
 )
-POSTER_ID_PATTERN = re.compile(r"\[([^\[\]]+)\]\.([A-Za-z0-9]+)$")
+DEFAULT_DATASET = PROJECT_DIR / "data" / "final" / "kdrama_dataset.csv"
+POSTER_ID_PATTERN =re.compile(r"\[([^\[\]]+)\]\.([A-Za-z0-9]+)$")
 YEAR_PATTERN = re.compile(r"\b(?:19|20)\d{2}\b")
 
 
@@ -81,13 +85,14 @@ def serialize_paths(paths: list[Path]) -> list[str]:
     return [path.relative_to(PROJECT_DIR).as_posix() for path in paths]
 
 
-def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    poster_dir = poster_dir.resolve()
-    if not poster_dir.is_dir():
-        raise FileNotFoundError(f"Poster directory does not exist: {poster_dir}")
+def load_database_dramas() -> list[Any]:
+    from sqlalchemy import select
+
+    from database.models import Drama
+    from database.session import SessionLocal
 
     with SessionLocal() as session:
-        dramas = list(
+        return list(
             session.execute(
                 select(
                     Drama.id,
@@ -101,6 +106,36 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
             ).all()
         )
 
+
+def image_id_from_url(image_url: str) -> str:
+    """'https://i.mydramalist.com/73PkAD_4f.jpg' -> '73PkAD_4f' (same rule as the downloader)."""
+
+    return Path(urlparse(image_url or "").path).stem
+
+
+def load_dataset_dramas(dataset: Path) -> list[Any]:
+    with dataset.open(encoding="utf-8-sig", newline="") as handle:
+        return [
+            SimpleNamespace(
+                id=None,
+                image_id=image_id_from_url(row.get("image", "")),
+                title=row["title"],
+                aired=row.get("aired", ""),
+            )
+            for row in csv.DictReader(handle)
+        ]
+
+
+def audit_poster_inventory(
+    poster_dir: Path, dataset: Path | None = None
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    poster_dir = poster_dir.resolve()
+    if not poster_dir.is_dir():
+        raise FileNotFoundError(f"Poster directory does not exist: {poster_dir}")
+
+    from_database = dataset is None
+    dramas = load_database_dramas() if from_database else load_dataset_dramas(dataset)
+
     files = sorted((path for path in poster_dir.iterdir() if path.is_file()), key=lambda p: p.name)
     files_by_id: defaultdict[str, list[Path]] = defaultdict(list)
     unparseable_files: list[Path] = []
@@ -111,9 +146,9 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
         else:
             unparseable_files.append(path)
 
-    database_ids: defaultdict[str, list[int]] = defaultdict(list)
+    database_ids: defaultdict[str, list[Any]] = defaultdict(list)
     for drama in dramas:
-        database_ids[drama.image_id or ""].append(drama.id)
+        database_ids[drama.image_id or ""].append(drama.id if from_database else drama.title)
 
     duplicate_database_ids = {
         image_id: drama_ids
@@ -133,7 +168,7 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
 
     rows: list[dict[str, Any]] = []
     content_hashes: defaultdict[str, list[Path]] = defaultdict(list)
-    missing_drama_ids: list[int] = []
+    missing_drama_ids: list[Any] = []
     misnamed_files: list[dict[str, str]] = []
     unreadable_files: list[dict[str, str]] = []
     non_jpeg_files: list[dict[str, str]] = []
@@ -149,26 +184,28 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
         mapping_problems: list[str] = []
         if not image_id:
             mapping_problems.append("missing_database_image_id")
-        if drama.source_key != image_id:
-            mapping_problems.append("source_key_image_id_mismatch")
-        if drama.poster_original_key != expected_original_key:
-            mapping_problems.append("poster_original_key_mismatch")
-        if drama.poster_thumbnail_key != expected_thumbnail_key:
-            mapping_problems.append("poster_thumbnail_key_mismatch")
+        if from_database:
+            if drama.source_key != image_id:
+                mapping_problems.append("source_key_image_id_mismatch")
+            if drama.poster_original_key != expected_original_key:
+                mapping_problems.append("poster_original_key_mismatch")
+            if drama.poster_thumbnail_key != expected_thumbnail_key:
+                mapping_problems.append("poster_thumbnail_key_mismatch")
         if mapping_problems:
             database_mapping_mismatches.append(
                 {
-                    "drama_id": drama.id,
+                    "drama_id": drama.id if from_database else drama.title,
                     "image_id": image_id,
                     "problems": mapping_problems,
                 }
             )
 
+        drama_id = drama.id if from_database else ""
         if not matches:
-            missing_drama_ids.append(drama.id)
+            missing_drama_ids.append(drama.id if from_database else drama.title)
             rows.append(
                 {
-                    "drama_id": drama.id,
+                    "drama_id": drama_id,
                     "image_id": image_id,
                     "title": drama.title,
                     "aired": drama.aired or "",
@@ -217,7 +254,7 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
             content_hashes[content_hash].append(path)
             rows.append(
                 {
-                    "drama_id": drama.id,
+                    "drama_id": drama_id,
                     "image_id": image_id,
                     "title": drama.title,
                     "aired": drama.aired or "",
@@ -239,6 +276,7 @@ def audit_poster_inventory(poster_dir: Path) -> tuple[list[dict[str, Any]], dict
     }
     matched_rows = sum(row["status"] == "matched" for row in rows)
     summary: dict[str, Any] = {
+        "source": "database" if from_database else f"dataset:{dataset.resolve().relative_to(PROJECT_DIR).as_posix()}",
         "database_dramas": len(dramas),
         "poster_files": len(files),
         "poster_bytes": sum(path.stat().st_size for path in files),
@@ -295,15 +333,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--posters", type=Path, default=DEFAULT_POSTERS)
     parser.add_argument("--csv-report", type=Path, default=DEFAULT_CSV_REPORT)
     parser.add_argument("--json-report", type=Path, default=DEFAULT_JSON_REPORT)
+    parser.add_argument(
+        "--dataset",
+        type=Path,
+        nargs="?",
+        const=DEFAULT_DATASET,
+        help=f"read dramas from this CSV instead of the database (default: {DEFAULT_DATASET.relative_to(PROJECT_DIR).as_posix()})",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    rows, summary = audit_poster_inventory(args.posters)
+    rows, summary = audit_poster_inventory(args.posters, args.dataset)
     write_reports(rows, summary, args.csv_report, args.json_report)
 
-    print(f"Database dramas: {summary['database_dramas']}")
+    print(f"Source: {summary['source']}")
+    print(f"Dramas: {summary['database_dramas']}")
     print(f"Local poster files: {summary['poster_files']}")
     print(f"Clean one-to-one matches: {summary['matched_dramas']}")
     print(f"Missing: {len(summary['missing_drama_ids'])}")

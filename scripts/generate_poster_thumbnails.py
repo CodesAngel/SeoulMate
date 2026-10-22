@@ -88,7 +88,9 @@ def generate_one(task: dict[str, Any]) -> dict[str, Any]:
         "image_id": task["image_id"],
         "source_filename": source.name,
         "source_sha256": source_hash,
-        "thumbnail_key": f"dramas/{task['drama_id']}/thumbnail.webp",
+        "thumbnail_key": (
+            f"dramas/{task['drama_id']}/thumbnail.webp" if task["drama_id"] is not None else ""
+        ),
         "thumbnail_filename": target.name,
         "width": width,
         "height": height,
@@ -145,7 +147,8 @@ def load_tasks(
         source_bytes += source.stat().st_size
         tasks.append(
             {
-                "drama_id": int(row["drama_id"]),
+                # Blank for an offline (--dataset) inventory; the upload needs a database audit.
+                "drama_id": int(row["drama_id"]) if row["drama_id"] else None,
                 "image_id": image_id,
                 "source": str(source),
                 "source_sha256": row["sha256"],

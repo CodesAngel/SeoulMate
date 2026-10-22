@@ -1,5 +1,5 @@
 {
-  "average_thumbnail_bytes": 40623.97,
+  "average_thumbnail_bytes": 40439.69,
   "complete": true,
   "duplicate_thumbnail_content": {
     "2941820599ef77761f5b214389331859bb03469112dd879cb173005e610b06f1": [
@@ -11,16 +11,16 @@
       "xRgQ0_4f.webp"
     ]
   },
-  "generated_thumbnails": 2081,
+  "generated_thumbnails": 2130,
   "largest_thumbnail_bytes": 107540,
   "max_height": 720,
   "max_width": 480,
   "missing_outputs": [],
   "quality": 80,
-  "size_reduction_percent": 73.3,
+  "size_reduction_percent": 73.47,
   "smallest_thumbnail_bytes": 3206,
-  "source_bytes": 316620261,
-  "thumbnail_bytes": 84538476,
+  "source_bytes": 324723771,
+  "thumbnail_bytes": 86136548,
   "unexpected_outputs": [],
   "webp_method": 6
 }

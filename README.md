@@ -230,7 +230,11 @@ From the project root, this runs the scraper and then releases the result. A rel
 | activate | `faiss_index/` → `faiss_index.prev/`, candidate → `faiss_index/` |
 | restart | With `--restart-cmd`: restart, wait for `--health-url`, run one test search |
 
-If anything fails after the database changed, the run rolls back. It restores the previous index and re-imports the catalog from the live release's `dataset.csv`, removing the new dramas. Each run writes `logs/update/<run id>.log` and `logs/update/status.json`. A lock file prevents two runs at once. Exit codes: 0 = released or no changes, 1 = failed or rolled back, 2 = another run is active. Without `--restart-cmd`, the backend keeps serving the old index until restarted. Building the index takes about 15 minutes on a desktop CPU (longer on a small VM). The database stages need local or hosted Supabase running. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
+If anything fails after the database changed, the run rolls back. It restores the previous index and re-imports the catalog from the live release's `dataset.csv`, removing the new dramas. Each run writes `logs/update/<run id>.log` and `logs/update/status.json`. A lock file prevents two runs at once. Exit codes: 0 = released or no changes, 1 = failed or rolled back, 2 = another run is active. Without `--restart-cmd`, the backend keeps serving the old index until restarted. Building the index takes about 15–26 minutes on a desktop CPU (longer on a small VM); a full release took 33 minutes. The database stages need local or hosted Supabase running.
+
+Status (2026-10-22):
+- **Done:** the first release ran against local Supabase (`--skip-scrape --force`, same 2,081 dramas). All posters and database links verified, nothing re-uploaded, and the backend started on the new index with search results unchanged (see Evaluation).
+- **Next:** a run with scraping, the first that adds new dramas. Then nightly scheduling. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
 
 Local posters are optional. To download missing posters:
 
@@ -248,7 +252,7 @@ With the backend running:
 .\scripts\run_accuracy.ps1
 ```
 
-Recorded baseline: **2,081 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-03**.
+Recorded baseline: **2,081 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-03**. Re-confirmed on **2026-10-22** after the first automated release (rebuilt index plus PostgreSQL catalog): identical results, with franchise ordering 10/10 and the regression suite 33/33.
 
 | Metric | Result |
 | --- | ---: |
