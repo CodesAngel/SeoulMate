@@ -265,10 +265,19 @@ Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated o
 
 | Metric | Result |
 | --- | ---: |
-| Overall accuracy | 89.00% |
-| Precision@3 | 65.57% |
-| Recall@10 | 96.89% |
+| Overall accuracy | 89.10% |
+| Precision@3 | 66.12% |
+| Recall@10 | 96.28% |
 | Mean reciprocal rank | 0.992 |
+
+**Held-out set** (`tests/evaluation/evaluate_heldout.py`): 52 searches whose expected answers come from the dataset's MyDramaList tags and cast billing, never used for tuning.
+
+| Held-out | P@5 | R@10 | Hit@1 |
+| --- | ---: | ---: | ---: |
+| Topics (42) | 68.1% | 26.4% | 71.4% |
+| Actors (10) | 92.0% | 95.9% | 100% |
+
+Trope searches: P@5 65.6%, R@10 78.0%. Similar dramas: P@5 24.0%, R@10 28.8%.
 
 These results describe this benchmark, not all recommendation scenarios. Precision@3 has a 68.3% ceiling on this test set because title and typo cases have a single expected answer. Similar-drama and trope searches have separate evaluations. See the [evaluation report](tests/reports/model_comparison_2026-09-30.md) for methodology, comparisons, and limitations.
 

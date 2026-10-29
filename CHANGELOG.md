@@ -4,6 +4,50 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-29
 
+### Held-out test set; actor detection, tag matching, one result per franchise
+
+Done in this order, each kept only if the main test, regression suite and real-world set held up:
+
+1. **Held-out test set** (`tests/evaluation/heldout_queries.json`, `evaluate_heldout.py`).
+   - **Contents:** 52 searches (42 topics, 10 actors) that no ranking rule has been tuned on.
+   - **Expected answers:** taken from the dataset's own MyDramaList tags, genres and cast billing, not from search results.
+   - **Metrics:** P@5 is the share of the top 5 that are on topic (or the actor's lead roles); R@10 is coverage of the 10 most-watched relevant dramas.
+   - **Caveat:** while designing step 3 I looked at debug output for some held-out searches. The rules are general, but the set is no longer completely unseen.
+2. **One result per franchise in typed searches** (`collapse_franchises()`). Actor, genre and theme searches keep the best-ranked season and move the others behind the first `max(top_n*4, 20)` results. Title and similar-to searches are unchanged. Song Hye Kyo no longer shows *The Glory Part 2* in her top 3.
+3. **Actor detection for every credited actor.**
+   - **Bug:** `QueryAnalyzer` lowercased the query before its capitalized-name pattern, so only the 25 actors in `ACTOR_ALIASES` were ever detected. "Lee Jun Ho", "Park Bo Young", "Jung Hae In" and "Han So Hee" became fuzzy title searches.
+   - **Fix:** the backend now registers all 3,230 multi-word cast names (`set_known_actors()`). Of 2,130 titles, only two contain an actor name, and exact titles win.
+   - **Also fixed:** alias matching is whole-word ("iu" fired inside "stadium").
+4. **MyDramaList tag matching for any query** (`build_tag_priors()`, `match_tag_priors()`).
+   - **Phrases:** every tag used by 5+ dramas becomes a phrase without its role words ("Single Mother Female Lead" → "single mother"). Personality adjectives and genre names are skipped.
+   - **Boost:** when all of a phrase's (plural-tolerant) words are in the query, the tagged dramas are boosted (`tag_prior` 2.3).
+   - **Precedence:** a curated relationship/setting/occupation prior for a longer phrase wins over a tag inside it ("office romance" beats the bare "office" tag). Tropes keep their own lists.
+   - **Off switch:** `SEOULMATE_TAG_PRIORS=off`.
+5. **Whole-word matching for curated priors** (`query_matches_prior_term()`): "police officers" used to match `setting:Office`, and "ghost" `occupation:Host`.
+6. **Tag centrality** (`tag_centrality_score()`). MyDramaList lists tags by votes, so tropes and tag matches now rank tagged dramas by watchers discounted by the tag's position (÷(1 + position/5)), not by watchers alone. Offline, the trope check went 62.2% → 66.7% P@5, with both halves improving.
+
+**Tried and not kept:**
+- **Similar-drama scoring** (offline script that reproduces live 24.0% / 28.8%): plot-description vector similarity (weights 1–3), keyword weight 3, popularity weight 0.5/1.5, and story-tags-only. None improved both halves of the 15 seeds; story-tags-only gave R@10 32.1% but P@5 22.7%. Unchanged.
+- **"royal" → "royalty" tag synonym:** "sageuk royal drama" fell to 0% (pulled in the modern *The King: Eternal Monarch*). Reverted.
+- **Skipped:** a "survival game" trope (tags miss Liar Game/Pyramid Game, and the test expects only Squid Game) and "workplace startup" (only 2 dramas tagged Startup).
+
+**Results** (before → after this work):
+
+| Test | Before | After |
+|---|---|---|
+| Main overall | 89.00% | 89.10% |
+| Main P@3 / R@10 / NDCG | 65.57% / 96.89% / 0.966 | 66.12% / 96.28% / 0.963 |
+| Main actor P@3 | 90.0% | 93.3% |
+| Trope searches P@5 / R@10 | 60.0% / 77.4% | **65.6% / 78.0%** |
+| Similar dramas P@5 / R@10 | 24.0% / 28.8% | 24.0% / 28.8% |
+| **Held-out topics** P@5 / R@10 / Hit@1 | 35.7% / 12.6% / 38.1% | **68.1% / 26.4% / 71.4%** |
+| **Held-out actors** P@5 / R@10 / Hit@1 | 54.0% / 56.3% / 60.0% | **92.0% / 95.9% / 100%** |
+| **Held-out all** P@5 / R@10 / Hit@1 | 39.2% / 21.0% / 42.3% | **72.7% / 39.8% / 76.9%** |
+| Real-world set Hit@1 / MRR | 96.2% / 0.971 | 96.2% / 0.971 |
+| Regression suite | 33/33 | 33/33 |
+
+Main-test trade-off from tag matching: R@10 fell on three searches (rich CEO romance, law firm corruption, healing slice of life) and rose on one (revenge drama). Top-3 precision was unchanged on all four.
+
 ### Second release: 49 new dramas live (2,130)
 
 - **Release:** `update_catalog.py --skip-scrape` against local Supabase took **7 minutes** (the 2026-10-22 release took 33). Build ~4 min: 281 encoded, 1,849 reused, spot-check cosine 1.000000. The catalog import committed 2,130 dramas. Poster audit: 2,130/2,130 clean (the 2 known duplicate-content sequel pairs). Thumbnails: 0 regenerated, 2,130 kept. Storage: 98 of 4,260 objects uploaded; all URLs and database links verified. The previous release is in `faiss_index.prev/`.

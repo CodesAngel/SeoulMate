@@ -167,6 +167,15 @@ class QueryAnalyzer:
     def __init__(self):
         self.synonyms = SYNONYMS
         self.intent_patterns = INTENT_PATTERNS
+        self.known_actors = {}
+
+    def set_known_actors(self, names):
+        """Register catalog cast names (2+ words) so any credited actor is detected."""
+        for name in names:
+            name = " ".join(str(name).split())
+            key = " ".join(re.findall(r"[a-z0-9]+", name.lower()))
+            if len(key.split()) >= 2:
+                self.known_actors.setdefault(key, name)
 
     def analyze(self, query: str) -> Dict:
         """
@@ -288,12 +297,34 @@ class QueryAnalyzer:
         # Extract actors (capitalized names) - Enhanced detection
         actor_aliases = ACTOR_ALIASES
 
-        # Check for known actors first (case-insensitive)
+        # Check for known actors first (case-insensitive, whole words: "iu" must
+        # not fire inside "stadium")
         query_lower = query.lower()
         detected_actors = []
         for canonical_actor, aliases in actor_aliases.items():
-            if any(alias in query_lower for alias in aliases):
+            if any(
+                re.search(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", query_lower)
+                for alias in aliases
+            ):
                 detected_actors.append(canonical_actor)
+
+        # Then any credited cast name from the catalog (the query reaching here is
+        # already lowercased, so the capitalized-name pattern below rarely fires)
+        words = re.findall(r"[a-z0-9]+", query_lower)
+        detected_aliases = {
+            " ".join(re.findall(r"[a-z0-9]+", alias))
+            for actor in detected_actors
+            for alias in actor_aliases.get(actor, [])
+        }
+        for size in (4, 3, 2):
+            for start in range(len(words) - size + 1):
+                key = " ".join(words[start : start + size])
+                name = self.known_actors.get(key)
+                if name and key not in detected_aliases and not any(
+                    name.lower() in actor.lower() or actor.lower() in name.lower()
+                    for actor in detected_actors
+                ):
+                    detected_actors.append(name)
 
         # Then use pattern matching for other actors
         actor_pattern = r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)\b"

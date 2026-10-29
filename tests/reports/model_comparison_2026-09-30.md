@@ -334,3 +334,24 @@ Unchanged: overall 87.05%, "time travel" scored test 100% P@3, franchise 10/10, 
 | Cross-encoder, replace top-20 order | 79.05% | 40.98% | 1,104 ms | regression 32/33 |
 
 The cross-encoder only sees the description text, so it undoes the curated, actor and popularity ordering. It stays off (`SEOULMATE_RERANK` defaults to `off`).
+
+### Held-out set and general ranking fixes (2026-10-29, later)
+
+**New held-out evaluation** (`tests/evaluation/evaluate_heldout.py`): 52 searches, with expected answers taken from dataset tags, genres and cast billing. Its baseline showed that the 61-search set overstated quality. Topics scored P@5 35.7% and actors 54.0%. Many unrelated searches returned the same curated romance or thriller list, and actors outside the 25-name alias list weren't detected at all.
+
+| Step | Main overall | Main P@3 | Trope P@5 | Held-out topics P@5 / Hit@1 | Held-out actors P@5 | Regression |
+|---|---|---|---|---|---|---|
+| Start | 89.00% | 65.57% | 60.0% | 35.7% / 38.1% | 54.0% | 33/33 |
+| 1. One result per franchise | 89.17% | 66.12% | 60.0% | 35.7% / 38.1% | 54.0% | 33/33 |
+| 2a. Detect every credited actor | 89.17% | 66.12% | 60.0% | 35.7% / 38.1% | **92.0%** | 33/33 |
+| 2b. Tag matching (boost 2.3, always) | — | — | — | 67.1% / 71.4% | 92.0% | **31/33** |
+| 2c. Tags below any curated prior (1.4) | 89.14% | 66.12% | 60.0% | 46.7% / 50.0% | 92.0% | 33/33 |
+| 2f. Tags yield only to a longer curated phrase; whole-word prior matching | 89.10% | 66.12% | 60.0% | 66.7% / 71.4% | 92.0% | 33/33 |
+| 4. Tag centrality ordering | **89.10%** | **66.12%** | **65.6%** | **68.1% / 71.4%** | **92.0%** | 33/33 |
+
+Not kept:
+- **2d/2e (curated-agreement and genre-first ordering of tag lists):** "office romance" still failed in regression.
+- **"royal" → "royalty" synonym:** main 88.71%.
+- **Similar-drama variants:** none helped both halves of the seeds.
+
+Real-world set unchanged throughout (Hit@1 96.2%, MRR 0.971), except 2b (MRR 0.952).
