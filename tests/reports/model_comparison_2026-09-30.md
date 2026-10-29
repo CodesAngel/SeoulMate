@@ -300,3 +300,37 @@ Two more causes found:
 Whole 18-query check: **P@5 63.3%, R@10 81.8%**. The original 8 queries: 60.0% → 57.5% ("found family" 60% → 40% under the higher boost, as tag-ordered dramas like *Black Knight* outrank the curated list). Tried putting curated relationship lists ahead of tagged dramas: "found family" back to 60% but the check fell to 55.6% (curated lists for enemies to lovers, fake dating etc. are weaker than the tags). Not kept.
 
 Unchanged: overall 87.05%, "time travel" scored test 100% P@3, franchise 10/10, similar dramas 22.7% / 28.8%, regression suite 33/33.
+
+### 2,130 dramas, actor ranking and corrected expected answers (2026-10-29)
+
+**Release:** 49 new dramas (2,081 → 2,130). Right after it, with no code changes: overall 86.81% (P@3 60.11%, R@10 93.93%). The dip comes from the new dramas competing for result slots; the vectors are identical to a full rebuild.
+
+**Test fixes:**
+- Taxi Driver franchise cases now expect Season 3.
+- Three MyDramaList retitles were renamed in the tests (Strong Girl Bong Soon, So I Married the Anti-Fan, You Are My Destiny).
+- "Penthouse" and "Misaeng" weren't dataset titles, so they could never match.
+- Fitting dramas were added to 7 expected lists. The full list, and the deliberately rejected ones, are in `CHANGELOG.md` (2026-10-29).
+
+**Code changes:**
+- `franchise_keys()` handles "Season N" before a colon (Alchemy of Souls, Voice, Arthdal Chronicles, Penthouse...).
+- Actor searches match cast romanization variants and rank the actor's dramas by watchers (supporting roles ×0.4, prior titles ×1.5).
+
+| Metric | 2,081 baseline | After release | Now |
+|---|---|---|---|
+| Overall accuracy | 87.05% | 86.81% | **89.00%** |
+| Precision@3 | 60.66% | 60.11% | **65.57%** |
+| Recall@10 | 94.48% | 93.93% | **96.89%** |
+| NDCG@10 | 0.943 | 0.939 | **0.966** |
+| Actor P@3 / R@10 | — | 86.7% / 90% | 90% / 100% |
+| Franchise ordering | 10/10 | 10/10 | 12/12 |
+| Regression suite | 33/33 | 33/33 | 33/33 |
+
+**Tested and not kept:**
+
+| Variant | Overall | P@3 | Avg response | Note |
+|---|---|---|---|---|
+| Generated index boosts 0.1 each, cap 1.2 | 88.64% | 64.48% | 123 ms | theme and actor P@3 fell |
+| Cross-encoder, blend of rank positions | 85.67% | 56.28% | 329 ms | |
+| Cross-encoder, replace top-20 order | 79.05% | 40.98% | 1,104 ms | regression 32/33 |
+
+The cross-encoder only sees the description text, so it undoes the curated, actor and popularity ordering. It stays off (`SEOULMATE_RERANK` defaults to `off`).
