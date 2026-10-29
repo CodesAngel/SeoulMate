@@ -32,7 +32,7 @@ What `backend/app.py` loads (via `TRAINING_DIR = training/`), as of 2026-10-01:
 | --- | --- | --- |
 | Bi-encoder | `models/sbert-finetuned-full/` | 768-dim embeddings |
 | Reranker | `models/cross-enc-excellent/` | ~88 MB cross-encoder |
-| FAISS index + metadata | `faiss_index/` | Built by step 3 from `data/final/kdrama_dataset.csv` — 2,081 dramas |
+| FAISS index + metadata | `faiss_index/` | Built by step 3 from `data/final/kdrama_dataset.csv` — 2,130 dramas |
 | Previous index (rollback) | `faiss_index.bak/` | Old 1,922-drama index; swap folder names to roll back |
 
 To pick up new data, only the index needs rebuilding (`--mode build-index`); the models don't need
@@ -43,7 +43,7 @@ Step 3 also accepts `--data <csv>`, `--out-dir <folder>` and `--model <model fol
 unchanged), and writes `build_info.json` (dataset hash, model, rows, dimension) next to the index.
 `scripts/update_catalog.py` uses them to build into `faiss_index.candidate/`, check it, and only
 then swap it in (old release kept in `faiss_index.prev/`), together with the PostgreSQL catalog
-and poster uploads. Prefer that over rebuilding in place. Current score: **87.05%** on the expanded 61-search test set, exact title matching (full
+and poster uploads. Prefer that over rebuilding in place. Current score: **86.81%** (2,130 dramas, 2026-10-29; 87.05% on the earlier 2,081) on the expanded 61-search test set, exact title matching (full
 comparison in `tests/reports/model_comparison_2026-09-30.md`).
 
 ## Standalone / future scripts (NOT called by `train_pipeline.py`)

@@ -232,10 +232,11 @@ From the project root, this runs the scraper and then releases the result. A rel
 
 If anything fails after the database changed, the run rolls back. It restores the previous index and re-imports the catalog from the live release's `dataset.csv`, removing the new dramas. Each run writes `logs/update/<run id>.log` and `logs/update/status.json`. A lock file prevents two runs at once. Exit codes: 0 = released or no changes, 1 = failed or rolled back, 2 = another run is active. Without `--restart-cmd`, the backend keeps serving the old index until restarted. A full index build takes about 15–26 minutes on this laptop CPU (longer on a small VM); reusing unchanged vectors, the build for 49 new and 232 changed dramas took about 2 minutes, and thumbnails take seconds when only a few posters are new. The database stages need local or hosted Supabase running.
 
-Status (2026-10-22):
+Status (2026-10-29):
 - **Done:** the first release ran against local Supabase (`--skip-scrape --force`, same 2,081 dramas). All posters and database links verified, nothing re-uploaded, and the backend started on the new index with search results unchanged (see Evaluation).
 - **Done:** scraper refresh and publish: `data/final` now has **2,130 dramas** (49 new), with 2,130 posters and 2,130 WebP thumbnails on disk.
-- **Next:** `update_catalog.py --skip-scrape` with Supabase running, to rebuild the index, import the 49 new dramas and upload their posters; then restart the backend. The search index and database still hold 2,081 dramas until then. After that, nightly scheduling. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
+- **Done (2026-10-29):** `update_catalog.py --skip-scrape` released the 49 new dramas in 7 minutes. The search index, database and Storage now hold **2,130 dramas**.
+- **Next:** nightly scheduling. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
 
 Local posters are optional. To download missing posters:
 
@@ -260,13 +261,13 @@ With the backend running:
 .\scripts\run_accuracy.ps1
 ```
 
-Recorded baseline: **2,081 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-03**. Re-confirmed on **2026-10-22** after the first automated release (rebuilt index plus PostgreSQL catalog): identical results, with franchise ordering 10/10 and the regression suite 33/33.
+Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-29** after the release that added 49 dramas. Franchise ordering is 10/10 and the regression suite 33/33. The previous 2,081-drama baseline (2026-10-03, re-confirmed 2026-10-22) was 87.05% overall, P@3 60.66% and R@10 94.48%. The small drop comes from the new dramas competing for result slots.
 
 | Metric | Result |
 | --- | ---: |
-| Overall accuracy | 87.05% |
-| Precision@3 | 60.66% |
-| Recall@10 | 94.48% |
+| Overall accuracy | 86.81% |
+| Precision@3 | 60.11% |
+| Recall@10 | 93.93% |
 | Mean reciprocal rank | 0.992 |
 
 These results describe this benchmark, not all recommendation scenarios. Precision@3 has a 68.3% ceiling on this test set because title and typo cases have a single expected answer. Similar-drama and trope searches have separate evaluations. See the [evaluation report](tests/reports/model_comparison_2026-09-30.md) for methodology, comparisons, and limitations.

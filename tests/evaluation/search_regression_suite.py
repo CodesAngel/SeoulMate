@@ -293,7 +293,7 @@ CASES = [
         params={"title": "strong female lead", "top_n": 8, "debug": True},
         checks=[
             debug_list_contains_prefix("extra_prior_terms", "character:strong female lead"),
-            any_title_in_top(["Strong Woman Do Bong Soon", "My Name", "The Glory"], 5),
+            any_title_in_top(["Strong Girl Bong Soon", "My Name", "The Glory"], 5),
         ],
     ),
     SearchCase(

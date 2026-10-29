@@ -21,7 +21,7 @@
   "non_jpeg_files": [],
   "poster_bytes": 324723771,
   "poster_files": 2130,
-  "source": "dataset:data/final/kdrama_dataset.csv",
+  "source": "database",
   "unparseable_files": [],
   "unreadable_files": [],
   "unrecognized_file_ids": {}

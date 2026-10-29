@@ -69,7 +69,7 @@ SEARCH_TEST_CASES = [
         [
             "Business Proposal",
             "What's Wrong with Secretary Kim",
-            "Strong Woman Do Bong Soon",
+            "Strong Girl Bong Soon",
             "Fight for My Way",
             "Her Private Life",
         ],
@@ -180,8 +180,8 @@ FRANCHISE_TEST_CASES = [
     ("Dr. Romantic Season 3", ["Dr. Romantic", "Dr. Romantic: APPENDIX, The Beginning of Everything", "Dr. Romantic Season 2"]),
     ("Hospital Playlist", ["Hospital Playlist Season 2"]),
     ("Hospital Playlist Season 2", ["Hospital Playlist"]),
-    ("Taxi Driver", ["Taxi Driver Season 2"]),
-    ("Taxi Driver Season 2", ["Taxi Driver"]),
+    ("Taxi Driver", ["Taxi Driver Season 2", "Taxi Driver Season 3"]),
+    ("Taxi Driver Season 2", ["Taxi Driver", "Taxi Driver Season 3"]),
     ("dramas like Yumi's Cells Season 3", ["Yumi's Cells", "Yumi's Cells Season 2"]),
     # Same-looking names that are unrelated shows must not be grouped
     ("Family", []),
@@ -221,11 +221,11 @@ HARD_THEME_TEST_CASES = [
     ("chaebol family", ["Reborn Rich", "Queen of Tears", "The Heirs", "Mine", "Graceful Family", "The Penthouse: War in Life", "High Society"]),
     ("second lead syndrome", ["Start-Up", "Reply 1988", "Moon Lovers: Scarlet Heart Ryeo", "True Beauty", "Boys over Flowers", "Love Alarm", "Record of Youth"]),
     ("found family", ["The Uncanny Counter", "Itaewon Class", "Prison Playbook", "Hospital Playlist", "Reply 1988", "Summer Strike"]),
-    ("enemies to lovers", ["Love to Hate You", "Destined with You", "Cheese in the Trap", "So I Married an Anti-Fan", "King2Hearts", "When the Phone Rings"]),
+    ("enemies to lovers", ["Love to Hate You", "Destined with You", "Cheese in the Trap", "So I Married the Anti-Fan", "King2Hearts", "When the Phone Rings"]),
     ("noona romance", ["Something in the Rain", "Encounter", "Romance Is a Bonus Book", "Crash Course in Romance", "Forecasting Love and Weather", "I Hear Your Voice"]),
     ("body swap", ["Secret Garden", "Alchemy of Souls", "The Heavenly Idol", "Big", "High School Return of a Gangster", "Mr. Queen"]),
     ("childhood friends to lovers", ["Fight for My Way", "Weightlifting Fairy Kim Bok Joo", "Love Next Door", "Reply 1988", "Welcome to Samdal-ri", "Reply 1997"]),
-    ("fake dating", ["Business Proposal", "Love in Contract", "Marriage, Not Dating", "Full House", "Fated to Love You", "Because This Is My First Life", "When the Phone Rings"]),
+    ("fake dating", ["Business Proposal", "Love in Contract", "Marriage, Not Dating", "Full House", "You Are My Destiny", "Because This Is My First Life", "When the Phone Rings"]),
     ("time slip romance", ["Lovely Runner", "Mr. Queen", "Moon Lovers: Scarlet Heart Ryeo", "Rooftop Prince", "Twinkling Watermelon", "A Time Called You", "Tomorrow with You"]),
     ("amnesia romance", ["100 Days My Prince", "Queen and I", "Extraordinary You", "Our Sticky Love", "Big", "Who Are You: School 2015"]),
     # "hidden identity" is also an exact drama title, so it stays a title search; test the trope via an alias
@@ -234,7 +234,7 @@ HARD_THEME_TEST_CASES = [
     ("reincarnation", ["Tale of the Nine-Tailed", "See You in My 19th Life", "Rooftop Prince", "Death's Game", "Chicago Typewriter", "Bulgasal: Immortal Souls"]),
     ("cross dressing", ["Coffee Prince", "Love in the Moonlight", "You're Beautiful", "The Tale of Nokdu", "Sungkyunkwan Scandal", "The King's Affection"]),
     ("second chance romance", ["Queen of Tears", "Our Beloved Summer", "Go Back Couple", "Familiar Wife", "Melo Movie"]),
-    ("cinderella story", ["Boys over Flowers", "Business Proposal", "The Heirs", "Secret Garden", "Coffee Prince", "Strong Woman Do Bong Soon"]),
+    ("cinderella story", ["Boys over Flowers", "Business Proposal", "The Heirs", "Secret Garden", "Coffee Prince", "Strong Girl Bong Soon"]),
     ("secret relationship", ["Something in the Rain", "Forecasting Love and Weather", "She Would Never Know", "Pasta", "My Dearest Nemesis"]),
     ("arranged marriage", ["Because This Is My First Life", "Mr. Queen", "100 Days My Prince", "Goong", "When the Phone Rings", "Love in Contract"]),
 ]
