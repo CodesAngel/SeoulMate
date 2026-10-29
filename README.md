@@ -282,9 +282,9 @@ Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated o
 
 | Held-out | P@5 | R@10 | Hit@1 |
 | --- | ---: | ---: | ---: |
-| Topics (42) | 68.1% | 26.4% | 71.4% |
+| Topics (42) | 68.6% | 27.9% | 71.4% |
 | Actors (10) | 92.0% | 95.9% | 100% |
-| All (52) | 72.7% | 39.8% | 76.9% |
+| All (52) | 73.1% | 40.9% | 76.9% |
 
 Trope searches: P@5 65.6%, R@10 78.0%. Similar dramas: P@5 24.0%, R@10 28.8%.
 

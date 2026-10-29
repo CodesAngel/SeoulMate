@@ -4,6 +4,23 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-10-29
 
+### Tag matching by meaning (fallback)
+
+- **New `semantic_tag_matches()`:**
+  - **Encoding:** the 539 tag phrases are encoded once at startup with the search model.
+  - **Matching:** when a query matches no tag word, trope, curated list or actor, its 1–3 word groups are compared with the phrases, and the closest tags (cosine ≥ 0.85, at most 2) are boosted like exact tag matches.
+  - **Skipped:** filler words, words after "no"/"not"/"without"/"but", and phrases that only repeat a genre word of the query.
+  - **Off switch:** `SEOULMATE_SEMANTIC_TAGS=off`.
+- **Threshold chosen on tuning queries only.** Whole-sentence matching (first try, threshold 0.70) never fired on the held-out set, because a sentence dilutes the topic word. With word groups:
+  - **Kept at 0.85:** "zombie" → zombies (0.96).
+  - **Kept out:** "royal" → royalty (0.83), "strong female" → physically strong (0.80), and "not too dark" → dark fiction.
+- **Result:**
+  - **Held-out topics:** P@5 68.1% → **68.6%**, R@10 26.4% → **27.9%**.
+  - **Held-out all:** P@5 72.7% → **73.1%**, R@10 39.8% → **40.9%**.
+  - **Unchanged:** main test 89.10%, trope check, regression 33/33 and the real-world set.
+  - **What changed:** only "who is the murderer mystery" (murderer → Murder tag; P@5 80% → 100%).
+- **Why the gain is small:** nearly every query already matches an exact tag or a curated list, so the fallback rarely runs. It is smaller than the 72–78% P@5 estimated beforehand.
+
 ### Held-out test set; actor detection, tag matching, one result per franchise
 
 Done in this order, each kept only if the main test, regression suite and real-world set held up:

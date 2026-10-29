@@ -355,3 +355,15 @@ Not kept:
 - **Similar-drama variants:** none helped both halves of the seeds.
 
 Real-world set unchanged throughout (Hit@1 96.2%, MRR 0.971), except 2b (MRR 0.952).
+
+### Tag matching by meaning (2026-10-29, later)
+
+Fallback for queries that match no tag word, trope, curated list or actor: the query's 1–3 word groups are compared with the 539 tag phrases (bi-encoder cosine).
+
+| Variant | Held-out topics P@5 / R@10 | Main overall | Regression |
+|---|---|---|---|
+| Before | 68.1% / 26.4% | 89.10% | 33/33 |
+| Whole sentence, cosine ≥ 0.70 | 68.1% / 26.4% (never fired) | 89.10% | 33/33 |
+| Word groups, cosine ≥ 0.85, negation-aware | **68.6% / 27.9%** | 89.10% | 33/33 |
+
+The thresholds were picked on tuning queries only. The one held-out change was "who is the murderer mystery", whose P@5 went from 80% to 100%.

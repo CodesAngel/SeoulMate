@@ -241,6 +241,7 @@ except Exception as e:
 
 RERANK_MODE = os.environ.get("SEOULMATE_RERANK", "off").strip().lower()
 TAG_PRIOR_MODE = os.environ.get("SEOULMATE_TAG_PRIORS", "on").strip().lower()
+SEMANTIC_TAG_MODE = os.environ.get("SEOULMATE_SEMANTIC_TAGS", "on").strip().lower()
 
 
 # ======================================================
@@ -1124,6 +1125,70 @@ def build_tag_priors(dramas, min_dramas=5):
 
 
 TAG_PRIORS = build_tag_priors(metadata)
+TAG_PHRASES = list(TAG_PRIORS)
+TAG_PHRASE_VECTORS = model.encode(TAG_PHRASES, normalize_embeddings=True, show_progress_bar=False)
+# Word groups of the query are compared with tag phrases (a whole sentence
+# dilutes the topic word). 0.85 was chosen on tuning queries only: it keeps
+# "zombie" -> "zombies" (0.96) and drops "royal" -> "royalty" (0.83, pulled in
+# modern-day royals), "strong female" -> "physically strong" (0.80) and
+# "dark" -> "dark fiction" (0.79).
+SEMANTIC_TAG_THRESHOLD = 0.85
+QUERY_FILLER_WORDS = {
+    "a", "an", "the", "and", "or", "with", "about", "of", "in", "on", "to", "for", "is",
+    "are", "who", "what", "that", "i", "me", "my", "some", "something", "like", "want",
+    "should", "watch", "recommend", "drama", "dramas", "show", "shows", "series",
+    "kdrama", "korean", "story", "stories", "good", "best", "very", "too", "popular",
+    "recent", "new", "old", "short", "long",
+}
+NEGATION_WORDS = {"no", "not", "without", "but"}
+
+
+def query_word_groups(query):
+    """1-3 word groups of the query, without filler or genre-only groups, and
+    nothing after a negation ("not too dark" must not search for dark fiction)."""
+    words = []
+    for word in re.findall(r"[a-z0-9]+", query.lower()):
+        if word in NEGATION_WORDS:
+            break
+        words.append(word)
+    groups = set()
+    for size in (1, 2, 3):
+        for start in range(len(words) - size + 1):
+            group = words[start : start + size]
+            if group[0] in QUERY_FILLER_WORDS or group[-1] in QUERY_FILLER_WORDS:
+                continue
+            if all(w in QUERY_FILLER_WORDS or w in TAG_PHRASE_STOPWORDS for w in group):
+                continue
+            groups.add(" ".join(group))
+    return sorted(groups)
+
+
+def semantic_tag_matches(query, limit=2):
+    """Tag phrases closest in meaning to a word group of the query, for when no
+    word matches a tag exactly ("zombie drama" -> "zombies").
+
+    Phrases that only echo a genre word of the query are skipped ("historical"
+    -> "historical figure" is a genre search, not a story about one).
+    """
+    groups = query_word_groups(query)
+    if not groups:
+        return []
+    group_vectors = model.encode(groups, normalize_embeddings=True, show_progress_bar=False)
+    similarities = group_vectors @ TAG_PHRASE_VECTORS.T
+    query_genre_words = set(re.findall(r"[a-z0-9]+", query.lower())) & TAG_PHRASE_STOPWORDS
+    best = {}
+    for row in similarities:
+        i = int(np.argmax(row))
+        if row[i] >= SEMANTIC_TAG_THRESHOLD:
+            best[i] = max(best.get(i, 0.0), float(row[i]))
+    matches = []
+    for i, _ in sorted(best.items(), key=lambda item: -item[1]):
+        phrase = TAG_PHRASES[i]
+        if set(phrase.split()) & query_genre_words:
+            continue
+        _, weight, titles = TAG_PRIORS[phrase]
+        matches.append((phrase, weight, titles))
+    return matches[:limit]
 
 
 def match_tag_priors(query, covered_words=()):
@@ -2410,6 +2475,20 @@ def recommend(
             boost=PRIOR_WEIGHTS.get("trope_prior", 2.4),
             decay=0.03,
         )
+    # No word matched any tag, trope or curated list: fall back to the tags
+    # closest in meaning ("zombie drama" -> "zombies").
+    if (
+        not matched_tags
+        and not matched_tropes
+        and not detected_actors
+        and not active_extra_priors
+        and not any(get_theme_prior_titles(theme)[0] for theme in detected_themes)
+        and TAG_PRIOR_MODE != "off"
+        and SEMANTIC_TAG_MODE != "off"
+    ):
+        matched_tags = semantic_tag_matches(title)
+        if matched_tags:
+            debug_info["semantic_tags"] = [phrase for phrase, _, _ in matched_tags]
     # A curated list for a longer phrase is more specific than a tag inside it:
     # "office romance" (relationship prior) beats the bare "office" tag.
     curated_phrases = [
