@@ -29,7 +29,7 @@ if sys.platform == "win32":
     sys.stderr.reconfigure(encoding="utf-8")
 
 # Import Phase 1 enhancements
-from query_analyzer import QueryAnalyzer, QueryIntent, get_search_strategy
+from query_analyzer import ACTOR_ALIASES, QueryAnalyzer, QueryIntent, get_search_strategy
 from analytics import get_tracker
 
 # Import Phase 2 enhancements
@@ -235,6 +235,8 @@ except Exception as e:
     reranker = None
     use_reranker = False
     print(f"Warning: Could not load reranker ({e}). Continuing without it.")
+
+RERANK_MODE = os.environ.get("SEOULMATE_RERANK", "off").strip().lower()
 
 
 # ======================================================
@@ -1176,13 +1178,14 @@ def franchise_keys(title: str):
     """Franchise keys for a title: 'Yumi's Cells Season 3' -> {'yumiscells'}.
 
     Returns (keys, has_season_suffix). Colon subtitles add the part before the
-    colon as a key ('Kingdom: Ashin of the North' -> 'kingdom').
+    colon as a key ('Kingdom: Ashin of the North' -> 'kingdom'), without its
+    season suffix ('Alchemy of Souls Season 2: Light and Shadow' -> 'alchemyofsouls').
     """
     title = str(title).strip()
     stripped = SEASON_SUFFIX_RE.sub("", title)
     keys = {fold_title(stripped)}
     if ":" in title:
-        keys.add(fold_title(title.split(":")[0]))
+        keys.add(fold_title(SEASON_SUFFIX_RE.sub("", title.split(":")[0])))
     keys.discard("")
     return keys, stripped != title
 
@@ -1318,6 +1321,45 @@ def get_actor_prior_titles(actor: str):
     if curated_titles:
         return curated_titles
     return GENERATED_CALIBRATED_ACTOR_INDEX.get(actor.lower(), [])
+
+
+def actor_name_key(name):
+    return " ".join(str(name).lower().replace("-", " ").split())
+
+
+def actor_cast_position(drama, actor):
+    """Billing position of the actor in the drama's cast (0 = first), or None.
+
+    Matches whole cast entries, including romanization variants from
+    ACTOR_ALIASES ('Park Seo Joon' is credited as 'Park Seo Jun' on some dramas).
+    """
+    names = {actor_name_key(actor)}
+    names.update(actor_name_key(alias) for alias in ACTOR_ALIASES.get(actor, []))
+    for position, member in enumerate(str(drama.get("Cast", "") or "").split(",")):
+        if actor_name_key(member) in names:
+            return position
+    return None
+
+
+def ranked_actor_titles(actor, dramas):
+    """The actor's dramas, lead roles and most-watched first.
+
+    Score = watchers, x0.4 for supporting roles (billed 3rd or later), x1.5 for
+    the actor's prior titles, so signature dramas stay ahead of newer hits.
+    """
+    prior_titles = {canonical_title(t).lower() for t in get_actor_prior_titles(actor)}
+    scored = []
+    for drama in dramas:
+        position = actor_cast_position(drama, actor)
+        if position is None:
+            continue
+        score = float(drama.get("watchers") or 0) + 1.0
+        if position >= 2:
+            score *= 0.4
+        if drama["Title"].lower() in prior_titles:
+            score *= 1.5
+        scored.append((score, drama["Title"]))
+    return [title for _, title in sorted(scored, key=lambda item: -item[0])]
 
 
 def get_theme_prior_titles(theme: str):
@@ -1557,6 +1599,7 @@ def recommend(
             for r in filtered_metadata
             if any(
                 actor.lower() in str(r.get("Cast", "")).lower()
+                or actor_cast_position(r, actor) is not None
                 for actor in detected_actors
             )
         ]
@@ -2136,7 +2179,9 @@ def recommend(
     if detected_actors:
         print(f"⭐ Applying actor boost for: {detected_actors}")
         for detected_actor in detected_actors:
-            prior_titles = get_actor_prior_titles(detected_actor)
+            prior_titles = ranked_actor_titles(detected_actor, filtered_metadata)[:20]
+            if not prior_titles:
+                prior_titles = get_actor_prior_titles(detected_actor)
             if prior_titles:
                 add_prior_title_boosts(
                     combined_scores,
@@ -2165,7 +2210,10 @@ def recommend(
                 continue
             cast_text = str(candidate.get("Cast", "")).lower()
             actor_match_count = sum(
-                1 for actor in detected_actors if actor.lower() in cast_text
+                1
+                for actor in detected_actors
+                if actor.lower() in cast_text
+                or actor_cast_position(candidate, actor) is not None
             )
             if actor_match_count:
                 combined_scores[result_title] = score * (1.25 + 0.2 * actor_match_count)
@@ -2458,24 +2506,31 @@ def recommend(
             }
 
     # ---- Stage 4.5: Optional Reranking ----
-    # Disabled for performance - cross-encoder adds 2-3 seconds
-    # Re-enable for production if accuracy is critical
-    if False and use_reranker and reranker:  # Disabled for speed
+    # Off by default (SEOULMATE_RERANK=replace|blend to test). Typed queries only:
+    # title and similar-to searches keep their franchise/seed ordering.
+    if RERANK_MODE in {"replace", "blend"} and use_reranker and reranker and not drama and not similar_to:
         try:
             # Limit to top 20 candidates to reduce reranking time
             rerank_candidates = top_results[:20]
             pairs = [[query_text, r["Description"]] for r in rerank_candidates]
             rerank_scores = reranker.predict(pairs)
-            top_results = [
-                r
-                for _, r in sorted(
-                    zip(rerank_scores, rerank_candidates),
-                    key=lambda x: x[0],
-                    reverse=True,
+            if RERANK_MODE == "blend":
+                # Average of the two rank positions; ties keep the original order
+                rerank_position = {
+                    i: pos
+                    for pos, i in enumerate(
+                        sorted(range(len(rerank_candidates)), key=lambda i: -rerank_scores[i])
+                    )
+                }
+                order = sorted(
+                    range(len(rerank_candidates)),
+                    key=lambda i: (i + rerank_position[i], i),
                 )
-            ] + top_results[
-                20:
-            ]  # Keep rest in original order
+            else:
+                order = sorted(
+                    range(len(rerank_candidates)), key=lambda i: -rerank_scores[i]
+                )
+            top_results = [rerank_candidates[i] for i in order] + top_results[20:]
         except Exception as e:
             print(f"Reranking failed: {e}")
 

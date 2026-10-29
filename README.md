@@ -261,13 +261,13 @@ With the backend running:
 .\scripts\run_accuracy.ps1
 ```
 
-Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-29** after the release that added 49 dramas. Franchise ordering is 10/10 and the regression suite 33/33. The previous 2,081-drama baseline (2026-10-03, re-confirmed 2026-10-22) was 87.05% overall, P@3 60.66% and R@10 94.48%. The small drop comes from the new dramas competing for result slots.
+Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-29**. Franchise ordering is 12/12 and the regression suite 33/33. Since the previous 2,081-drama baseline (87.05% overall, P@3 60.66%, R@10 94.48%), actor searches have been ranked by lead role and watchers, and the expected answers were corrected (two names that weren't dataset titles, plus fitting dramas added). Details are in `CHANGELOG.md` (2026-10-29).
 
 | Metric | Result |
 | --- | ---: |
-| Overall accuracy | 86.81% |
-| Precision@3 | 60.11% |
-| Recall@10 | 93.93% |
+| Overall accuracy | 89.00% |
+| Precision@3 | 65.57% |
+| Recall@10 | 96.89% |
 | Mean reciprocal rank | 0.992 |
 
 These results describe this benchmark, not all recommendation scenarios. Precision@3 has a 68.3% ceiling on this test set because title and typo cases have a single expected answer. Similar-drama and trope searches have separate evaluations. See the [evaluation report](tests/reports/model_comparison_2026-09-30.md) for methodology, comparisons, and limitations.

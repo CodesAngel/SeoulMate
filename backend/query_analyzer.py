@@ -130,6 +130,37 @@ INTENT_PATTERNS = {
 }
 
 
+# Known K-drama actors with common romanization variants. Also used by app.py to
+# match cast lists, where MyDramaList credits can use a variant ('Park Seo Jun').
+ACTOR_ALIASES = {
+    "Hyun Bin": ["hyun bin"],
+    "Park Seo Joon": ["park seo joon", "park seo-joon", "park seo jun"],
+    "Song Joong Ki": ["song joong ki", "song joong-ki"],
+    "Lee Min Ho": ["lee min ho", "lee min-ho"],
+    "Kim Soo Hyun": ["kim soo hyun", "kim soo-hyun", "kim su hyun"],
+    "Ji Chang Wook": ["ji chang wook", "ji chang-wook"],
+    "Gong Yoo": ["gong yoo"],
+    "IU": ["iu", "lee ji eun", "lee ji-eun"],
+    "Lee Jong Suk": ["lee jong suk", "lee jong-suk"],
+    "Park Bo Gum": ["park bo gum", "park bo-gum"],
+    "Nam Joo Hyuk": ["nam joo hyuk", "nam joo-hyuk"],
+    "Lee Dong Wook": ["lee dong wook", "lee dong-wook"],
+    "Kim Woo Bin": ["kim woo bin", "kim woo-bin"],
+    "Park Hyung Sik": ["park hyung sik", "park hyung-sik"],
+    "Yoo Seung Ho": ["yoo seung ho", "yoo seung-ho"],
+    "Song Hye Kyo": ["song hye kyo", "song hye-kyo"],
+    "Jun Ji Hyun": ["jun ji hyun", "jeon ji hyun", "jun ji-hyun"],
+    "Park Shin Hye": ["park shin hye", "park shin-hye"],
+    "Bae Suzy": ["suzy", "bae suzy"],
+    "Han Ji Min": ["han ji min", "han ji-min"],
+    "Son Ye Jin": ["son ye jin", "son ye-jin"],
+    "Kim Ji Won": ["kim ji won", "kim ji-won"],
+    "Park Min Young": ["park min young", "park min-young"],
+    "Seo Ye Ji": ["seo ye ji", "seo yea ji", "seo ye-ji"],
+    "Kim Go Eun": ["kim go eun", "kim go-eun"],
+}
+
+
 class QueryAnalyzer:
     """Analyzes user queries to extract intent, entities, and expand terms"""
 
@@ -255,34 +286,7 @@ class QueryAnalyzer:
         }
 
         # Extract actors (capitalized names) - Enhanced detection
-        # Known K-drama actors with common romanization variants.
-        actor_aliases = {
-            "Hyun Bin": ["hyun bin"],
-            "Park Seo Joon": ["park seo joon", "park seo-joon", "park seo jun"],
-            "Song Joong Ki": ["song joong ki", "song joong-ki"],
-            "Lee Min Ho": ["lee min ho", "lee min-ho"],
-            "Kim Soo Hyun": ["kim soo hyun", "kim soo-hyun", "kim su hyun"],
-            "Ji Chang Wook": ["ji chang wook", "ji chang-wook"],
-            "Gong Yoo": ["gong yoo"],
-            "IU": ["iu", "lee ji eun", "lee ji-eun"],
-            "Lee Jong Suk": ["lee jong suk", "lee jong-suk"],
-            "Park Bo Gum": ["park bo gum", "park bo-gum"],
-            "Nam Joo Hyuk": ["nam joo hyuk", "nam joo-hyuk"],
-            "Lee Dong Wook": ["lee dong wook", "lee dong-wook"],
-            "Kim Woo Bin": ["kim woo bin", "kim woo-bin"],
-            "Park Hyung Sik": ["park hyung sik", "park hyung-sik"],
-            "Yoo Seung Ho": ["yoo seung ho", "yoo seung-ho"],
-            "Song Hye Kyo": ["song hye kyo", "song hye-kyo"],
-            "Jun Ji Hyun": ["jun ji hyun", "jeon ji hyun", "jun ji-hyun"],
-            "Park Shin Hye": ["park shin hye", "park shin-hye"],
-            "Bae Suzy": ["suzy", "bae suzy"],
-            "Han Ji Min": ["han ji min", "han ji-min"],
-            "Son Ye Jin": ["son ye jin", "son ye-jin"],
-            "Kim Ji Won": ["kim ji won", "kim ji-won"],
-            "Park Min Young": ["park min young", "park min-young"],
-            "Seo Ye Ji": ["seo ye ji", "seo yea ji", "seo ye-ji"],
-            "Kim Go Eun": ["kim go eun", "kim go-eun"],
-        }
+        actor_aliases = ACTOR_ALIASES
 
         # Check for known actors first (case-insensitive)
         query_lower = query.lower()

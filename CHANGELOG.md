@@ -20,6 +20,39 @@ Important project history reconstructed from Git commits and project documentati
   - **Hard themes:** P@5 60.0%, R@10 77.4%.
   - **Why the small dip:** expected from new dramas competing for top-10 slots, not from the vector reuse (identical vectors, verified 2026-10-22).
 
+### Franchise fix for season numbers before a colon; ranking indexes regenerated
+
+- **Franchise grouping:** `franchise_keys()` now removes a "Season N" / "Part N" suffix from the part before a colon. *Alchemy of Souls Season 2: Light and Shadow* now groups with *Alchemy of Souls*. A check over all 2,130 dramas found 20 that gain their real sequels and none that lose any: Alchemy of Souls, Voice Seasons 3–4, Arthdal Chronicles Parts 1–3 and The Sword of Aramun, The Penthouse, The Uncanny Counter, To My Star. Grouping colon titles still requires a shared cast member or director. Two Alchemy of Souls cases were added to the franchise check (now 12/12).
+- **Ranking indexes:** `backend/ranking/generate_indexes.py` was re-run on the 2,130-drama meta (was 1,922). Evaluation is identical with old and new indexes (86.81%, regression 33/33). The generated actor/genre/theme boosts have weight 0 in `curated_priors.json`, and the prior sources are `curated`. Only `title_aliases.json` is used at runtime, and it now covers the new dramas.
+
+### Actor ranking, corrected test answers; index boosts and reranker tested
+
+- **Actor searches:**
+  - **Cast matching** now accepts the romanization variants in `query_analyzer.ACTOR_ALIASES` (moved to module level). MyDramaList credits *What's Wrong with Secretary Kim* to "Park Seo Jun", and Seo Ye Ji is credited as "Seo Yea Ji", so those dramas used to be filtered out.
+  - **New `ranked_actor_titles()`** orders an actor's dramas by watchers. Supporting roles (billed 3rd or later) get ×0.4 and the actor's prior titles ×1.5, so signature dramas stay ahead of newer hits. This replaces the fixed 3-title curated list as the boost list.
+  - **Result:** Queen of Tears, Marry My Husband and Secretary Kim now reach the top 10. Actor P@3 86.7% → 90.0%, R@10 90% → 100%.
+- **Evaluator expected answers:**
+  - **Not dataset titles, so they could never match:** "Penthouse" → "The Penthouse: War in Life", "Misaeng" → "Misaeng: Incomplete Life".
+  - **Added where the drama's genres/tags fit the search:**
+    - King the Land (romantic comedy)
+    - Strong Girl Bong Soon (office romance, rich CEO romance)
+    - Iris (north korea; already a curated theme prior)
+    - Late Night Restaurant (restaurant food)
+    - The Story of Park's Marriage Contract (contract marriage)
+    - A Piece of Your Mind (healing slice of life)
+  - **Deliberately not added:** Mr. Sunshine for "sageuk royal drama", zombie shows for "survival game", Oh My Ghost for "ghost supernatural hotel", My Strange Hero for "school bullying revenge".
+- **Evaluation now:**
+  - **Overall:** **89.00%** (86.81% before).
+  - **Search:** P@3 **65.57%** (60.11%), R@10 96.89% (93.93%), MRR 0.992, NDCG@10 0.966.
+  - **Checks:** franchise 12/12, regression 33/33.
+  - **Similar and themes:** similar dramas and hard themes unchanged.
+- **Tested and left off:**
+  - **Generated index boosts at 0.1 each (cap 1.2):** 88.64%; theme P@3 and actor P@3 fell. Weights stay 0.
+  - **Cross-encoder, typed queries only** (new `SEOULMATE_RERANK=blend|replace`, default off):
+    - **blend:** 85.67%, 329 ms.
+    - **replace:** 79.05%, 1.1 s, regression 32/33.
+    - **Why:** it re-sorts by description text and undoes the curated, actor and popularity ordering.
+
 ## 2026-10-22
 
 ### First scrape that adds dramas; offline WebP thumbnails
