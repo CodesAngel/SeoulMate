@@ -224,13 +224,13 @@ From the project root, this runs the scraper and then releases the result. A rel
 | --- | --- |
 | scrape | `run_pipeline.py --refresh` (skip with `--skip-scrape`) |
 | release-data | Live dramas keep their positions and new dramas are appended. New dramas without a downloaded poster wait for a later run. Stops with `no_changes` if nothing differs from the live release. |
-| build, validate | Builds `training/faiss_index.candidate/` with the bi-encoder the backend loads. Checks counts, dimension, row order, unchanged live positions and vectors. |
+| build, validate | Builds `training/faiss_index.candidate/` with the bi-encoder the backend loads. Only new dramas and dramas whose text changed are encoded; the rest reuse the live index's vectors after a spot-check (`--full-build` encodes everything). Checks counts, dimension, row order, unchanged live positions and vectors. |
 | catalog-check | `import_catalog.py --dry-run` against the candidate |
-| catalog-import, poster-audit, thumbnails, poster-upload | Database and Supabase Storage. Uploads only new or changed posters. |
+| catalog-import, poster-audit, thumbnails, poster-upload | Database and Supabase Storage. Only new or changed thumbnails are generated (`generate_poster_thumbnails.py --force` regenerates all) and only new or changed posters are uploaded. |
 | activate | `faiss_index/` → `faiss_index.prev/`, candidate → `faiss_index/` |
 | restart | With `--restart-cmd`: restart, wait for `--health-url`, run one test search |
 
-If anything fails after the database changed, the run rolls back. It restores the previous index and re-imports the catalog from the live release's `dataset.csv`, removing the new dramas. Each run writes `logs/update/<run id>.log` and `logs/update/status.json`. A lock file prevents two runs at once. Exit codes: 0 = released or no changes, 1 = failed or rolled back, 2 = another run is active. Without `--restart-cmd`, the backend keeps serving the old index until restarted. Building the index takes about 15–26 minutes on a desktop CPU (longer on a small VM); a full release took 33 minutes. The database stages need local or hosted Supabase running.
+If anything fails after the database changed, the run rolls back. It restores the previous index and re-imports the catalog from the live release's `dataset.csv`, removing the new dramas. Each run writes `logs/update/<run id>.log` and `logs/update/status.json`. A lock file prevents two runs at once. Exit codes: 0 = released or no changes, 1 = failed or rolled back, 2 = another run is active. Without `--restart-cmd`, the backend keeps serving the old index until restarted. A full index build takes about 15–26 minutes on this laptop CPU (longer on a small VM); reusing unchanged vectors, the build for 49 new and 232 changed dramas took about 2 minutes, and thumbnails take seconds when only a few posters are new. The database stages need local or hosted Supabase running.
 
 Status (2026-10-22):
 - **Done:** the first release ran against local Supabase (`--skip-scrape --force`, same 2,081 dramas). All posters and database links verified, nothing re-uploaded, and the backend started on the new index with search results unchanged (see Evaluation).

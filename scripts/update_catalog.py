@@ -9,13 +9,14 @@ index has changed, rolls back to the last good release):
                   dramas that have a poster (others wait for a later run); stop here
                   if nothing changed since the live release
   build           build FAISS + metadata into training/faiss_index.candidate/ with the
-                  bi-encoder the backend loads
+                  bi-encoder the backend loads; reuses the live release's vectors for
+                  dramas whose text is unchanged (--full-build encodes everything)
   validate        counts, dimension, row order vs CSV, live positions unchanged,
                   vectors finite and normalised, self-search
   catalog-check   scripts/import_catalog.py --dry-run against the candidate
   catalog-import  import into PostgreSQL                         (database changes)
   poster-audit    scripts/audit_poster_inventory.py
-  thumbnails      scripts/generate_poster_thumbnails.py
+  thumbnails      scripts/generate_poster_thumbnails.py (skips up-to-date thumbnails)
   poster-upload   scripts/upload_posters_to_storage.py --skip-unchanged
   activate        faiss_index -> faiss_index.prev, candidate -> faiss_index
   ranking         backend/ranking/generate_indexes.py (only with --ranking-indexes)
@@ -384,17 +385,17 @@ def stage_release_data(run):
     return changed
 
 
-def stage_build(run, model_dir):
-    run.command(
-        [
-            sys.executable,
-            TRAINING_DIR / "steps" / "step3_build_index.py",
-            "--data", CANDIDATE_DIR / DATASET_NAME,
-            "--out-dir", CANDIDATE_DIR,
-            "--model", model_dir,
-        ],
-        cwd=TRAINING_DIR,
-    )
+def stage_build(run, model_dir, full_build=False):
+    command = [
+        sys.executable,
+        TRAINING_DIR / "steps" / "step3_build_index.py",
+        "--data", CANDIDATE_DIR / DATASET_NAME,
+        "--out-dir", CANDIDATE_DIR,
+        "--model", model_dir,
+    ]
+    if not full_build:
+        command += ["--reuse", LIVE_DIR]
+    run.command(command, cwd=TRAINING_DIR)
 
 
 def stage_validate(run, model_dir):
@@ -540,7 +541,7 @@ def update(run):
         return "no_changes"
 
     with run.stage("build"):
-        stage_build(run, model_dir)
+        stage_build(run, model_dir, full_build=args.full_build)
     with run.stage("validate"):
         stage_validate(run, model_dir)
     with run.stage("catalog-check"):
@@ -591,6 +592,7 @@ def parse_args():
     parser.add_argument("--max-fetch", type=int, help="scraper: drama pages per run (default 300)")
     parser.add_argument("--force", action="store_true", help="release even if the dataset is unchanged")
     parser.add_argument("--no-db", action="store_true", help="stop after building and checking the candidate")
+    parser.add_argument("--full-build", action="store_true", help="encode every drama instead of reusing unchanged vectors from the live index")
     parser.add_argument("--ranking-indexes", action="store_true",
                         help="also regenerate backend/ranking/indexes/ (changes ranking; re-run the evaluation)")
     parser.add_argument("--restart-cmd", help="command that restarts the backend, e.g. \"sudo systemctl restart seoulmate-backend\"")

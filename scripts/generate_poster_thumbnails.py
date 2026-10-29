@@ -195,7 +195,62 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=min(8, max(1, os.cpu_count() or 1)),
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="regenerate every thumbnail instead of keeping up-to-date ones",
+    )
     return parser.parse_args()
+
+
+def reusable_results(
+    tasks: list[dict[str, Any]],
+    csv_report: Path,
+    json_report: Path,
+    settings: dict[str, int],
+) -> dict[str, dict[str, Any]]:
+    """Results from the previous run that are still valid, by image ID.
+
+    A thumbnail is kept when the previous run used the same settings, its source
+    poster hash is unchanged, and the WebP file on disk still has the recorded hash.
+    """
+
+    if not (csv_report.is_file() and json_report.is_file()):
+        return {}
+    previous_summary = json.loads(json_report.read_text(encoding="utf-8"))
+    if any(previous_summary.get(key) != value for key, value in settings.items()):
+        return {}
+    with csv_report.open(encoding="utf-8", newline="") as handle:
+        previous = {row["image_id"]: row for row in csv.DictReader(handle)}
+
+    reusable: dict[str, dict[str, Any]] = {}
+    for task in tasks:
+        row = previous.get(task["image_id"])
+        target = Path(task["target"])
+        if (
+            row is None
+            or row["source_sha256"] != task["source_sha256"]
+            or not target.is_file()
+            or sha256_file(target) != row["sha256"]
+        ):
+            continue
+        reusable[task["image_id"]] = {
+            "drama_id": task["drama_id"],
+            "image_id": task["image_id"],
+            "source_filename": Path(task["source"]).name,
+            "source_sha256": task["source_sha256"],
+            "thumbnail_key": (
+                f"dramas/{task['drama_id']}/thumbnail.webp"
+                if task["drama_id"] is not None
+                else ""
+            ),
+            "thumbnail_filename": target.name,
+            "width": int(row["width"]),
+            "height": int(row["height"]),
+            "size_bytes": int(row["size_bytes"]),
+            "sha256": row["sha256"],
+        }
+    return reusable
 
 
 def main() -> None:
@@ -220,18 +275,33 @@ def main() -> None:
         method=args.method,
     )
 
-    print(
-        f"Generating {len(tasks)} WebP thumbnails at up to "
-        f"{args.max_width}x{args.max_height}, quality {args.quality}."
+    settings = {
+        "max_width": args.max_width,
+        "max_height": args.max_height,
+        "quality": args.quality,
+        "webp_method": args.method,
+    }
+    kept = (
+        {}
+        if args.force
+        else reusable_results(tasks, args.csv_report, args.json_report, settings)
     )
-    results: list[dict[str, Any]] = []
-    with ProcessPoolExecutor(max_workers=args.workers) as executor:
-        for position, result in enumerate(
-            executor.map(generate_one, tasks, chunksize=8), start=1
-        ):
-            results.append(result)
-            if position % 250 == 0 or position == len(tasks):
-                print(f"Generated {position}/{len(tasks)}")
+    pending = [task for task in tasks if task["image_id"] not in kept]
+
+    print(
+        f"Generating {len(pending)} WebP thumbnails at up to "
+        f"{args.max_width}x{args.max_height}, quality {args.quality} "
+        f"({len(kept)} up to date, kept)."
+    )
+    results: list[dict[str, Any]] = list(kept.values())
+    if pending:
+        with ProcessPoolExecutor(max_workers=args.workers) as executor:
+            for position, result in enumerate(
+                executor.map(generate_one, pending, chunksize=8), start=1
+            ):
+                results.append(result)
+                if position % 250 == 0 or position == len(pending):
+                    print(f"Generated {position}/{len(pending)}")
 
     expected_names = {f"{task['image_id']}.webp" for task in tasks}
     actual_names = {path.name for path in output_dir.glob("*.webp") if path.is_file()}
@@ -254,6 +324,8 @@ def main() -> None:
     summary = {
         "complete": len(results) == len(tasks),
         "generated_thumbnails": len(results),
+        "newly_generated": len(pending),
+        "kept_up_to_date": len(kept),
         "max_width": args.max_width,
         "max_height": args.max_height,
         "quality": args.quality,

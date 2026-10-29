@@ -230,8 +230,17 @@ asynchronously, named `<Title> (<Year>) [<ID>].jpg`. The ID is the file name of 
 - WebP card thumbnails are not part of the pipeline. To make them without the database, run from
   the project root:
   `scripts/audit_poster_inventory.py --dataset`, then `scripts/generate_poster_thumbnails.py`
-  (output: `output/drama_image_cards/<ID>.webp`). Uploading them to Supabase Storage needs the
-  database — `scripts/update_catalog.py` does that.
+  (output: `output/drama_image_cards/<ID>.webp`). Only new or changed posters are converted; up-to-date
+  thumbnails are kept (checked by file hashes, ~4 s for 2,130), `--force` regenerates all. Uploading
+  them to Supabase Storage needs the database — `scripts/update_catalog.py` does that.
+
+## After the scraper: releasing the data
+
+`scripts/update_catalog.py` (project root) runs this pipeline, then rebuilds the search index and
+updates the database. The index build only encodes dramas that are new or whose text changed and
+reuses the live index's vectors for the rest (after re-encoding 8 of them as a check), so a typical
+release builds in about 2 minutes instead of ~20 (2026-10-22: 281 encoded, 1,849 reused).
+`--full-build` encodes everything.
 - CSV reads use `encoding="utf-8-sig"` to correctly strip the BOM that Step 2d's `to_csv` writes
   (a plain `utf-8` read would otherwise misread the `title` column, as `﻿title`, and crash).
 
