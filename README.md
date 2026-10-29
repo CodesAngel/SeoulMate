@@ -2,7 +2,7 @@
   <img src="docs/assets/thumbs-up-welcome.gif" alt="K-drama thumbs up welcome" width="300">
 </p>
 
-> 
+> [!NOTE]
 > You came here to find your next K-drama, honestly, very good choice.
 
 Welcome to SeoulMate an AI-powered Korean drama recommendation system built to understand natural language searches, rank dramas intelligently, and personalize recommendations from user behavior.
@@ -268,7 +268,7 @@ Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated o
   <img src="docs/assets/celebrating-results.gif" alt="Students cheering" width="300">
 </p>
 
-> 
+> [!IMPORTANT]
 > Overall accuracy reached 89.10%, honestly, a very good reason to celebrate.
 
 | Metric | Result |
