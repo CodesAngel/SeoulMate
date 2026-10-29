@@ -263,6 +263,12 @@ With the backend running:
 
 Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-29**. Franchise ordering is 12/12 and the regression suite 33/33. Since the previous 2,081-drama baseline (87.05% overall, P@3 60.66%, R@10 94.48%), actor searches have been ranked by lead role and watchers, and the expected answers were corrected (two names that weren't dataset titles, plus fitting dramas added). Details are in `CHANGELOG.md` (2026-10-29).
 
+<p align="center">
+  <img src="docs/assets/celebrating-results.gif" alt="Students cheering" width="300">
+</p>
+
+Overall accuracy reached 89.10%, honestly, a very good reason to celebrate.
+
 | Metric | Result |
 | --- | ---: |
 | Overall accuracy | 89.10% |
@@ -276,6 +282,7 @@ Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated o
 | --- | ---: | ---: | ---: |
 | Topics (42) | 68.1% | 26.4% | 71.4% |
 | Actors (10) | 92.0% | 95.9% | 100% |
+| All (52) | 72.7% | 39.8% | 76.9% |
 
 Trope searches: P@5 65.6%, R@10 78.0%. Similar dramas: P@5 24.0%, R@10 28.8%.
 
