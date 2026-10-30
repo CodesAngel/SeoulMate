@@ -11,8 +11,8 @@
 
 <p align="center">
   <a href="https://seoulmate-azure.vercel.app"><img alt="Live demo" src="https://img.shields.io/badge/live%20demo-seoulmate-c63c6d?style=for-the-badge"></a>
-  <img alt="Search accuracy 89.10%" src="https://img.shields.io/badge/search%20accuracy-89.10%25-2d1738?style=for-the-badge">
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-5b6070?style=for-the-badge"></a>
+  <img alt="Search accuracy 89.10%" src="https://img.shields.io/badge/search%20accuracy-89.10%25-16A34A?style=for-the-badge">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-0EA5E9?style=for-the-badge"></a>
 </p>
 
 <p align="center">
