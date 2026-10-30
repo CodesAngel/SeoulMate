@@ -30,7 +30,7 @@ Only Supabase is hosted for now; the backend and frontend still run on the PC. P
 
 Average response time was 94 ms with every database query going to Tokyo.
 
-- **Keep-alive:** `.github/workflows/supabase-keepalive.yml` reads one row from `genres` with the publishable key on Monday and Thursday (06:00 UTC), with 3 attempts, so the free project never goes a week without activity. It can also be run by hand from the Actions tab. Each run re-enables the workflow through the GitHub API, so GitHub's 60-day inactivity shutdown of scheduled workflows does not stop it. Needs the `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets.
+- **Keep-alive:** `.github/workflows/supabase-keepalive.yml` reads one row from `genres` with the publishable key on Monday and Thursday (06:17 UTC), with 3 attempts, so the free project never goes a week without activity. It can also be run by hand from the Actions tab. Each run re-enables the workflow through the GitHub API, so GitHub's 60-day inactivity shutdown of scheduled workflows does not stop it. Needs the `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` repository secrets.
 - **Note:** with the backend and two local Supabase stacks running (about 3.8 GB in Docker's WSL), loading the model failed with Windows error 1455 (paging file too small). Stop Docker when the local stack is not needed.
 
 ## 2026-10-29

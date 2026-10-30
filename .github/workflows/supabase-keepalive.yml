@@ -4,8 +4,9 @@ name: Supabase keep-alive
 
 on:
   schedule:
-    # 06:00 UTC on Monday and Thursday: never more than 4 days between pings.
-    - cron: "0 6 * * 1,4"
+    # 06:17 UTC on Monday and Thursday: never more than 4 days between pings.
+    # Off the hour because GitHub delays or drops more runs scheduled at :00.
+    - cron: "17 6 * * 1,4"
   workflow_dispatch:
 
 permissions:
