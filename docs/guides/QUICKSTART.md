@@ -1,6 +1,20 @@
 # SeoulMate quick start
 
-Updated: 2026-10-06. Run these commands from `D:\Projects\SeoulMate` with the existing virtual environment and dependencies installed. See the [root README](../../README.md) for full setup.
+Full local setup. Run the commands in PowerShell from the repository root.
+
+## Requirements and install
+
+- Python 3.10+, Node.js with npm, Docker Desktop and the Supabase CLI (for the local database).
+- The model and index files described in the [training guide](../../training/README.md#current-production-artifacts) (`training/models/` and `training/faiss_index/`; they are not in Git).
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+`requirements.txt` includes the runtime, training and Streamlit dependencies. A server that only runs the API can use `backend/requirements-server.txt` instead (install CPU PyTorch first, as the file explains).
+
+If `training/faiss_index/` is missing, build it from `data/final/kdrama_dataset.csv` with the existing model (see [Index rebuilding](#index-rebuilding)).
 
 ## Frontend-only mock mode
 
@@ -30,13 +44,17 @@ Apply the application schema and import the validated catalog:
 .\.venv\Scripts\python.exe scripts\import_catalog.py
 ```
 
-The importer is idempotent. It requires the 2,081-row final CSV, matching FAISS metadata, and the complete `drama_image_by_id/` poster directory. It does not import legacy test analytics or store remote poster URLs.
+The importer is idempotent. It requires the final CSV (2,130 dramas), matching FAISS metadata, and the complete `drama_image_by_id/` poster directory. It does not import legacy test analytics or store remote poster URLs.
 
 Open the local Supabase Studio at `http://127.0.0.1:54323`. Stop this project's stack without deleting its local data with:
 
 ```powershell
 supabase stop
 ```
+
+### Or use the hosted Supabase project
+
+Put the hosted project's values in `backend/.env` (see `backend/.env.example`) and `frontend-web/.env.local`, and skip `supabase start`. Use the **Session pooler** connection string from the dashboard's Connect window; the direct `db.<ref>.supabase.co` host needs IPv6. Keep the local values in `backend/.env.docker` and `frontend-web/.env.docker` to switch back. Scripts that write to the database (such as `update_catalog.py`) then change the hosted data.
 
 ## Start the app
 
@@ -52,7 +70,36 @@ The default API is `http://127.0.0.1:8001`; interactive API documentation is at 
 .\scripts\run_frontend.ps1
 ```
 
-The default internal frontend is `http://localhost:8501`. The production Next.js frontend has separate instructions in [frontend-web/README.md](../../frontend-web/README.md).
+The default internal frontend is `http://localhost:8501`.
+
+Start the Next.js website in another terminal (it installs npm packages on first run):
+
+```powershell
+.\scripts\run_web_frontend.ps1
+```
+
+More settings are in [frontend-web/README.md](../../frontend-web/README.md).
+
+| Service | Default address |
+| --- | --- |
+| Website | http://localhost:3000 |
+| API | http://127.0.0.1:8001 |
+| API documentation | http://127.0.0.1:8001/docs |
+| Streamlit (internal) | http://localhost:8501 |
+| Supabase Studio | http://127.0.0.1:54323 |
+| Local email inbox (Mailpit) | http://127.0.0.1:54324 |
+
+## Stop local services
+
+Press `Ctrl+C` in each terminal running the backend, Next.js or Streamlit. If the backend terminal is gone but port 8001 is still taken, stop its process:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8001 -State Listen |
+    Select-Object -ExpandProperty OwningProcess |
+    ForEach-Object { Stop-Process -Id $_ -Force }
+```
+
+No output from `Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue` means it stopped. Stop the database with `supabase stop`.
 
 ## Test local authentication
 
@@ -66,9 +113,13 @@ After signing in, save a drama and open `/watchlist` to set its status to Planne
 
 The authenticated application endpoints are `GET/PUT/DELETE /me/watchlist`, `POST /me/watchlist/merge`, and `GET/PUT/DELETE /me/ratings`. They obtain the user ID from the verified access token; clients do not send a user ID for ownership.
 
-Open `/account` to edit the display name, upload or remove an avatar, change the password, inspect saved/watching/completed/rating statistics, sign out, or permanently delete the account. Avatar uploads accept JPEG, PNG, and WebP files up to 2 MB. Deletion requires typing `DELETE` and removes the Auth user, PostgreSQL-owned rows, avatar object, and matching legacy profile data.
+Open `/account` to edit the display name, upload or remove an avatar, change the password, inspect saved/watching/completed/rating statistics, sign out, or permanently delete the account. Avatar uploads accept JPEG, PNG, and WebP files up to 2 MB (public `avatars` bucket, owner-scoped upload policies). Deletion requires typing `DELETE` and removes the Auth user, PostgreSQL-owned rows, avatar object, and matching legacy profile data.
+
+The generated taste profile and preference learning still use legacy runtime storage (`backend/runtime_data/`) until their PostgreSQL migration.
 
 ## Test the community system (Phase 1)
+
+How the community works (routes, database, API, trending formula) is described in [COMMUNITY.md](COMMUNITY.md).
 
 1. Open `http://localhost:3000` to view the two homepage community sections:
    - **Trending in the community**: 4 cards with drama posters, discussion titles, badges, and comment counts.
@@ -119,4 +170,4 @@ Invoke-RestMethod -Uri 'http://127.0.0.1:8001/'
 Invoke-RestMethod -Uri 'http://127.0.0.1:8001/recommend?title=Goblin&top_n=5'
 ```
 
-For future scheduled updates, see the [automatic dataset update plan](../plans/AUTOMATED_DATASET_UPDATE_PLAN.md).
+To update the catalog with new dramas, see [CATALOG_UPDATES.md](CATALOG_UPDATES.md).

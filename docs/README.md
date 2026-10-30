@@ -16,7 +16,9 @@ docs/
 
 | Document | Purpose |
 | --- | --- |
-| [Quick start](guides/QUICKSTART.md) | Start the backend and internal frontend; refresh posters or rebuild the index |
+| [Quick start](guides/QUICKSTART.md) | Full local setup: install, database, API, website, accounts, community testing, posters, stopping services |
+| [Catalog updates](guides/CATALOG_UPDATES.md) | Scrape new dramas, rebuild the index, and release with `scripts/update_catalog.py` |
+| [Community](guides/COMMUNITY.md) | Community routes, database and security, API endpoints, trending formula, spoilers |
 | [Personalization guide](guides/PERSONALIZATION_QUICK_START.md) | Profile and recommendation API usage |
 | [Training guide](../training/README.md) | Active training and index pipeline |
 | [Scraper guide](../scrapers/DramaList_Scrapper/README.md) | Data collection scripts |

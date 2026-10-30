@@ -2,280 +2,91 @@
   <img src="docs/assets/thumbs-up-welcome.gif" alt="K-drama thumbs up welcome" width="300">
 </p>
 
+<h1 align="center">SeoulMate</h1>
+
+<p align="center">
+  <b>Find your next K-drama by describing what you want to feel.</b><br>
+  Natural-language search and personal recommendations across 2,130 Korean dramas.
+</p>
+
+<p align="center">
+  <a href="https://seoulmate-azure.vercel.app"><img alt="Live demo" src="https://img.shields.io/badge/live%20demo-seoulmate-c63c6d?style=for-the-badge"></a>
+  <img alt="Search accuracy 89.10%" src="https://img.shields.io/badge/search%20accuracy-89.10%25-2d1738?style=for-the-badge">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-5b6070?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+  <a href="https://seoulmate-azure.vercel.app"><b>Open the website</b></a> ·
+·
+  <a href="docs/README.md">Documentation</a>
+</p>
+
 > [!NOTE]
 > You came here to find your next K-drama, honestly, very good choice.
 
-Welcome to SeoulMate an AI-powered Korean drama recommendation system built to understand natural language searches, rank dramas intelligently, and personalize recommendations from user behavior.
+## What it does
 
-The system combines semantic search, lexical search, calibrated ranking indexes, a cross-encoder reranker, and user preference learning to help users discover relevant K-dramas from queries such as `romantic comedy`, `school bullying`, `contract marriage`, `hospital setting`, or `dramas like Crash Landing on You`.
+Type what you are in the mood for, the way you would ask a friend, and SeoulMate finds dramas that fit:
 
-## Live
-
-| | |
+| You search | You get |
 | --- | --- |
-| Website | **https://seoulmate-azure.vercel.app** |
-| API | https://seoulmate.indiasouthcentral.cloudapp.azure.com (interactive docs at `/docs`) |
+| `healing romance` | Gentle, feel-good love stories |
+| `dramas like Crash Landing on You` | Similar stories, without the drama you named |
+| `Park Bo Young` | Her dramas, lead roles first |
+| `enemies to lovers` | Dramas built on that trope |
+| `hospital setting` | Medical dramas set in hospitals |
+| `Hospitl Playlist` | Recognises *Hospital Playlist* despite the typo and shows what to watch next (Season 2 first) |
 
-The website runs on Vercel, the API on an Azure VM, and the database, accounts and posters on Supabase. Search accuracy on the live API is the same as locally (89.10%). Details: [docs/deployment/DEPLOYMENT_ARCHITECTURE.md](docs/deployment/DEPLOYMENT_ARCHITECTURE.md).
+Genre, year and rating filters narrow any search further.
+
+SeoulMate understands moods, tropes, settings, actors and titles. It learns from what you save and rate, and has a spoiler-safe community for reviews and discussions. It runs **without any large language model**: a fine-tuned search model, classic text search and a reranker do all the work, on a regular CPU.
 
 ## Features
 
-- Hybrid search combining FAISS semantic retrieval and BM25Plus lexical matching.
-- Query analysis, typo-tolerant title matching, and genre, year, and rating filters.
-- Cross-encoder reranking with curated priors and calibrated generated fallbacks.
-- Personalized recommendations based on ratings and recorded user interactions.
-- Drama detail pages, poster images, an account-synced watchlist, viewing statuses, and personal ratings.
-- Spoiler-safe K-drama community: public reading, authenticated discussions, reviews (with 1–10 scores), recommendations, oldest-first comments, optimistic likes, and drama catalog associations.
-- Email/password accounts with Supabase Auth, server-refreshed sessions, password recovery, and verified FastAPI bearer tokens.
-- Switchable real API and self-contained mock modes for frontend development.
-- Internal Streamlit interface for model testing, analytics, and profile exploration.
+**Search**
+- Natural-language search that mixes meaning-based (semantic) and keyword search
+- Understands intent: titles, actors, genres, moods, tropes, settings
+- Typo-tolerant title matching, plus genre, year and rating filters
+- "More like this" recommendations on every drama page
 
-## Architecture
+**Your taste**
+- Recommendations that adapt to your ratings, saves and clicks
+- Watchlist with viewing statuses (Planned, Watching, Completed, On hold, Dropped) and personal 1–10 ratings
+- Taste profile, episode tracker and *Watch Together*: find dramas two people will both enjoy
+- A daily "Tonight's match" on the home page
 
-The FastAPI backend serves the Next.js frontend and internal Streamlit interface. Search combines query analysis, hybrid retrieval, ranking, reranking, and personalization.
+**Community**
+- Discussions, reviews (with 1–10 scores) and recommendations, linked to dramas
+- Spoiler guard: spoilers stay hidden until you choose to reveal them
+- Comments, likes and a trending feed
 
-| Component | Technology |
-| --- | --- |
-| Web interface | Next.js, React, TypeScript, Supabase SSR, Tailwind CSS |
-| API | FastAPI, Uvicorn |
-| Semantic retrieval | Sentence Transformers, FAISS |
-| Lexical retrieval and matching | BM25Plus, RapidFuzz |
-| Training and data processing | PyTorch, Pandas, NumPy |
-| Internal interface | Streamlit |
+**Accounts**
+- Email sign-up and login, password recovery, profile and avatar
+- Guest saves merge into your account when you sign in
 
-## Quick start
+## How it works
 
-These instructions use PowerShell from the repository root. Requirements: Python 3.10+, Node.js with npm for the web interface, and the model and index artifacts described in the [training guide](training/README.md#current-production-artifacts).
-
-### 1. Install Python dependencies
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```mermaid
+flowchart LR
+    Q["Your search"] --> A["Query analysis<br/>intent, filters, typos"]
+    A --> S["Semantic search<br/>fine-tuned model + FAISS"]
+    A --> K["Keyword search<br/>BM25"]
+    S --> R["Ranking<br/>moods, tropes, actors, tags"]
+    K --> R
+    R --> X["Reranker<br/>cross-encoder"]
+    X --> P["Personalization<br/>your ratings and saves"]
+    P --> O["Results"]
 ```
 
-The combined requirements include runtime, training, and internal frontend dependencies.
-
-### 2. Prepare the search index
-
-The backend loads models from `training/models/` and requires `index.faiss` and `meta.pkl` in `training/faiss_index/`. If a matching index already exists, skip this step. Otherwise, with `data/final/kdrama_dataset.csv` available, build it:
-
-```powershell
-.\.venv\Scripts\python.exe training\steps\step3_build_index.py
-```
-
-This uses an existing embedding model; it does not retrain it. The index and backend must use the same embedding model. See the [training guide](training/README.md) for artifact preparation and model selection.
-
-### 3. Start local Supabase
-
-Start Docker Desktop, then run:
-
-```powershell
-supabase start
-.\.venv\Scripts\python.exe -m alembic upgrade head
-```
-
-This starts the local database, Auth, Storage, Studio, and Mailpit services described in the [quick start](docs/guides/QUICKSTART.md).
-
-To use the hosted Supabase project instead, put its values in `backend/.env` (see `backend/.env.example`) and `frontend-web/.env.local`, and skip `supabase start`. Use the **Session pooler** connection string from the dashboard's Connect window; the direct `db.<ref>.supabase.co` host needs IPv6. Keep the local values in `backend/.env.docker` and `frontend-web/.env.docker` to switch back. The production layout (Vercel, Azure VM, Supabase) is in [docs/deployment/DEPLOYMENT_ARCHITECTURE.md](docs/deployment/DEPLOYMENT_ARCHITECTURE.md).
-
-### 4. Start the backend
-
-```powershell
-.\scripts\run_backend.ps1
-```
-
-### 5. Start the web interface
-
-In a second terminal:
-
-```powershell
-.\scripts\run_web_frontend.ps1
-```
-
-The launcher installs npm dependencies if `node_modules` is absent. For environment configuration, see the [web frontend guide](frontend-web/README.md).
-
-To work only on the frontend while FastAPI and Supabase are stopped, launch the same application with representative mock data and local posters:
-
-```powershell
-.\scripts\run_web_frontend.ps1 -Mode mock
-```
-
-Use `-Mode api` or omit `-Mode` to restore the existing real backend integration. Restart the Next.js development server when switching modes.
-
-| Service | Default address |
-| --- | --- |
-| Web interface | http://localhost:3000 |
-| API | http://127.0.0.1:8001 |
-| Interactive API documentation | http://127.0.0.1:8001/docs |
-| Local email inbox | http://127.0.0.1:54324 |
-
-To use the internal Streamlit interface, run `.\scripts\run_frontend.ps1` in another terminal and open `http://localhost:8501`.
-
-### Stop local services
-
-Press `Ctrl+C` in each terminal that is running the backend, Next.js frontend, or Streamlit interface. If the backend terminal is no longer available but port 8001 is still occupied, stop its process from PowerShell:
-
-```powershell
-Get-NetTCPConnection -LocalPort 8001 -State Listen |
-    Select-Object -ExpandProperty OwningProcess |
-    ForEach-Object { Stop-Process -Id $_ -Force }
-```
-
-Confirm that the backend stopped by running the following command. No output means nothing is listening on port 8001:
-
-```powershell
-Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue
-```
-
-Stop the local Supabase containers separately when they are no longer needed:
-
-```powershell
-supabase stop
-```
-
-## Authentication
-
-The Next.js application uses Supabase Auth with server-refreshed cookie sessions. Create an account at `/auth/sign-up`, sign in at `/auth/login`, manage the current session at `/account`, and request password recovery at `/auth/forgot-password`. Local authentication emails are captured by Mailpit at `http://127.0.0.1:54324`.
-
-Every signup creates a matching row in `public.profiles`. FastAPI validates Supabase access tokens through the project's JWKS endpoint; `GET /auth/me` is the reference protected endpoint. Signed-in watchlists, viewing statuses, and ratings are stored in PostgreSQL and restored on later sessions. Guest saves remain in the browser and merge into the account after sign-in. The generated taste profile and preference learning still use legacy runtime storage pending their PostgreSQL migration.
-
-The protected `/account` area supports display-name updates, per-user avatar uploads, password changes, active profile statistics, sign-out, and permanent account deletion. Avatars use the public `avatars` Storage bucket with owner-scoped upload policies and a 2 MB JPEG/PNG/WebP limit. Account deletion removes the avatar and legacy profile artifacts, deletes the Supabase Auth user, and cascades through PostgreSQL-owned data.
-
-## Community system (Phase 1)
-
-SeoulMate includes a spoiler-safe K-drama community where visitors can read discussions, reviews, and recommendations, and signed-in members can share insights and join conversations.
-
-### Community routes
-
-| Route | Purpose | Access |
-| --- | --- | --- |
-| `/community` | Feed with Trending, Recent, Reviews, Recommendations tabs, search, and drama filtering | Public read |
-| `/community/new` | Post composer for discussions, reviews (with 1–10 scores), and recommendations linked to dramas | Authenticated |
-| `/community/[postId]` | Complete post detail, full markdown/body, associated drama links, reaction heart, and comments | Public read, authenticated comments |
-| `/community/edit/[postId]` | Post editor for authors to update their title, body, spoiler flag, and review rating | Post author only |
-
-### Homepage community sections
-
-- **Trending in the community**: Four engagement-ranked posts placed after the statistics strip and before "Start with these", showing drama thumbnails, short titles, post type badges, spoiler tags, comment/like counts, and participant avatars.
-- **From the community**: Three recent community posts placed after the mood section, showing author avatars, relative post timestamps, drama poster banners, like buttons, comment links, and a "Join the conversation" CTA.
-
-### Database migration and security
-
-The database schema is managed via Alembic migration `backend/migrations/versions/f2c84d1e9a73_add_community_system.py`:
-- `community_posts`: UUID primary key, `user_id` referencing `profiles(id)` (CASCADE), nullable `drama_id` referencing `dramas(id)` (SET NULL), post type (`discussion`, `review`, `recommendation`), title (max 120 chars), body (max 2,000 chars), rating (1.0–10.0), `contains_spoilers` boolean, timestamps with triggers.
-- `community_comments`: UUID primary key, `post_id` (CASCADE), `user_id` (CASCADE), body (max 1,000 chars), `contains_spoilers` boolean, timestamps.
-- `community_reactions`: `post_id` (CASCADE), `user_id` (CASCADE), `reaction_type` (`like`), unique constraint on `(post_id, user_id, reaction_type)`.
-- Row Level Security (RLS) is enabled on all community tables: anonymous users have read-only access; authenticated members can only create content under their own identity, edit/delete their own posts/comments, and add/remove their own reactions.
-
-### API endpoints
-
-- **Public**:
-  - `GET /community/posts`: List posts with cursor/page pagination, post-type filtering, search query, drama filter, and trending or recent sorting.
-  - `GET /community/posts/{post_id}`: Fetch single post with drama details, author profile, reaction counts, and author permissions.
-  - `GET /community/posts/{post_id}/comments`: Fetch comments ordered oldest-first.
-  - `GET /community/trending`: Returns top 4 posts ranked by deterministic score.
-- **Authenticated**:
-  - `POST /community/posts`: Create a discussion, review, or recommendation (201 Created).
-  - `PATCH /community/posts/{post_id}`: Edit post title, body, rating, or spoiler status (author only).
-  - `DELETE /community/posts/{post_id}`: Delete post and cascade reactions/comments (204 No Content, author only).
-  - `POST /community/posts/{post_id}/comments`: Post a comment (201 Created).
-  - `PATCH /community/comments/{comment_id}`: Edit comment body or spoiler flag (author only).
-  - `DELETE /community/comments/{comment_id}`: Delete comment (204 No Content, author only).
-  - `PUT /community/posts/{post_id}/like`: Like a post (idempotent, increments count).
-  - `DELETE /community/posts/{post_id}/like`: Unlike a post (decrements count).
-
-### Deterministic trending formula
-
-Trending posts are calculated deterministically without ML models or heavy background workers:
-$$\text{Trending Score} = \text{Likes} + (\text{Comments} \times 2) + \text{Recency Bonus}$$
-where the recency bonus awards up to 21 points for posts active within the last 7 days ($(\max(0, 7 - \text{age}_{\text{days}})) \times 3$).
-
-### Spoiler behavior
-
-Any post or comment marked with `contains_spoilers: true` initially masks its text behind a "Contains spoilers — Reveal" guard. Previews in the homepage sections, feed cards, search results, and page metadata never render unmasked spoiler text. Content is only revealed when the visitor explicitly clicks "Reveal".
-
-### Mock mode support
-
-Run `.\scripts\run_web_frontend.ps1 -Mode mock` to use the community system completely standalone without starting PostgreSQL, Docker, or FastAPI. Mock mode provides 8+ community posts (including the 4 trending and 3 homepage items), multi-user comments, spoiler guards, and interactive in-memory CRUD operations (create, edit, delete posts and comments, toggle likes) that reset upon dev-server restart.
-
-### Phase 1 MVP boundaries
-
-Features deliberately excluded from Phase 1 and reserved for subsequent phases:
-- Nested comment threads / replies
-- User follow graphs and direct messaging
-- Custom image/media uploads in post bodies
-- Multiple reaction emojis (only "like" is supported in Phase 1)
-- WebSocket-based real-time push notifications
-- Moderation review dashboards
-
-## Dataset and posters
-
-The final dataset is `data/final/kdrama_dataset.csv`. After adding dramas or changing recommendation text, rebuild the index with the existing model and restart the backend. New dramas do not require model retraining.
-
-To update it from MyDramaList, run the scraper pipeline from `scrapers/DramaList_Scrapper/`:
-
-```powershell
-..\..\.venv\Scripts\python.exe run_pipeline.py --refresh --dry-run   # show what would be downloaded
-..\..\.venv\Scripts\python.exe run_pipeline.py --refresh             # nightly-style update
-```
-
-`--refresh` checks the first listing pages for new dramas and re-downloads pages that are due (airing dramas daily, completed ones every 90 days, at most 300 per run). Only Korean dramas are downloaded; `steps/scrape_settings.py` sets the countries and intervals. The publish step merges the result into `data/final/kdrama_dataset.csv` only if its checks pass, keeps `kdrama_dataset.prev.csv`, and writes `data/reports/dataset_publish_report.json`. Details: [scraper pipeline](scrapers/DramaList_Scrapper/README.md).
-
-### One-command update (`scripts/update_catalog.py`)
-
-From the project root, this runs the scraper and then releases the result. A release builds the index, imports the database catalog, uploads the posters and swaps in the new index:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\update_catalog.py --skip-scrape --no-db   # build + check only, no database changes
-.\.venv\Scripts\python.exe scripts\update_catalog.py                         # full update; restart the backend afterwards
-.\.venv\Scripts\python.exe scripts\update_catalog.py --restart-cmd "<command>"   # also restart + health check
-```
-
-| Stage | What it does |
-| --- | --- |
-| scrape | `run_pipeline.py --refresh` (skip with `--skip-scrape`) |
-| release-data | Live dramas keep their positions and new dramas are appended. New dramas without a downloaded poster wait for a later run. Stops with `no_changes` if nothing differs from the live release. |
-| build, validate | Builds `training/faiss_index.candidate/` with the bi-encoder the backend loads. Only new dramas and dramas whose text changed are encoded; the rest reuse the live index's vectors after a spot-check (`--full-build` encodes everything). Checks counts, dimension, row order, unchanged live positions and vectors. |
-| catalog-check | `import_catalog.py --dry-run` against the candidate |
-| catalog-import, poster-audit, thumbnails, poster-upload | Database and Supabase Storage. Only new or changed thumbnails are generated (`generate_poster_thumbnails.py --force` regenerates all) and only new or changed posters are uploaded. |
-| activate | `faiss_index/` → `faiss_index.prev/`, candidate → `faiss_index/` |
-| restart | With `--restart-cmd`: restart, wait for `--health-url`, run one test search |
-
-If anything fails after the database changed, the run rolls back. It restores the previous index and re-imports the catalog from the live release's `dataset.csv`, removing the new dramas. Each run writes `logs/update/<run id>.log` and `logs/update/status.json`. A lock file prevents two runs at once. Exit codes: 0 = released or no changes, 1 = failed or rolled back, 2 = another run is active. Without `--restart-cmd`, the backend keeps serving the old index until restarted. A full index build takes about 15–26 minutes on this laptop CPU (longer on a small VM); reusing unchanged vectors, the build for 49 new and 232 changed dramas took about 2 minutes, and thumbnails take seconds when only a few posters are new. The database stages need local or hosted Supabase running.
-
-Status (2026-10-29):
-- **Done:** the first release ran against local Supabase (`--skip-scrape --force`, same 2,081 dramas). All posters and database links verified, nothing re-uploaded, and the backend started on the new index with search results unchanged (see Evaluation).
-- **Done:** scraper refresh and publish: `data/final` now has **2,130 dramas** (49 new), with 2,130 posters and 2,130 WebP thumbnails on disk.
-- **Done (2026-10-29):** `update_catalog.py --skip-scrape` released the 49 new dramas in 7 minutes. The search index, database and Storage now hold **2,130 dramas**.
-- **Done (2026-10-30):** the database moved to hosted Supabase (Tokyo). Schema, catalog (2,130 dramas) and all 4,260 poster files are on the hosted project and verified; the backend and frontend run locally against it.
-- **Done (2026-10-31):** the site is live. The backend runs on the Azure VM and the frontend on Vercel (see [Live](#live)). After a catalog release, copy `training/faiss_index/` to the VM and restart `seoulmate-api`.
-- **Next:** nightly scheduling. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
-
-Local posters are optional. To download missing posters:
-
-```powershell
-.\.venv\Scripts\python.exe scrapers\DramaList_Scrapper\steps\step3_download_images.py
-```
-
-To make WebP card thumbnails without the database (the audit reads the drama list from `data/final`; the Storage upload still needs a normal database audit):
-
-```powershell
-.\.venv\Scripts\python.exe scripts\audit_poster_inventory.py --dataset
-.\.venv\Scripts\python.exe scripts\generate_poster_thumbnails.py
-```
-
-Poster originals are preserved in `scrapers/DramaList_Scrapper/output/drama_image_by_id/`. The production UI receives public Supabase Storage URLs from FastAPI, using WebP thumbnails on cards and original JPEGs on detail pages. Runtime poster delivery has no external image fallback; details are in the [quick start](docs/guides/QUICKSTART.md#prepare-and-upload-posters-to-local-storage).
-
-## Evaluation
-
-With the backend running:
-
-```powershell
-.\scripts\run_accuracy.ps1
-```
-
-Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-29**. Franchise ordering is 12/12 and the regression suite 33/33. Since the previous 2,081-drama baseline (87.05% overall, P@3 60.66%, R@10 94.48%), actor searches have been ranked by lead role and watchers, and the expected answers were corrected (two names that weren't dataset titles, plus fitting dramas added). Details are in `CHANGELOG.md` (2026-10-29). Re-run on **2026-10-30** with the backend on hosted Supabase, and on **2026-10-31** against the live API on the Azure VM: every metric identical both times, regression 33/33.
+1. **Query analysis** works out what you are asking for: a title, an actor, a genre, a mood. It also fixes typos and reads filters.
+2. **Retrieval** finds candidates two ways: by meaning, with a sentence-embedding model fine-tuned on K-drama descriptions and a FAISS index, and by keywords, with BM25.
+3. **Ranking** boosts dramas that match curated mood, trope, setting and relationship lists, MyDramaList tags, and actor billing.
+4. **Reranking** re-scores the top candidates with a cross-encoder.
+5. **Personalization** nudges results toward your own taste.
+
+**In production:** the website runs on Vercel, the search API on an Azure server, and the database, accounts and posters on Supabase. See [deployment architecture](docs/deployment/DEPLOYMENT_ARCHITECTURE.md).
+
+## Results
 
 <p align="center">
   <img src="docs/assets/celebrating-results.gif" alt="Students cheering" width="300">
@@ -284,14 +95,18 @@ Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated o
 > [!IMPORTANT]
 > Overall accuracy reached 89.10%, honestly, a very good reason to celebrate.
 
+Measured on a 61-search test set covering titles, typos, actors, genres, moods and filters:
+
 | Metric | Result |
 | --- | ---: |
-| Overall accuracy | 89.10% |
+| Overall accuracy | **89.10%** |
 | Precision@3 | 66.12% |
 | Recall@10 | 96.28% |
 | Mean reciprocal rank | 0.992 |
+| Filters, genre detection, personalization | 100% |
+| Regression suite | 33/33 |
 
-**Held-out set** (`tests/evaluation/evaluate_heldout.py`): 52 searches whose expected answers come from the dataset's MyDramaList tags and cast billing, never used for tuning.
+On a **held-out set** of 52 searches that no ranking rule was tuned on (expected answers taken from MyDramaList tags and cast billing):
 
 | Held-out | P@5 | R@10 | Hit@1 |
 | --- | ---: | ---: | ---: |
@@ -299,39 +114,78 @@ Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated o
 | Actors (10) | 92.0% | 95.9% | 100% |
 | All (52) | 73.1% | 40.9% | 76.9% |
 
-Trope searches: P@5 65.6%, R@10 78.0%. Similar dramas: P@5 24.0%, R@10 28.8%.
+Trope searches reach P@5 65.6% and R@10 78.0%; similar-drama recommendations P@5 24.0% and R@10 28.8%. The live site scores the same as a local run.
 
-These results describe this benchmark, not all recommendation scenarios. Precision@3 has a 68.3% ceiling on this test set because title and typo cases have a single expected answer. Similar-drama and trope searches have separate evaluations. See the [evaluation report](tests/reports/model_comparison_2026-09-30.md) for methodology, comparisons, and limitations.
+These numbers describe this benchmark, not every possible search. Precision@3 cannot go above 68.3% here, because title and typo searches have a single correct answer. Method, comparisons and limitations: [evaluation report](tests/reports/model_comparison_2026-09-30.md).
 
-## Repository layout
+## Tech stack
 
-| Directory | Purpose |
+| Part | Technology |
 | --- | --- |
-| `backend/` | API, ranking, personalization, and analytics |
-| `frontend-web/` | Next.js user interface |
-| `frontend/` | Internal Streamlit interface |
-| `training/` | Active training pipeline, models, and FAISS index |
-| `training-new/` | Experimental training pipeline |
-| `data/final/` | Final drama dataset |
-| `scrapers/` | Data collection and poster downloads |
-| `tests/` | Evaluation, regression checks, and reports |
-| `scripts/` | Local launch and evaluation commands |
-| `docs/` | Current guides, plans, and historical archives |
+| Website | Next.js, React, TypeScript, Tailwind CSS, TanStack Query |
+| API | FastAPI, Uvicorn |
+| Search | Sentence Transformers, FAISS, BM25Plus, RapidFuzz, cross-encoder reranker |
+| Data and accounts | Supabase (PostgreSQL, Auth, Storage), SQLAlchemy, Alembic |
+| Training and data | PyTorch, pandas, NumPy; MyDramaList scraper |
+| Hosting | Vercel, Azure, Supabase |
+
+## Quick start
+
+To try the **website on its own**, with built-in sample data (no database or API needed):
+
+```powershell
+.\scripts\run_web_frontend.ps1 -Mode mock
+```
+
+Then open http://localhost:3000.
+
+To run the **full system** locally (Python 3.10+, Node.js, Docker Desktop with the Supabase CLI, and the model files from the [training guide](training/README.md)):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+supabase start
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\scripts\run_backend.ps1          # API on http://127.0.0.1:8001
+.\scripts\run_web_frontend.ps1     # website on http://localhost:3000 (second terminal)
+```
+
+Step-by-step instructions, catalog import, posters and troubleshooting: [quick start guide](docs/guides/QUICKSTART.md).
+
+To check search quality while the API is running: `.\scripts\run_accuracy.ps1`.
+
+## Project structure
+
+| Folder | What's inside |
+| --- | --- |
+| `frontend-web/` | Next.js website |
+| `backend/` | FastAPI API: search, ranking, personalization, accounts, community |
+| `training/` | Model training pipeline and search index |
+| `scrapers/` | MyDramaList data collection |
+| `data/` | The drama dataset and reports |
+| `scripts/` | Launch, catalog release and evaluation scripts |
+| `tests/` | Accuracy tests, regression suite and reports |
+| `supabase/` | Local Supabase config and email templates |
+| `frontend/` | Internal Streamlit tool for testing and analytics |
+| `docs/` | Guides, deployment, plans and archives |
 
 ## Documentation
 
-- [Documentation index](docs/README.md)
-- [Quick start](docs/guides/QUICKSTART.md)
-- [Deployment architecture](docs/deployment/DEPLOYMENT_ARCHITECTURE.md)
-- [Personalization guide](docs/guides/PERSONALIZATION_QUICK_START.md)
-- [Training and index building](training/README.md)
-- [Scraper pipeline](scrapers/DramaList_Scrapper/README.md)
-- [Web frontend](frontend-web/README.md)
-- [Automatic dataset update plan](docs/plans/AUTOMATED_DATASET_UPDATE_PLAN.md)
-- [Contributing](CONTRIBUTING.md) and [changelog](CHANGELOG.md)
+- [Quick start](docs/guides/QUICKSTART.md): run everything locally
+- [Catalog updates](docs/guides/CATALOG_UPDATES.md): scrape new dramas, rebuild the index, release
+- [Community](docs/guides/COMMUNITY.md): routes, database, API and trending formula
+- [Personalization](docs/guides/PERSONALIZATION_QUICK_START.md): profiles and personalized results
+- [Training](training/README.md): models and index building
+- [Deployment architecture](docs/deployment/DEPLOYMENT_ARCHITECTURE.md): how production is set up
+- [Website](frontend-web/README.md): frontend settings and routes
+- [All docs](docs/README.md), [changelog](CHANGELOG.md) and [contributing](CONTRIBUTING.md)
 
-Scheduled catalog updates are planned, not implemented. User interactions update profiles without automatically retraining the core models. Generated-only ranking remains experimental; the default uses curated priors with calibrated generated fallback support.
+## What's next
+
+- Nightly catalog updates, so new dramas appear automatically
+- Moving taste profiles and preference learning fully into the database
+- Community phase 2: replies, more reactions and moderation
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE)
