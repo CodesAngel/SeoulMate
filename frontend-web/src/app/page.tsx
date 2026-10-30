@@ -14,8 +14,25 @@ import { CommunityFromSection } from "@/components/community-from-section";
 import { searchDramas } from "@/lib/api";
 import { MOOD_LINKS, QUICK_PROMPTS } from "@/lib/constants";
 import { dramaKey } from "@/lib/drama";
+import type { Drama } from "@/lib/types";
 
 const moodIcons = [HeartHandshake, Sparkles, WandSparkles];
+
+// The hero is the first thing every visitor sees, so it only features
+// well-known, well-rated dramas and never adult titles.
+const HERO_MIN_WATCHERS = 10_000;
+const HERO_MIN_RATING = 7.5;
+
+function isAdultTitle(drama: Drama) {
+  return /\bmature\b/i.test(drama.Genre ?? "") || /nudity/i.test(drama.keywords ?? "");
+}
+
+function isHeroWorthy(drama: Drama) {
+  return (
+    (drama.watchers ?? 0) >= HERO_MIN_WATCHERS &&
+    Number(drama.rating_value) >= HERO_MIN_RATING
+  );
+}
 
 export default function HomePage() {
   const router = useRouter();
@@ -36,8 +53,19 @@ export default function HomePage() {
     enabled: ready,
   });
 
-  const dramas = homeQuery.data?.recommendations ?? [];
-  const feature = dramas[0];
+  // The home page is the public front door: adult titles stay out of both the
+  // hero and the top picks (they remain reachable through search).
+  const dramas = (homeQuery.data?.recommendations ?? []).filter((drama) => !isAdultTitle(drama));
+  // "Tonight's match" rotates daily through the personalised top results:
+  // the same drama all day (local time), a different one tomorrow. Popular,
+  // well-rated picks come first; if none qualify, any result is used.
+  const [localDay] = useState(() =>
+    Math.floor((Date.now() - new Date().getTimezoneOffset() * 60_000) / 86_400_000),
+  );
+  const heroWorthy = dramas.filter(isHeroWorthy);
+  const heroPool = heroWorthy.length ? heroWorthy : dramas;
+  const feature = heroPool.length ? heroPool[localDay % heroPool.length] : undefined;
+  const backdrop = heroPool.length > 1 ? heroPool[(localDay + 1) % heroPool.length] : undefined;
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -73,10 +101,18 @@ export default function HomePage() {
           </div>
           <div className="hero-art" aria-hidden={!feature}>
             <div className="hero-poster-back">
-              <PosterImage src={dramas[1]?.poster_thumbnail_url ?? dramas[1]?.Image} alt={dramas[1]?.Title || "Featured drama"} />
+              <PosterImage src={backdrop?.poster_thumbnail_url ?? backdrop?.Image} alt={backdrop?.Title || "Featured drama"} sizes="(max-width: 950px) 50vw, 360px" />
             </div>
             <div className="hero-poster-main">
-              <PosterImage src={feature?.poster_thumbnail_url ?? feature?.Image} alt={feature?.Title || "Featured drama"} priority />
+              {/* The hero poster is far larger than a card, so it uses the original
+                  image instead of the 480px thumbnail. */}
+              <PosterImage
+                src={feature?.poster_original_url ?? feature?.poster_thumbnail_url ?? feature?.Image}
+                alt={feature?.Title || "Featured drama"}
+                priority
+                sizes="(max-width: 950px) 60vw, 420px"
+                quality={90}
+              />
             </div>
             {feature && (
               <div className="hero-feature-label">
@@ -87,8 +123,8 @@ export default function HomePage() {
           </div>
         </div>
         <div className="shell trust-strip">
-          <div className="trust-item"><span className="trust-number">2,081</span><div><strong>Stories to discover</strong><span>Across every mood and genre</span></div></div>
-          <div className="trust-item"><span className="trust-number">87.05%</span><div><strong>Search accuracy</strong><span>Tested against real requests</span></div></div>
+          <div className="trust-item"><span className="trust-number">2,130</span><div><strong>Stories to discover</strong><span>Across every mood and genre</span></div></div>
+          <div className="trust-item"><span className="trust-number">89.10%</span><div><strong>Search accuracy</strong><span>Tested against real requests</span></div></div>
           <div className="trust-item"><span className="trust-number">You</span><div><strong>At the center</strong><span>Recommendations learn your taste</span></div></div>
         </div>
       </section>

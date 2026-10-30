@@ -10,11 +10,14 @@ export function PosterImage({
   alt,
   priority = false,
   sizes = "(max-width: 640px) 44vw, (max-width: 1100px) 28vw, 220px",
+  quality,
 }: {
   src?: string | null;
   alt: string;
   priority?: boolean;
   sizes?: string;
+  /** Must be listed in `images.qualities` in next.config.ts. */
+  quality?: number;
 }) {
   const [failed, setFailed] = useState(false);
   const resolved = resolvePosterUrl(src);
@@ -36,6 +39,7 @@ export function PosterImage({
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       sizes={sizes}
+      quality={quality}
       className="poster-img"
       onError={() => setFailed(true)}
     />

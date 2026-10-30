@@ -9,6 +9,8 @@ const isLocalSupabase = ["127.0.0.1", "localhost"].includes(
 
 const nextConfig: NextConfig = {
   images: {
+    // 75 is the default for cards; 90 keeps large hero posters sharp.
+    qualities: [75, 90],
     dangerouslyAllowLocalIP:
       process.env.NODE_ENV !== "production" && isLocalSupabase,
     remotePatterns: [
