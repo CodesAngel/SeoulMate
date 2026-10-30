@@ -70,6 +70,10 @@ npm run build
 npm run start
 ```
 
+## Production
+
+Live at **https://seoulmate-azure.vercel.app**. Vercel builds this folder (Root Directory `frontend-web`) on every push to `main`. Its environment variables are `NEXT_PUBLIC_API_URL` (the live API, `https://seoulmate.indiasouthcentral.cloudapp.azure.com`), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`. All `NEXT_PUBLIC_` values are compiled into the bundle, so redeploy after changing one. The API only accepts requests from the origin set as `FRONTEND_URL` on the server. See [docs/DEPLOYMENT_ARCHITECTURE.md](../docs/DEPLOYMENT_ARCHITECTURE.md).
+
 ## Routes
 
 | Route | Purpose |

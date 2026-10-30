@@ -6,7 +6,7 @@ Reviewed against the repository on 2026-10-04.
 | --- | --- |
 | [Quick start](QUICKSTART.md) | Start the backend and internal frontend; refresh posters or rebuild the index |
 | [Personalization guide](PERSONALIZATION_QUICK_START.md) | Profile and recommendation API usage |
-| [Deployment architecture](DEPLOYMENT_ARCHITECTURE.md) | What runs on the Azure VM, hosted Supabase, Vercel, and the developer PC |
+| [Deployment architecture](DEPLOYMENT_ARCHITECTURE.md) | Live since 2026-10-31: website on Vercel, API on the Azure VM, data on hosted Supabase; setup, commands and the developer PC's role |
 | [Supabase PostgreSQL migration plan](SUPABASE_POSTGRESQL_MIGRATION_PLAN.md) | Active database, authentication, Storage, and rollout plan; catalog, posters, Auth, watchlists, and ratings implemented; schema, catalog and posters on the hosted project since 2026-10-30 |
 | [Automatic dataset update plan](AUTOMATED_DATASET_UPDATE_PLAN.md) | Proposed Python update manager and scheduled workflow; not implemented |
 | [Training guide](../training/README.md) | Active training and index pipeline |

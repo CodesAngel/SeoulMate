@@ -1,0 +1,30 @@
+# Backend-only packages for the production server, pinned to the versions the
+# evaluation ran with. Install PyTorch from the CPU index first:
+#   pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r backend/requirements-server.txt
+
+fastapi==0.141.1
+starlette==0.52.1
+uvicorn[standard]==0.52.1
+httptools==0.8.0
+websockets==16.1.1
+watchfiles==1.2.0
+python-dotenv==1.2.2
+pydantic==2.13.4
+pydantic-settings==2.15.0
+python-multipart==0.0.32
+SQLAlchemy==2.1.3
+alembic==1.20.0
+psycopg[binary]==3.3.6
+PyJWT[crypto]==2.15.1
+cryptography==50.0.2
+requests==2.31.0
+
+numpy==2.5.1
+faiss-cpu==1.15.0
+rank-bm25==0.2.2
+RapidFuzz==3.14.5
+sentence-transformers==5.6.1
+transformers==5.14.1
+tokenizers==0.22.2
+safetensors==0.8.0

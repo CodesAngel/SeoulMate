@@ -70,7 +70,7 @@ For the simplest initial deployment, stop the backend briefly during activation,
 
 After manual end-to-end validation, schedule the manager nightly with Windows Task Scheduler, using the virtual environment executable and project working directory. The machine must be running and online; configure missed-run handling. Prevent overlapping runs with a lock and make retries resumable.
 
-Start with a per-run log and machine-readable status file showing timestamps in Asia/Karachi, stage, new/changed counts, poster failures, validation result, and active release. Later add an authenticated monitoring page with run history and a Run update now button. The page requests work from the manager; it does not run long scraping or model tasks inside a page request.
+Start with a per-run log and machine-readable status file showing timestamps in local time, stage, new/changed counts, poster failures, validation result, and active release. Later add an authenticated monitoring page with run history and a Run update now button. The page requests work from the manager; it does not run long scraping or model tasks inside a page request.
 
 ## Delivery order
 

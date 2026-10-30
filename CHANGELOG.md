@@ -2,14 +2,57 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-31
+
+### SeoulMate is live
+
+- **Website:** https://seoulmate-azure.vercel.app (Vercel, Hobby plan; root directory `frontend-web`, deploys on every push to `main`).
+- **API:** https://seoulmate.indiasouthcentral.cloudapp.azure.com (Azure VM).
+- **Data:** hosted Supabase (Tokyo), since 2026-10-30.
+
+Layout and commands: `docs/DEPLOYMENT_ARCHITECTURE.md`.
+
+### Backend deployed to the Azure VM
+
+- **Host choice:** Hugging Face Spaces was planned first, but since 2026 its free tier no longer runs Docker or Gradio Spaces (PRO, $9/month, required). Other free hosts were checked: Render (512 MB), Koyeb (no free plan), Railway and Fly.io (trial credit only) are too small for the 1.1 GB model. The existing Azure VM is used instead. Oracle Always Free (cut to 2 CPU / 12 GB in June 2026) and Google Cloud Run remain options for later.
+- **Packages:** new `backend/requirements-server.txt` pins only the backend's packages to the versions used for the evaluation (PyTorch 2.13.0 CPU installed first from the PyTorch CPU index). Streamlit, pandas and the training packages are not installed on the server.
+- **Files:** the models (`sbert-finetuned-full` 1.1 GB, `cross-enc-excellent` 88 MB) and `training/faiss_index` were streamed from the PC with `tar | ssh` in 2 minutes; checksums match.
+- **Service:** systemd unit `seoulmate-api` (`SEOULMATE_RELOAD=0`, reachable only through Nginx, restarts on failure, starts on boot). Startup takes 1–2 minutes while the models load.
+- **HTTPS:** Nginx proxies to the backend; a Let's Encrypt certificate (certbot) provides HTTPS and renews automatically.
+- **Checks against the VM:** main test **89.10%**, identical to the PC on every metric (P@3 66.12%, R@10 96.28%, MRR 0.992, NDCG 0.963, franchise 12/12, self-exclusion 27/27, tropes P@5 65.6%, similar P@5 24.0%); regression 33/33. Average response 1.15 s, including about 117 ms per database round trip India ↔ Tokyo.
+
+### Frontend deployed to Vercel
+
+- **Production build** checked locally first (`next build`: 17 routes compile and type-check).
+- **Environment variables:** `NEXT_PUBLIC_API_URL` (the VM URL), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`. The secret key and database URL are only on the VM.
+- **CORS fix:** searches from the live site failed at first. The browser's `OPTIONS` preflight got `400 Bad Request`, because the backend only allowed `localhost:3000`. Adding `FRONTEND_URL=https://seoulmate-azure.vercel.app` to the VM's `backend/.env` fixed it (`localhost:3000` stays allowed for development).
+- **Supabase Auth:** Site URL and redirect URLs set to the Vercel domain, keeping `http://localhost:3000/**` for local development.
+
+### Website fixes and polish (2026-10-30/31)
+
+- **Auth emails:** branded templates in `supabase/templates/` (`confirmation.html`, `recovery.html`, `email_change.html`) with matching subjects, used by `supabase/config.toml` locally and pasted into the hosted project's dashboard. They keep `{{ .ConfirmationURL }}`, so `/auth/confirm` works as before.
+- **Home hero:**
+  - "Tonight's match" rotates daily (local date) through the personalised top results, instead of always showing the top result.
+  - It only features dramas with at least 10,000 watchers and a rating of 7.5 or higher, falling back to any result if none qualify.
+  - Adult titles (genre "Mature" or a nudity tag) are kept out of both the hero and the "Top picks" row; they are still reachable through search.
+  - The hero poster now loads the 900px original at quality 90 with the right `sizes` (it used the 480px card thumbnail, re-encoded at quality 75). `next.config.ts` allows qualities 75 and 90.
+  - The stats strip shows the current 2,130 dramas and 89.10% accuracy (was 2,081 and 87.05%).
+- **Layout fixes:** several came from Tailwind's preflight making every `svg` block-level and removing heading margins.
+  - Community: the empty feed and the signed-out "Start a discussion" card had no styles (`community-empty-card`, `empty-state-icon`, `signin-prompt-card`); now centered cards, with the button icon visible and a dark-mode style.
+  - Watch Together: the Fusion Reactor column got a 14px gap, and its parts no longer shrink, so a long explanation no longer runs into the slider.
+  - Drama detail:
+    - The stat pills (rating, episodes, dates, fans) are inline-flex, so the fans icon sits beside its text.
+    - The blurred poster backdrop fades out with a mask, so there is no hard edge below the hero.
+    - The "Cast & Production" heading has space below it.
+
 ## 2026-10-30
 
 ### Database moved to hosted Supabase
 
 Only Supabase is hosted for now; the backend and frontend still run on the PC. Planned layout (Azure VM, hosted Supabase, Vercel): `docs/DEPLOYMENT_ARCHITECTURE.md`.
 
-- **Project:** ref `fsmesbdiubahfxzvassj`, region **Tokyo (ap-northeast-1)**, free plan. Kept in Tokyo although the planned VM is in India; to be revisited before the backend moves.
-- **Connection:** the Session pooler (`aws-0-ap-northeast-1.pooler.supabase.com:5432`, `?sslmode=require`). The direct host (`db.<ref>.supabase.co`) has only an IPv6 address on the free plan and fails from a network without IPv6. `backend/database/settings.py` already turns `postgresql://` into `postgresql+psycopg://`, so the dashboard string works as is.
+- **Project:** region **Tokyo (ap-northeast-1)**, free plan. Kept in Tokyo although the planned VM is in India; to be revisited before the backend moves.
+- **Connection:** the Session pooler (port 5432, `?sslmode=require`). The direct host (`db.<ref>.supabase.co`) has only an IPv6 address on the free plan and fails from a network without IPv6. `backend/database/settings.py` already turns `postgresql://` into `postgresql+psycopg://`, so the dashboard string works as is.
 - **Env files:** `backend/.env` and `frontend-web/.env.local` point at the hosted project. The local Docker values are kept in `backend/.env.docker` and `frontend-web/.env.docker` (copy back to switch).
 - **Sizes before the move:** local database 32 MB (15 MB of app tables), Storage 4,260 poster files / 392 MB, one test user. Live starts with no users.
 - **Schema:** `alembic upgrade head` ran all 5 migrations (head `f2c84d1e9a73`). A comparison of tables, columns, RLS policies, triggers, functions and indexes showed the hosted schema contains everything the local one has, plus the community tables. The local Docker database was one migration behind (community migration never applied).

@@ -1,6 +1,6 @@
 # Supabase PostgreSQL migration plan
 
-Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, poster URL cutover, authentication, and persistent watchlists/ratings are complete. Since 2026-10-30 the schema, catalog and posters are on the hosted project; deploying the backend and the profile/preference/analytics cutover remain.
+Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, poster URL cutover, authentication, and persistent watchlists/ratings are complete. Since 2026-10-30 the schema, catalog and posters are on the hosted project, and since 2026-10-31 the site is live (Vercel + Azure VM). The profile/preference/analytics cutover remains.
 
 ## Implementation progress
 
