@@ -170,9 +170,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  gap: 14px;
   text-align: center;
   position: relative;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+/* Keep every part at its full height so a longer summary grows the column
+   instead of running into the slider. */
+.fusion-reactor-column > * {
+  flex-shrink: 0;
 }
 .fusion-core-gauge {
   position: relative;

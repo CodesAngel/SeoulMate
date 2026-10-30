@@ -3,8 +3,8 @@
 .detail-poster { position: relative; aspect-ratio: 2/3; border-radius: 24px; overflow: hidden; box-shadow: var(--shadow); background: #F0EDF5; }
 .detail-copy .eyebrow { color: var(--coral-dark); }
 .detail-copy h1 { font-size: clamp(2.8rem, 5.25vw, 5.1rem); line-height: .95; margin: 14px 0 22px; max-width: 780px; }
-.detail-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
-.meta-chip { border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: .75rem; font-weight: 700; background: rgba(255,255,255,.35); }
+.detail-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 24px; }
+.meta-chip { display: inline-flex; align-items: center; gap: 6px; line-height: 1.2; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: .75rem; font-weight: 700; background: rgba(255,255,255,.35); }
 .detail-description { max-width: 780px; color: #5f625f; line-height: 1.75; font-size: 1.01rem; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .detail-actions button { display: inline-flex; align-items: center; gap: 8px; }
