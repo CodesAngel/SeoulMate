@@ -102,7 +102,12 @@ def ensure_bucket(storage_url: str, secret_key: str) -> dict[str, Any]:
         "file_size_limit": BUCKET_FILE_LIMIT,
         "allowed_mime_types": sorted(ALLOWED_MIME_TYPES),
     }
-    if response.status_code == 404:
+    # Hosted Supabase answers a missing bucket with HTTP 400 and NoSuchBucket in
+    # the body; the local CLI stack returns a plain 404.
+    bucket_missing = response.status_code == 404 or (
+        response.status_code == 400 and "NoSuchBucket" in response.text
+    )
+    if bucket_missing:
         response = requests.post(
             f"{storage_url}/bucket", headers=headers, json=payload, timeout=30
         )

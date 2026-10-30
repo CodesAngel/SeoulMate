@@ -188,3 +188,10 @@ Quiz/Reference Image/1791098820201.jpg
 Quiz/Reference Image/1791098822645.jpg
 Quiz/Reference Image/1791098827922.jpg
 Quiz/Reference Image/1791098831076.jpg
+
+# Research paper notes (private)
+research/
+# Quiz data
+quiz/
+quiz/labels.json
+quiz/README.md
