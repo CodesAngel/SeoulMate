@@ -1,6 +1,6 @@
 # SeoulMate quick start
 
-Updated: 2026-10-06. Run these commands from `D:\Projects\SeoulMate` with the existing virtual environment and dependencies installed. See the [root README](../README.md) for full setup.
+Updated: 2026-10-06. Run these commands from `D:\Projects\SeoulMate` with the existing virtual environment and dependencies installed. See the [root README](../../README.md) for full setup.
 
 ## Frontend-only mock mode
 
@@ -52,7 +52,7 @@ The default API is `http://127.0.0.1:8001`; interactive API documentation is at 
 .\scripts\run_frontend.ps1
 ```
 
-The default internal frontend is `http://localhost:8501`. The production Next.js frontend has separate instructions in [frontend-web/README.md](../frontend-web/README.md).
+The default internal frontend is `http://localhost:8501`. The production Next.js frontend has separate instructions in [frontend-web/README.md](../../frontend-web/README.md).
 
 ## Test local authentication
 
@@ -119,4 +119,4 @@ Invoke-RestMethod -Uri 'http://127.0.0.1:8001/'
 Invoke-RestMethod -Uri 'http://127.0.0.1:8001/recommend?title=Goblin&top_n=5'
 ```
 
-For future scheduled updates, see the [automatic dataset update plan](AUTOMATED_DATASET_UPDATE_PLAN.md).
+For future scheduled updates, see the [automatic dataset update plan](../plans/AUTOMATED_DATASET_UPDATE_PLAN.md).

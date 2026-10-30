@@ -16,7 +16,7 @@ The system combines semantic search, lexical search, calibrated ranking indexes,
 | Website | **https://seoulmate-azure.vercel.app** |
 | API | https://seoulmate.indiasouthcentral.cloudapp.azure.com (interactive docs at `/docs`) |
 
-The website runs on Vercel, the API on an Azure VM, and the database, accounts and posters on Supabase. Search accuracy on the live API is the same as locally (89.10%). Details: [docs/DEPLOYMENT_ARCHITECTURE.md](docs/DEPLOYMENT_ARCHITECTURE.md).
+The website runs on Vercel, the API on an Azure VM, and the database, accounts and posters on Supabase. Search accuracy on the live API is the same as locally (89.10%). Details: [docs/deployment/DEPLOYMENT_ARCHITECTURE.md](docs/deployment/DEPLOYMENT_ARCHITECTURE.md).
 
 ## Features
 
@@ -75,9 +75,9 @@ supabase start
 .\.venv\Scripts\python.exe -m alembic upgrade head
 ```
 
-This starts the local database, Auth, Storage, Studio, and Mailpit services described in the [quick start](docs/QUICKSTART.md).
+This starts the local database, Auth, Storage, Studio, and Mailpit services described in the [quick start](docs/guides/QUICKSTART.md).
 
-To use the hosted Supabase project instead, put its values in `backend/.env` (see `backend/.env.example`) and `frontend-web/.env.local`, and skip `supabase start`. Use the **Session pooler** connection string from the dashboard's Connect window; the direct `db.<ref>.supabase.co` host needs IPv6. Keep the local values in `backend/.env.docker` and `frontend-web/.env.docker` to switch back. The production layout (Vercel, Azure VM, Supabase) is in [docs/DEPLOYMENT_ARCHITECTURE.md](docs/DEPLOYMENT_ARCHITECTURE.md).
+To use the hosted Supabase project instead, put its values in `backend/.env` (see `backend/.env.example`) and `frontend-web/.env.local`, and skip `supabase start`. Use the **Session pooler** connection string from the dashboard's Connect window; the direct `db.<ref>.supabase.co` host needs IPv6. Keep the local values in `backend/.env.docker` and `frontend-web/.env.docker` to switch back. The production layout (Vercel, Azure VM, Supabase) is in [docs/deployment/DEPLOYMENT_ARCHITECTURE.md](docs/deployment/DEPLOYMENT_ARCHITECTURE.md).
 
 ### 4. Start the backend
 
@@ -265,7 +265,7 @@ To make WebP card thumbnails without the database (the audit reads the drama lis
 .\.venv\Scripts\python.exe scripts\generate_poster_thumbnails.py
 ```
 
-Poster originals are preserved in `scrapers/DramaList_Scrapper/output/drama_image_by_id/`. The production UI receives public Supabase Storage URLs from FastAPI, using WebP thumbnails on cards and original JPEGs on detail pages. Runtime poster delivery has no external image fallback; details are in the [quick start](docs/QUICKSTART.md#prepare-and-upload-posters-to-local-storage).
+Poster originals are preserved in `scrapers/DramaList_Scrapper/output/drama_image_by_id/`. The production UI receives public Supabase Storage URLs from FastAPI, using WebP thumbnails on cards and original JPEGs on detail pages. Runtime poster delivery has no external image fallback; details are in the [quick start](docs/guides/QUICKSTART.md#prepare-and-upload-posters-to-local-storage).
 
 ## Evaluation
 
@@ -321,13 +321,13 @@ These results describe this benchmark, not all recommendation scenarios. Precisi
 ## Documentation
 
 - [Documentation index](docs/README.md)
-- [Quick start](docs/QUICKSTART.md)
-- [Deployment architecture](docs/DEPLOYMENT_ARCHITECTURE.md)
-- [Personalization guide](docs/PERSONALIZATION_QUICK_START.md)
+- [Quick start](docs/guides/QUICKSTART.md)
+- [Deployment architecture](docs/deployment/DEPLOYMENT_ARCHITECTURE.md)
+- [Personalization guide](docs/guides/PERSONALIZATION_QUICK_START.md)
 - [Training and index building](training/README.md)
 - [Scraper pipeline](scrapers/DramaList_Scrapper/README.md)
 - [Web frontend](frontend-web/README.md)
-- [Automatic dataset update plan](docs/AUTOMATED_DATASET_UPDATE_PLAN.md)
+- [Automatic dataset update plan](docs/plans/AUTOMATED_DATASET_UPDATE_PLAN.md)
 - [Contributing](CONTRIBUTING.md) and [changelog](CHANGELOG.md)
 
 Scheduled catalog updates are planned, not implemented. User interactions update profiles without automatically retraining the core models. Generated-only ranking remains experimental; the default uses curated priors with calibrated generated fallback support.

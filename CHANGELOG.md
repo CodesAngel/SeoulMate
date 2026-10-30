@@ -10,7 +10,7 @@ Important project history reconstructed from Git commits and project documentati
 - **API:** https://seoulmate.indiasouthcentral.cloudapp.azure.com (Azure VM).
 - **Data:** hosted Supabase (Tokyo), since 2026-10-30.
 
-Layout and commands: `docs/DEPLOYMENT_ARCHITECTURE.md`.
+Layout and commands: `docs/deployment/DEPLOYMENT_ARCHITECTURE.md`.
 
 ### Backend deployed to the Azure VM
 
@@ -49,7 +49,7 @@ Layout and commands: `docs/DEPLOYMENT_ARCHITECTURE.md`.
 
 ### Database moved to hosted Supabase
 
-Only Supabase is hosted for now; the backend and frontend still run on the PC. Planned layout (Azure VM, hosted Supabase, Vercel): `docs/DEPLOYMENT_ARCHITECTURE.md`.
+Only Supabase is hosted for now; the backend and frontend still run on the PC. Planned layout (Azure VM, hosted Supabase, Vercel): `docs/deployment/DEPLOYMENT_ARCHITECTURE.md`.
 
 - **Project:** region **Tokyo (ap-northeast-1)**, free plan. Kept in Tokyo although the planned VM is in India; to be revisited before the backend moves.
 - **Connection:** the Session pooler (port 5432, `?sslmode=require`). The direct host (`db.<ref>.supabase.co`) has only an IPv6 address on the free plan and fails from a network without IPv6. `backend/database/settings.py` already turns `postgresql://` into `postgresql+psycopg://`, so the dashboard string works as is.

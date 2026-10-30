@@ -24,4 +24,4 @@ Use a drama title from the current catalog. Check the response's `personalizatio
 
 - If rating fails, confirm the backend is running and the title exists in the catalog.
 - If results do not appear personalized, check the user ID and profile response, and inspect backend logs for personalization errors.
-- The historic Phase 2 diagrams and examples are in [archived/ARCHITECTURE_PHASE2.md](archived/ARCHITECTURE_PHASE2.md). The [original guide](archived/PERSONALIZATION_QUICK_START_LEGACY.md) preserves the older UI walkthrough and illustrative boost values.
+- The historic Phase 2 diagrams and examples are in [archived/ARCHITECTURE_PHASE2.md](../archived/ARCHITECTURE_PHASE2.md). The [original guide](../archived/PERSONALIZATION_QUICK_START_LEGACY.md) preserves the older UI walkthrough and illustrative boost values.
