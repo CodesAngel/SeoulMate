@@ -17,7 +17,7 @@ VM: `seoulmate`, B1ms (2 GB), Ubuntu 24.04, India South Central, `seoulmate.indi
 
 ## Live Supabase: data, users and files
 
-Region: Mumbai (ap-south-1), the closest region to the VM.
+Project ref `fsmesbdiubahfxzvassj`, region **Tokyo (ap-northeast-1)**. Mumbai (ap-south-1) would be closest to the VM; Supabase cannot move a project between regions, so revisit this before the backend moves to the VM (each query India ↔ Tokyo adds roughly 100–130 ms).
 
 - **Postgres database**:
   - Catalog tables: dramas, genres, keywords, people, credits and their link tables
@@ -68,13 +68,17 @@ The VM uses FAISS to find matching dramas, then reads their details from Supabas
 
 ## Migration order
 
-1. Back up the local catalog and dump the local schema.
-2. Create the Supabase project in Mumbai.
-3. Run `alembic upgrade head` against the live database. Diff its schema against the local dump once, to catch anything created in Studio that has no migration.
-4. Import the catalog.
-5. Upload the posters and run the poster audit.
-6. Point the backend at the live database and re-run the eval and regression suite. Results should match local (89.00% overall, regression 33/33).
-7. Switch the frontend to the live project.
+Steps 1–7 were done on 2026-10-30 (details in `CHANGELOG.md`).
+
+1. ✅ Back up the local catalog and dump the local schema.
+2. ✅ Create the Supabase project (Tokyo).
+3. ✅ Run `alembic upgrade head` against the live database and compare its schema with the local one.
+4. ✅ Import the catalog.
+5. ✅ Run the poster audit and upload the posters.
+6. ✅ Point the backend at the live database and re-run the eval and regression suite: 89.10% overall, regression 33/33, identical to local.
+7. ✅ Switch the frontend to the live project and set the Auth URLs.
+8. Test sign-up, login, watchlist, ratings, community and avatars in the browser.
+9. Move the backend to the VM and the frontend to Vercel.
 
 ## Still open
 

@@ -68,6 +68,8 @@ supabase start
 
 This starts the local database, Auth, Storage, Studio, and Mailpit services described in the [quick start](docs/QUICKSTART.md).
 
+To use the hosted Supabase project instead, put its values in `backend/.env` (see `backend/.env.example`) and `frontend-web/.env.local`, and skip `supabase start`. Use the **Session pooler** connection string from the dashboard's Connect window; the direct `db.<ref>.supabase.co` host needs IPv6. Keep the local values in `backend/.env.docker` and `frontend-web/.env.docker` to switch back. The planned production layout is in [docs/DEPLOYMENT_ARCHITECTURE.md](docs/DEPLOYMENT_ARCHITECTURE.md).
+
 ### 4. Start the backend
 
 ```powershell
@@ -237,6 +239,7 @@ Status (2026-10-29):
 - **Done:** the first release ran against local Supabase (`--skip-scrape --force`, same 2,081 dramas). All posters and database links verified, nothing re-uploaded, and the backend started on the new index with search results unchanged (see Evaluation).
 - **Done:** scraper refresh and publish: `data/final` now has **2,130 dramas** (49 new), with 2,130 posters and 2,130 WebP thumbnails on disk.
 - **Done (2026-10-29):** `update_catalog.py --skip-scrape` released the 49 new dramas in 7 minutes. The search index, database and Storage now hold **2,130 dramas**.
+- **Done (2026-10-30):** the database moved to hosted Supabase (Tokyo). Schema, catalog (2,130 dramas) and all 4,260 poster files are on the hosted project and verified; the backend and frontend run locally against it.
 - **Next:** nightly scheduling. `--ranking-indexes` also regenerates `backend/ranking/indexes/` (off by default because it changes ranking; re-run the evaluation).
 
 Local posters are optional. To download missing posters:
@@ -262,7 +265,7 @@ With the backend running:
 .\scripts\run_accuracy.ps1
 ```
 
-Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-29**. Franchise ordering is 12/12 and the regression suite 33/33. Since the previous 2,081-drama baseline (87.05% overall, P@3 60.66%, R@10 94.48%), actor searches have been ranked by lead role and watchers, and the expected answers were corrected (two names that weren't dataset titles, plus fitting dramas added). Details are in `CHANGELOG.md` (2026-10-29).
+Current: **2,130 dramas**, 61-search test set, exact title matching, evaluated on **2026-10-29**. Franchise ordering is 12/12 and the regression suite 33/33. Since the previous 2,081-drama baseline (87.05% overall, P@3 60.66%, R@10 94.48%), actor searches have been ranked by lead role and watchers, and the expected answers were corrected (two names that weren't dataset titles, plus fitting dramas added). Details are in `CHANGELOG.md` (2026-10-29). Re-run on **2026-10-30** with the backend on hosted Supabase: every metric identical, regression 33/33.
 
 <p align="center">
   <img src="docs/assets/celebrating-results.gif" alt="Students cheering" width="300">
@@ -309,6 +312,7 @@ These results describe this benchmark, not all recommendation scenarios. Precisi
 
 - [Documentation index](docs/README.md)
 - [Quick start](docs/QUICKSTART.md)
+- [Deployment architecture](docs/DEPLOYMENT_ARCHITECTURE.md)
 - [Personalization guide](docs/PERSONALIZATION_QUICK_START.md)
 - [Training and index building](training/README.md)
 - [Scraper pipeline](scrapers/DramaList_Scrapper/README.md)

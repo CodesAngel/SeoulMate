@@ -1,6 +1,6 @@
 # Supabase PostgreSQL migration plan
 
-Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, poster URL cutover, authentication, and persistent watchlists/ratings are complete; hosted deployment and the profile/preference/analytics cutover remain.
+Date: 2026-10-04. Status: implementation in progress. The local database foundation, catalog migration, verified poster Storage migration, poster URL cutover, authentication, and persistent watchlists/ratings are complete. Since 2026-10-30 the schema, catalog and posters are on the hosted project; deploying the backend and the profile/preference/analytics cutover remain.
 
 ## Implementation progress
 
@@ -16,7 +16,7 @@ Date: 2026-10-04. Status: implementation in progress. The local database foundat
 - [x] Migrate frontend watchlists, viewing statuses, and ratings.
 - [x] Add profile management, avatar Storage, password changes, statistics, and account deletion.
 - [ ] Migrate generated profiles, learned preferences, and analytics events.
-- [ ] Validate and deploy the schema and catalog to the hosted project.
+- [x] Validate and deploy the schema and catalog to the hosted project. Done 2026-10-30 (Tokyo): all 5 Alembic migrations, 2,130 dramas, 4,260 poster objects verified; search evaluation unchanged (89.10%). Details in `CHANGELOG.md`.
 
 ## Decisions
 

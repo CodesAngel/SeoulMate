@@ -2,6 +2,36 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-10-30
+
+### Database moved to hosted Supabase
+
+Only Supabase is hosted for now; the backend and frontend still run on the PC. Planned layout (Azure VM, hosted Supabase, Vercel): `docs/DEPLOYMENT_ARCHITECTURE.md`.
+
+- **Project:** ref `fsmesbdiubahfxzvassj`, region **Tokyo (ap-northeast-1)**, free plan. Kept in Tokyo although the planned VM is in India; to be revisited before the backend moves.
+- **Connection:** the Session pooler (`aws-0-ap-northeast-1.pooler.supabase.com:5432`, `?sslmode=require`). The direct host (`db.<ref>.supabase.co`) has only an IPv6 address on the free plan and fails from a network without IPv6. `backend/database/settings.py` already turns `postgresql://` into `postgresql+psycopg://`, so the dashboard string works as is.
+- **Env files:** `backend/.env` and `frontend-web/.env.local` point at the hosted project. The local Docker values are kept in `backend/.env.docker` and `frontend-web/.env.docker` (copy back to switch).
+- **Sizes before the move:** local database 32 MB (15 MB of app tables), Storage 4,260 poster files / 392 MB, one test user. Live starts with no users.
+- **Schema:** `alembic upgrade head` ran all 5 migrations (head `f2c84d1e9a73`). A comparison of tables, columns, RLS policies, triggers, functions and indexes showed the hosted schema contains everything the local one has, plus the community tables. The local Docker database was one migration behind (community migration never applied).
+- **Catalog import** (37 s): 2,130 dramas, 31 genres, 2,201 keywords, 4,577 people, 6,755 drama genres, 19,182 drama keywords, 15,652 credits. Local Docker has 9 more people and 8 more keywords; these are unused leftovers from older imports.
+- **Posters:** audit against the hosted database 2,130/2,130 clean (2 known duplicate-content sequel pairs); thumbnails unchanged; 4,260 objects (391.83 MiB) uploaded, with Storage metadata, public URLs and database links all verified.
+- **Fix in `upload_posters_to_storage.py`:** hosted Storage answers a missing bucket with HTTP 400 and `NoSuchBucket` in the body, while the local stack returns 404. `ensure_bucket()` now treats both as missing and creates the bucket.
+- **Evaluation against hosted Supabase:** identical to the local baseline on every metric, so the move did not change search.
+
+| Test | Local (2026-10-29) | Hosted (2026-10-30) |
+|---|---|---|
+| Main overall | 89.10% | 89.10% |
+| Main P@3 / R@10 / MRR / NDCG | 66.12% / 96.28% / 0.992 / 0.963 | 66.12% / 96.28% / 0.992 / 0.963 |
+| Filters, genre detection, personalization | 100% | 100% |
+| Franchise ordering / title self-exclusion | 12/12 / 27/27 | 12/12 / 27/27 |
+| Trope searches P@5 / R@10 | 65.6% / 78.0% | 65.6% / 78.0% |
+| Similar dramas P@5 / R@10 | 24.0% / 28.8% | 24.0% / 28.8% |
+| Regression suite | 33/33 | 33/33 |
+
+Average response time was 94 ms with every database query going to Tokyo.
+
+- **Note:** with the backend and two local Supabase stacks running (about 3.8 GB in Docker's WSL), loading the model failed with Windows error 1455 (paging file too small). Stop Docker when the local stack is not needed.
+
 ## 2026-10-29
 
 ### Tag matching by meaning (fallback)
