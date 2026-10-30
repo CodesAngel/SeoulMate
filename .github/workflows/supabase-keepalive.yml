@@ -1,0 +1,49 @@
+# Keeps the free-plan Supabase project from pausing after a week without activity.
+# Reads one row from the public genres table with the publishable key.
+name: Supabase keep-alive
+
+on:
+  schedule:
+    # 06:00 UTC on Monday and Thursday: never more than 4 days between pings.
+    - cron: "0 6 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query the database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error::Set the SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY repository secrets."
+            exit 1
+          fi
+          for attempt in 1 2 3; do
+            body=$(curl -sS -m 30 -w '\n%{http_code}' \
+              "$SUPABASE_URL/rest/v1/genres?select=id&limit=1" \
+              -H "apikey: $SUPABASE_PUBLISHABLE_KEY") || body=$'\n000'
+            status=${body##*$'\n'}
+            data=${body%$'\n'*}
+            echo "Attempt $attempt: HTTP $status $data"
+            if [ "$status" = "200" ] && [ "$data" != "[]" ]; then
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "::error::Supabase did not answer the keep-alive query. Check whether the project is paused."
+          exit 1
+
+      # GitHub disables scheduled workflows after 60 days without repository
+      # activity. Re-enabling this workflow through the API resets that timer.
+      - name: Keep this schedule enabled
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/supabase-keepalive.yml/enable"

@@ -63,7 +63,7 @@ The VM uses FAISS to find matching dramas, then reads their details from Supabas
   - The direct connection only works over IPv6 on the free tier, and the VM and PC probably don't have IPv6.
   - Don't use the transaction pooler (port 6543) for the backend or Alembic. It can break prepared statements and migrations.
 - **Free-tier limits**: 500 MB database and 1 GB file storage. Check that the poster originals and thumbnails fit before uploading.
-- **Free-tier pausing**: projects pause after about a week with no activity. A small scheduled ping from the VM keeps the project awake.
+- **Free-tier pausing**: projects pause after about a week with no activity. The GitHub Actions workflow `.github/workflows/supabase-keepalive.yml` reads one row twice a week (Monday and Thursday) to keep the project awake, even when the PC is off. GitHub turns off scheduled workflows in a public repository after 60 days without activity; the workflow re-enables itself through the API on every run to reset that timer. A second, independent pinger runs on cron-job.org (set up 2026-10-30): the same request every 3 days at 06:00 Pakistan time, with email alerts if it fails or gets disabled.
 - **Email**: Supabase's built-in email has a very low rate limit. Set up your own SMTP if sign-up emails matter.
 
 ## Migration order
