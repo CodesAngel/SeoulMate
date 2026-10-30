@@ -6,9 +6,11 @@
 .detail-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 24px; }
 .meta-chip { display: inline-flex; align-items: center; gap: 6px; line-height: 1.2; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: .75rem; font-weight: 700; background: rgba(255,255,255,.35); }
 .detail-description { max-width: 780px; color: #5f625f; line-height: 1.75; font-size: 1.01rem; }
-.detail-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
-.detail-actions button { display: inline-flex; align-items: center; gap: 8px; }
+.detail-actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-top: 28px; }
+.detail-actions > button { display: inline-flex; align-items: center; gap: 8px; height: 52px; }
 .status-control { min-width: 170px; display: grid; gap: 5px; }
+/* Same height and shape as the trailer button, so the row lines up at the bottom. */
+.detail-actions .status-control select { height: 52px; border-radius: 11px; padding: 0 14px; font-size: .95rem; font-weight: 700; }
 .rating-box { margin-top: 28px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .rating-box select { height: 45px; border-radius: 10px; border: 1px solid var(--line); background: var(--cream); padding: 0 12px; }
 .detail-columns { margin-top: 70px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 60px; border-top: 1px solid var(--line); padding-top: 42px; }
