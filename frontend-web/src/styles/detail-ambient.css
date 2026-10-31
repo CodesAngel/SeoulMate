@@ -97,12 +97,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--lemon);
+  color: var(--lemon-ink);
   font-weight: 800;
 }
+/* Full opacity: faded small text fails contrast (was 1.7:1). */
 .rating-chip small {
   font-size: 0.65rem;
-  opacity: 0.75;
+  font-weight: 600;
 }
 .trailer-trigger-btn {
   display: inline-flex;

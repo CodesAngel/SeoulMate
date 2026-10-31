@@ -155,6 +155,9 @@ export function DramaDetail({
   const directors = list(drama.Director, 4);
   const keywords = list(drama.keywords, 16);
   const posterUrl = drama.poster_original_url ?? drama.Image;
+  // The backdrop is heavily blurred, so the small thumbnail looks the same and
+  // does not compete with the main poster for bandwidth (mobile LCP).
+  const backdropUrl = drama.poster_thumbnail_url ?? posterUrl;
   const similarTitles = (similarQuery.data?.recommendations || []).slice(0, 2);
 
   return (
@@ -163,7 +166,7 @@ export function DramaDetail({
       <div className="detail-ambient-wrapper">
         <div
           className="detail-ambient-bg"
-          style={{ backgroundImage: posterUrl ? `url(${posterUrl})` : undefined }}
+          style={{ backgroundImage: backdropUrl ? `url(${backdropUrl})` : undefined }}
           aria-hidden="true"
         />
         <div className="detail-ambient-gradient" aria-hidden="true" />

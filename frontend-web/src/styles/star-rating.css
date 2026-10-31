@@ -48,7 +48,7 @@
 }
 .rating-score-num {
   font-weight: 800;
-  color: var(--lemon);
+  color: var(--lemon-ink);
 }
 .rating-score-text {
   color: var(--ink-soft);
