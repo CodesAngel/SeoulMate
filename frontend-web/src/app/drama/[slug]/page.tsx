@@ -4,6 +4,7 @@ import { DramaDetail } from "@/components/drama-detail";
 import { JsonLd } from "@/components/json-ld";
 import { getDramaServer, getSimilarServer, resolveDramaSlug } from "@/lib/catalog-server";
 import { dramaPath, firstYear } from "@/lib/drama";
+import { dramaSummaryText } from "@/lib/drama-summary";
 import { absoluteUrl, DEFAULT_OG_IMAGE, metaDescription } from "@/lib/site";
 import type { Drama } from "@/lib/types";
 
@@ -27,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = year ? `${entry.title} (${year})` : entry.title;
   const description =
     metaDescription(drama?.Description) ||
+    (drama ? metaDescription(dramaSummaryText(drama)) : "") ||
     `${entry.title}: cast, story themes and similar K-dramas on SeoulMate.`;
   const image = drama?.poster_thumbnail_url ?? drama?.poster_original_url;
 

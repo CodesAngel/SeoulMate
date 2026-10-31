@@ -109,6 +109,16 @@ export const getSimilarServer = cache(async (title: string): Promise<Drama[]> =>
   }
 });
 
+/** Default /discover results (no query or filters), for the server HTML. */
+export async function getDiscoverDefaultServer(query: string): Promise<Drama[]> {
+  try {
+    const response = await searchDramas({ query, topN: 16 }, undefined, CACHE);
+    return response.recommendations;
+  } catch {
+    return [];
+  }
+}
+
 /** Non-personalised home picks; shown until the visitor's own list loads. */
 export async function getHomePicksServer(query: string): Promise<Drama[]> {
   try {

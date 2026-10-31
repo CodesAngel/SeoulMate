@@ -387,6 +387,7 @@ export async function getCommunityPosts(
   },
   accessToken?: string | null,
   signal?: AbortSignal,
+  cacheInit?: RequestInit,
 ): Promise<CommunityPostsResponse> {
   if (IS_MOCK_MODE) return mock.mockGetCommunityPosts(filters, undefined, signal);
   const params = new URLSearchParams();
@@ -399,6 +400,7 @@ export async function getCommunityPosts(
 
   const headers = accessToken ? bearerHeaders(accessToken) : undefined;
   return apiRequest<CommunityPostsResponse>(`/community/posts?${params}`, {
+    ...cacheInit,
     headers,
     signal,
   });

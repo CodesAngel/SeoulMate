@@ -14,6 +14,11 @@
 .detail-actions .status-control select { height: 52px; border-radius: 11px; padding: 0 14px; font-size: .95rem; font-weight: 700; }
 .rating-box { margin-top: 28px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .rating-box select { height: 45px; border-radius: 10px; border: 1px solid var(--line); background: var(--cream); padding: 0 12px; }
+.detail-glance { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 36px; }
+.detail-glance h2 { font: 500 1.7rem Georgia, serif; margin: 0 0 14px; }
+.detail-glance p { margin: 0; max-width: 900px; color: var(--ink-soft); line-height: 1.75; font-size: 1.01rem; }
+.detail-glance a { color: var(--coral); font-weight: 600; }
+.detail-glance + .detail-columns { margin-top: 42px; }
 .detail-columns { margin-top: 70px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 60px; border-top: 1px solid var(--line); padding-top: 42px; }
 .detail-columns h2 { font: 500 1.7rem Georgia, serif; margin: 0 0 22px; }
 .detail-columns h2:has(+ .tropes-intro) { margin-bottom: 6px; }

@@ -10,6 +10,7 @@ import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
 import { VibeMatrix } from "@/components/vibe-matrix";
 import { searchDramas } from "@/lib/api";
 import { dramaKey } from "@/lib/drama";
+import type { Drama } from "@/lib/types";
 
 const genres = [
   "",
@@ -25,11 +26,13 @@ const genres = [
   "Law",
 ];
 
-export function DiscoverClient() {
+export const DEFAULT_DISCOVER_QUERY = "recommend me something great";
+
+export function DiscoverClient({ initialResults = [] }: { initialResults?: Drama[] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { ready, userId, sessionId } = useApp();
-  const query = searchParams.get("q") || "recommend me something great";
+  const query = searchParams.get("q") || DEFAULT_DISCOVER_QUERY;
   const genre = searchParams.get("genre") || "";
   const year = searchParams.get("year") || "";
   const minRating = searchParams.get("rating") || "";
@@ -63,6 +66,10 @@ export function DiscoverClient() {
         signal,
       ),
     enabled: ready,
+    // Server-rendered default results until the visitor's own list loads.
+    placeholderData: initialResults.length
+      ? { query: { Title: query }, recommendations: initialResults }
+      : undefined,
   });
 
   function applyFilters(event: FormEvent) {

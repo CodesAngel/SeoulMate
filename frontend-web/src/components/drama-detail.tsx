@@ -22,7 +22,8 @@ import { PosterImage } from "@/components/poster-image";
 import { StarRating } from "@/components/star-rating";
 import { TrailerModal } from "@/components/trailer-modal";
 import { getDrama, searchDramas } from "@/lib/api";
-import { dramaKey } from "@/lib/drama";
+import { dramaHref, dramaKey } from "@/lib/drama";
+import { dramaSummarySentences } from "@/lib/drama-summary";
 import type { Drama, WatchStatus } from "@/lib/types";
 
 const WATCH_STATUS_OPTIONS: Array<{ value: WatchStatus; label: string }> = [
@@ -154,6 +155,7 @@ export function DramaDetail({
   const directors = list(drama.Director, 4);
   const keywords = list(drama.keywords, 16);
   const posterUrl = drama.poster_original_url ?? drama.Image;
+  const similarTitles = (similarQuery.data?.recommendations || []).slice(0, 2);
 
   return (
     <>
@@ -308,6 +310,26 @@ export function DramaDetail({
                 )}
               </div>
             </div>
+          </section>
+
+          {/* SeoulMate's own summary, built from the drama's data */}
+          <section className="detail-glance">
+            <h2>At a glance</h2>
+            <p>
+              {dramaSummarySentences(drama).join(" ")}
+              {similarTitles.length > 0 && (
+                <>
+                  {" "}If you enjoyed it, try{" "}
+                  {similarTitles.map((item, index) => (
+                    <span key={dramaKey(item)}>
+                      {index > 0 && " or "}
+                      <Link href={dramaHref(item)}>{item.Title}</Link>
+                    </span>
+                  ))}
+                  .
+                </>
+              )}
+            </p>
           </section>
 
           {/* Metadata & Tag Sections */}
