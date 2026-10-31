@@ -58,7 +58,8 @@
   background: var(--coral);
   color: white;
 }
-.vibe-header-left h3 {
+/* h2: it follows the page h1 directly (heading levels must not skip). */
+.vibe-header-left h2 {
   margin: 0;
   font: 600 1.05rem Georgia, serif;
   color: var(--ink);

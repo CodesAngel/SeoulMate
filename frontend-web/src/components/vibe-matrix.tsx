@@ -105,7 +105,7 @@ export function VibeMatrix({ onApplyVibe, defaultExpanded = false }: VibeMatrixP
               <span className="eyebrow" style={{ color: "var(--coral)" }}>AI Vibe Tuner</span>
               <span className="vibe-pill-active">Interactive</span>
             </div>
-            <h3>Tune Your Story Atmosphere</h3>
+            <h2>Tune Your Story Atmosphere</h2>
           </div>
         </div>
         <button
