@@ -406,14 +406,23 @@ export async function getCommunityPosts(
   });
 }
 
-export async function getCommunityTrending(signal?: AbortSignal): Promise<TrendingCommunityPost[]> {
+export async function getCommunityTrending(
+  signal?: AbortSignal,
+  cacheInit?: RequestInit,
+): Promise<TrendingCommunityPost[]> {
   if (IS_MOCK_MODE) return mock.mockGetCommunityTrending(signal);
-  return apiRequest<TrendingCommunityPost[]>("/community/trending", { signal });
+  return apiRequest<TrendingCommunityPost[]>("/community/trending", { ...cacheInit, signal });
 }
 
-export async function getHomepageCommunity(signal?: AbortSignal): Promise<CommunityPost[]> {
+export async function getHomepageCommunity(
+  signal?: AbortSignal,
+  cacheInit?: RequestInit,
+): Promise<CommunityPost[]> {
   if (IS_MOCK_MODE) return mock.mockGetHomepageCommunity(signal);
-  const res = await apiRequest<CommunityPostsResponse>("/community/posts?limit=3&sort=recent", { signal });
+  const res = await apiRequest<CommunityPostsResponse>("/community/posts?limit=3&sort=recent", {
+    ...cacheInit,
+    signal,
+  });
   return res.posts;
 }
 

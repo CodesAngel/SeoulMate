@@ -6,13 +6,20 @@ import Link from "next/link";
 import { ArrowRight, Flame, MessageSquare, ShieldCheck, ShieldAlert, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { getCommunityTrending } from "@/lib/api";
 import { PosterImage } from "@/components/poster-image";
+import type { TrendingCommunityPost } from "@/lib/types";
 
-export function CommunityTrendingSection() {
+export function CommunityTrendingSection({
+  initialData,
+}: {
+  // Server-fetched list, so the first paint has the final layout (no shift).
+  initialData?: TrendingCommunityPost[];
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { data: trendingPosts, isLoading, isError } = useQuery({
     queryKey: ["community-trending"],
     queryFn: ({ signal }) => getCommunityTrending(signal),
     staleTime: 1000 * 60 * 3,
+    initialData,
   });
 
   if (isError) {
@@ -42,24 +49,26 @@ export function CommunityTrendingSection() {
             </h2>
           </div>
           <div className="trending-header-actions">
-            <div className="trending-scroll-controls" aria-label="Scroll trending items">
-              <button
-                type="button"
-                className="trending-scroll-btn"
-                onClick={() => handleScroll("left")}
-                aria-label="Scroll discussions left"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                type="button"
-                className="trending-scroll-btn"
-                onClick={() => handleScroll("right")}
-                aria-label="Scroll discussions right"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
+            {(isLoading || !!trendingPosts?.length) && (
+              <div className="trending-scroll-controls" aria-label="Scroll trending items">
+                <button
+                  type="button"
+                  className="trending-scroll-btn"
+                  onClick={() => handleScroll("left")}
+                  aria-label="Scroll discussions left"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="trending-scroll-btn"
+                  onClick={() => handleScroll("right")}
+                  aria-label="Scroll discussions right"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
             <Link href="/community" className="text-link see-all-link">
               <span>See all discussions</span>
               <ArrowRight size={16} />
@@ -73,6 +82,10 @@ export function CommunityTrendingSection() {
               <div key={i} className="trending-card-skeleton" />
             ))}
           </div>
+        ) : !trendingPosts?.length ? (
+          <p className="community-empty-note">
+            No discussions yet. <Link href="/community/new">Start the first one</Link>.
+          </p>
         ) : (
           <div
             className="trending-grid"

@@ -7,6 +7,8 @@
   --coral: #C63C6D;
   --coral-dark: #b0325f;
   --lemon: #E3A72F;
+  /* Amber for small text on light backgrounds (--lemon is 2.1:1 on white; this is 5.2:1). */
+  --lemon-ink: #946300;
   --sage: #9A78B5;
   --line: #EEE8F5;
   --shadow: 0 12px 36px rgba(45, 23, 56, 0.06);
@@ -38,6 +40,7 @@
   --coral: #ff5e57;
   --coral-dark: #ff3b30;
   --lemon: #ffd32a;
+  --lemon-ink: var(--lemon);
   --sage: #0be881;
   --line: rgba(255, 255, 255, 0.12);
   --shadow: 0 24px 60px rgba(0, 0, 0, 0.65);

@@ -262,3 +262,7 @@
   color: var(--c-berry);
   background: var(--c-berry-light);
 }
+
+/* Shown on the home page when the community has no posts yet */
+.community-empty-note { margin: 0; padding: 22px 24px; border: 1px dashed var(--line); border-radius: 16px; color: var(--ink-soft); }
+.community-empty-note a { color: var(--coral); font-weight: 700; }

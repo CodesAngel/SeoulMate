@@ -10,6 +10,7 @@ import { PosterImage } from "@/components/poster-image";
 import { ReactionButton } from "@/components/reaction-button";
 import { SpoilerContent } from "@/components/spoiler-content";
 import { useAuth } from "@/components/auth-provider";
+import type { CommunityPost } from "@/lib/types";
 
 function formatRelativeTime(dateStr: string): string {
   try {
@@ -28,7 +29,12 @@ function formatRelativeTime(dateStr: string): string {
   }
 }
 
-export function CommunityFromSection() {
+export function CommunityFromSection({
+  initialData,
+}: {
+  // Server-fetched list, so the first paint has the final layout (no shift).
+  initialData?: CommunityPost[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
@@ -36,6 +42,7 @@ export function CommunityFromSection() {
     queryKey: ["homepage-community-feed"],
     queryFn: ({ signal }) => getHomepageCommunity(signal),
     staleTime: 1000 * 60 * 3,
+    initialData,
   });
 
   if (isError) {
@@ -75,6 +82,10 @@ export function CommunityFromSection() {
               <div key={i} className="community-card-skeleton" />
             ))}
           </div>
+        ) : !posts?.length ? (
+          <p className="community-empty-note">
+            No discussions yet. <Link href="/community/new">Start the first one</Link>.
+          </p>
         ) : (
           <div className="community-cards-grid">
             {posts?.map((post) => {
@@ -98,7 +109,8 @@ export function CommunityFromSection() {
                       </div>
                       <div>
                         <strong className="feed-author-name">{post.author.display_name}</strong>
-                        <span className="feed-post-time">
+                        {/* Relative time differs by a minute between server and browser. */}
+                        <span className="feed-post-time" suppressHydrationWarning>
                           {formatRelativeTime(post.created_at)}
                         </span>
                       </div>

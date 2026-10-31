@@ -119,11 +119,10 @@ export function DramaCard({
           {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
         </button>
 
-        {/* Quick-Action Status Bar on Hover */}
-        <div
-          className={`card-quick-actions ${hovered ? "active" : ""}`}
-          aria-hidden={!hovered}
-        >
+        {/* Quick-action status bar: shown on hover, and on keyboard focus
+            inside the card (CSS :focus-within), so it is never hidden from
+            screen readers while its buttons can receive focus. */}
+        <div className={`card-quick-actions ${hovered ? "active" : ""}`}>
           <button
             type="button"
             className={`quick-status-btn ${status === "watching" ? "active" : ""}`}

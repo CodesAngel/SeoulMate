@@ -27,6 +27,9 @@
 .empty-state h2 { font: 500 2rem Georgia, serif; margin: 14px 0 8px; }
 .error-banner { padding: 16px 18px; border-radius: 13px; background: #f8ded8; color: #7e2f25; margin-bottom: 20px; }
 .error-banner button { margin-left: 8px; border: 0; background: transparent; color: inherit; text-decoration: underline; font-weight: 800; }
+/* Route loading screens fill the viewport so the footer starts below it: when
+   the streamed page replaces the skeleton, nothing visible moves (no CLS). */
+.route-loading { min-height: 100vh; }
 .skeleton { background: linear-gradient(90deg, rgba(23,28,42,.07), rgba(255,255,255,.55), rgba(23,28,42,.07)); background-size: 220% 100%; animation: shimmer 1.4s infinite; border-radius: 12px; }
 .poster-skeleton { aspect-ratio: 2/3; }
 .line-skeleton { height: 17px; margin-top: 13px; width: 84%; }

@@ -1,7 +1,7 @@
 // Server-only catalog helpers for SEO: slug lookup, sitemap entries and
 // server-rendered drama pages. Results are cached by Next.js for a day.
 import { cache } from "react";
-import { getDrama, searchDramas } from "@/lib/api";
+import { getCommunityTrending, getDrama, getHomepageCommunity, searchDramas } from "@/lib/api";
 import { IS_MOCK_MODE } from "@/lib/data-mode";
 import { dramaSlug, slugify } from "@/lib/drama";
 import { MOCK_DRAMAS } from "@/lib/mock-data";
@@ -117,6 +117,19 @@ export async function getDiscoverDefaultServer(query: string): Promise<Drama[]> 
   } catch {
     return [];
   }
+}
+
+/**
+ * Home page community lists, so the first paint already has their final
+ * height. `undefined` on error lets the browser fetch them instead.
+ */
+export async function getHomeCommunityServer() {
+  const init: RequestInit = { next: { revalidate: 600 } };
+  const [trending, recent] = await Promise.all([
+    getCommunityTrending(undefined, init).catch(() => undefined),
+    getHomepageCommunity(undefined, init).catch(() => undefined),
+  ]);
+  return { trending, recent };
 }
 
 /** Non-personalised home picks; shown until the visitor's own list loads. */

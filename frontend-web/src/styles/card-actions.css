@@ -53,6 +53,7 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 .drama-card:hover .card-quick-actions,
+.drama-card:focus-within .card-quick-actions,
 .card-quick-actions.active {
   opacity: 1;
   transform: translateY(0);

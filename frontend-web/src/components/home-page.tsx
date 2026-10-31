@@ -14,7 +14,7 @@ import { CommunityFromSection } from "@/components/community-from-section";
 import { searchDramas } from "@/lib/api";
 import { MOOD_LINKS, QUICK_PROMPTS } from "@/lib/constants";
 import { dramaKey } from "@/lib/drama";
-import type { Drama } from "@/lib/types";
+import type { CommunityPost, Drama, TrendingCommunityPost } from "@/lib/types";
 
 const moodIcons = [HeartHandshake, Sparkles, WandSparkles];
 
@@ -36,7 +36,15 @@ function isHeroWorthy(drama: Drama) {
 
 export const HOME_PICKS_QUERY = "recommend me something unforgettable";
 
-export function HomePage({ initialPicks = [] }: { initialPicks?: Drama[] }) {
+export function HomePage({
+  initialPicks = [],
+  initialTrending,
+  initialRecent,
+}: {
+  initialPicks?: Drama[];
+  initialTrending?: TrendingCommunityPost[];
+  initialRecent?: CommunityPost[];
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const { ready, userId, sessionId } = useApp();
@@ -139,7 +147,7 @@ export function HomePage({ initialPicks = [] }: { initialPicks?: Drama[] }) {
         </div>
       </section>
 
-      <CommunityTrendingSection />
+      <CommunityTrendingSection initialData={initialTrending} />
 
       <section className="section">
         <div className="shell">
@@ -176,7 +184,7 @@ export function HomePage({ initialPicks = [] }: { initialPicks?: Drama[] }) {
         </div>
       </section>
 
-      <CommunityFromSection />
+      <CommunityFromSection initialData={initialRecent} />
     </>
   );
 }
