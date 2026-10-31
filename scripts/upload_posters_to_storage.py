@@ -37,6 +37,9 @@ from database.settings import get_database_settings  # noqa: E402
 BUCKET_NAME = "drama-posters"
 BUCKET_FILE_LIMIT = 10 * 1024 * 1024
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/webp"}
+# Browsers and CDNs keep posters for 30 days. Not longer: a catalog refresh can
+# replace a poster at the same path, and it should show up within a month.
+CACHE_CONTROL = "max-age=2592000"
 DEFAULT_ORIGINALS = (
     PROJECT_DIR
     / "scrapers"
@@ -240,7 +243,7 @@ def upload_one(task: dict[str, Any]) -> dict[str, Any]:
         **{
             "Content-Type": task["content_type"],
             "x-upsert": "true",
-            "cache-control": "max-age=3600",
+            "cache-control": CACHE_CONTROL,
         },
     )
     response: requests.Response | None = None
@@ -397,7 +400,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-unchanged",
         action="store_true",
-        help="Upload only objects that are missing or differ in size/type in Storage.",
+        help=(
+            "Upload only objects that are missing or differ in size, type or "
+            "cache header in Storage."
+        ),
     )
     parser.add_argument(
         "--ignore-unexpected",
@@ -428,6 +434,8 @@ def main() -> None:
             if (item := existing.get(task["object_path"])) is None
             or int(item.get("size", -1)) != task["size_bytes"]
             or item.get("mimetype") != task["content_type"]
+            # Storage can only change an object's cache header by re-uploading it.
+            or item.get("cacheControl") != CACHE_CONTROL
         ]
     print(
         f"Uploading {len(upload_tasks)} of {len(tasks)} objects for {drama_count} dramas to "
