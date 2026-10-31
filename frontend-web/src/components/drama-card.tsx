@@ -15,6 +15,7 @@ import { useApp } from "@/components/app-provider";
 import { useAuth } from "@/components/auth-provider";
 import { PosterImage } from "@/components/poster-image";
 import { logInteraction } from "@/lib/api";
+import { dramaHref } from "@/lib/drama";
 import type { Drama, WatchStatus } from "@/lib/types";
 
 function firstGenre(value?: string) {
@@ -40,11 +41,7 @@ export function DramaCard({
   const saved = isSaved(drama);
   const status = getWatchStatus(drama);
 
-  const href = `/drama/${encodeURIComponent(drama.Title)}${
-    drama["Release Years"]
-      ? `?aired=${encodeURIComponent(drama["Release Years"] || "")}`
-      : ""
-  }`;
+  const href = dramaHref(drama);
 
   function logClick() {
     if (!userId || !sessionId) return;

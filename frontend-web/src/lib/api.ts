@@ -164,7 +164,13 @@ export function resolvePosterUrl(value?: string | null): string | null {
   return value.startsWith(POSTER_STORAGE_PREFIX) ? value : null;
 }
 
-export async function searchDramas(filters: SearchFilters, signal?: AbortSignal) {
+// `cacheInit` lets server components pass Next.js cache options such as
+// `{ next: { revalidate: 86400 } }`; the browser never sets it.
+export async function searchDramas(
+  filters: SearchFilters,
+  signal?: AbortSignal,
+  cacheInit?: RequestInit,
+) {
   if (IS_MOCK_MODE) return mock.mockSearch(filters, signal);
   const params = new URLSearchParams({
     title: filters.query,
@@ -181,17 +187,25 @@ export async function searchDramas(filters: SearchFilters, signal?: AbortSignal)
   if (filters.userId) params.set("user_id", filters.userId);
   if (filters.sessionId) params.set("session_id", filters.sessionId);
 
-  const response = await apiRequest<RecommendationResponse>(`/recommend?${params}`, { signal });
+  const response = await apiRequest<RecommendationResponse>(`/recommend?${params}`, {
+    ...cacheInit,
+    signal,
+  });
   recommendationSchema.parse(response);
   return response;
 }
 
-export async function getDrama(title: string, aired?: string, signal?: AbortSignal) {
+export async function getDrama(
+  title: string,
+  aired?: string,
+  signal?: AbortSignal,
+  cacheInit?: RequestInit,
+) {
   if (IS_MOCK_MODE) return mock.mockGetDrama(title, signal);
   const query = aired ? `?aired=${encodeURIComponent(aired)}` : "";
   const response = await apiRequest<{ drama: Drama }>(
     `/dramas/${encodeURIComponent(title)}${query}`,
-    { signal },
+    { ...cacheInit, signal },
   );
   dramaSchema.parse(response.drama);
   return response.drama;

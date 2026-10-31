@@ -1,0 +1,18 @@
+# SeoulMate
+
+> SeoulMate is a K-drama recommendation site. Visitors describe what they want in plain words (a mood such as "healing romance", a trope, an actor, or "dramas like Crash Landing on You") and get matching Korean dramas from a catalog of 2,130 titles. It uses semantic search and ranking, with no large language model.
+
+## Main pages
+
+- [Home](https://seoulmate-azure.vercel.app/): search box, mood shortcuts and picks
+- [Discover](https://seoulmate-azure.vercel.app/discover): natural-language search with genre, year and rating filters
+- [Community](https://seoulmate-azure.vercel.app/community): spoiler-safe reviews, theories and recommendations
+- [Sitemap](https://seoulmate-azure.vercel.app/sitemap.xml): every drama page
+
+## Drama pages
+
+Each drama has a page at `/drama/<title>-<year>` (for example `/drama/crash-landing-on-you-2019`) with the synopsis, cast, director, genres, story tags and similar dramas.
+
+## Search
+
+`/discover?q=<words>` runs a search, for example `/discover?q=healing%20romance`.

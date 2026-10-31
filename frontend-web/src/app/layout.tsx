@@ -4,34 +4,36 @@ import { AppProvider } from "@/components/app-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { AuthProvider } from "@/components/auth-provider";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
-const siteUrl = new URL(
-  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-);
-const description =
-  "Thoughtful K-drama recommendations shaped by story, mood, and your taste.";
+const defaultTitle = "SeoulMate — Find your next K-drama";
 
+// No canonical here: child routes would inherit it. Each page sets its own.
 export const metadata: Metadata = {
-  metadataBase: siteUrl,
+  metadataBase: SITE_URL,
   title: {
-    default: "SeoulMate — Find your next K-drama",
-    template: "%s — SeoulMate",
+    default: defaultTitle,
+    template: `%s — ${SITE_NAME}`,
   },
-  description,
-  alternates: { canonical: "/" },
+  description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
-    siteName: "SeoulMate",
-    title: "SeoulMate — Find your next K-drama",
-    description,
-    url: "/",
+    siteName: SITE_NAME,
+    title: defaultTitle,
+    description: SITE_DESCRIPTION,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: defaultTitle }],
   },
   twitter: {
-    card: "summary",
-    title: "SeoulMate — Find your next K-drama",
-    description,
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: SITE_DESCRIPTION,
+    images: ["/og.png"],
   },
-  robots: { index: true, follow: true },
+  // No `robots` here: indexing is the default, and a site-wide "index" tag
+  // would contradict the "noindex" that Next.js adds to 404 pages.
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 export const viewport: Viewport = {

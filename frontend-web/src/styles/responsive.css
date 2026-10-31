@@ -55,6 +55,7 @@
   .brand-name { font-size: 1.18rem; }
   .hero-copy { padding-inline: 20px; }
   .hero-search { display: grid; grid-template-columns: auto 1fr; }
+  .hero-search svg { align-self: center; }
   .hero-search button { grid-column: 1/-1; }
   .hero-art { min-height: 360px; }
   .section-heading h2 { font-size: 2.45rem; }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { MessageSquare, MoreHorizontal, ShieldAlert, ShieldCheck, Star, Trash2, Edit3, Film } from "lucide-react";
 import { useState } from "react";
+import { dramaPath } from "@/lib/drama";
 import type { CommunityPost } from "@/lib/types";
 import { ReactionButton } from "@/components/reaction-button";
 import { SpoilerContent } from "@/components/spoiler-content";
@@ -194,7 +195,7 @@ export function CommunityPostCard({ post, onDelete }: CommunityPostCardProps) {
       {post.drama && (
         <div className="post-drama-reference">
           <Link
-            href={`/drama/${encodeURIComponent(post.drama.title)}`}
+            href={dramaPath(post.drama.title, post.drama.year)}
             className="drama-reference-link"
             title={`View ${post.drama.title} details`}
           >

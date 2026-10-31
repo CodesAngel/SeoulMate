@@ -6,6 +6,7 @@
 .detail-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 24px; }
 .meta-chip { display: inline-flex; align-items: center; gap: 6px; line-height: 1.2; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; font-size: .75rem; font-weight: 700; background: rgba(255,255,255,.35); }
 .detail-description { max-width: 780px; color: #5f625f; line-height: 1.75; font-size: 1.01rem; }
+.detail-source { margin-top: 6px; color: var(--ink-soft); font-size: .72rem; letter-spacing: .02em; }
 .detail-actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-top: 28px; }
 .detail-actions > button { display: inline-flex; align-items: center; gap: 8px; height: 52px; }
 .status-control { min-width: 170px; display: grid; gap: 5px; }

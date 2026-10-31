@@ -23,7 +23,7 @@ import { StarRating } from "@/components/star-rating";
 import { TrailerModal } from "@/components/trailer-modal";
 import { getDrama, searchDramas } from "@/lib/api";
 import { dramaKey } from "@/lib/drama";
-import type { WatchStatus } from "@/lib/types";
+import type { Drama, WatchStatus } from "@/lib/types";
 
 const WATCH_STATUS_OPTIONS: Array<{ value: WatchStatus; label: string }> = [
   { value: "planned", label: "Plan to watch" },
@@ -41,7 +41,18 @@ function list(value?: string, limit = 12) {
     .slice(0, limit);
 }
 
-export function DramaDetail({ title, aired }: { title: string; aired?: string }) {
+export function DramaDetail({
+  title,
+  aired,
+  initialDrama,
+  initialSimilar,
+}: {
+  title: string;
+  aired?: string;
+  // Rendered on the server so search engines see the page content.
+  initialDrama?: Drama;
+  initialSimilar?: Drama[];
+}) {
   const { user } = useAuth();
   const {
     ready,
@@ -63,6 +74,7 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
   const dramaQuery = useQuery({
     queryKey: ["drama", title, aired],
     queryFn: ({ signal }) => getDrama(title, aired, signal),
+    initialData: initialDrama,
   });
 
   const similarQuery = useQuery({
@@ -73,6 +85,10 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
         signal,
       ),
     enabled: ready,
+    // The server's non-personalised list shows until the visitor's own loads.
+    placeholderData: initialSimilar?.length
+      ? { query: { Title: title }, recommendations: initialSimilar }
+      : undefined,
   });
 
   const drama = dramaQuery.data;
@@ -116,7 +132,8 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
       </div>
     );
 
-  if (dramaQuery.isError || !drama)
+  // A failed background refetch keeps showing the drama we already have.
+  if (!drama)
     return (
       <div className="shell section">
         <div className="empty-state">
@@ -219,6 +236,9 @@ export function DramaDetail({ title, aired }: { title: string; aired?: string })
               <p className="detail-description">
                 {drama.Description || "No synopsis is available yet."}
               </p>
+              {drama.Description && (
+                <p className="detail-source">Synopsis: MyDramaList</p>
+              )}
 
               {/* Action Toolbar */}
               <div className="detail-actions">

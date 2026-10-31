@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { deleteCommunityPost, getCommunityComments, getCommunityPost } from "@/lib/api";
+import { dramaPath } from "@/lib/drama";
 import { CommunityComments } from "@/components/community-comments";
 import { PosterImage } from "@/components/poster-image";
 import { ReactionButton } from "@/components/reaction-button";
@@ -254,7 +255,7 @@ export default function PostDetailPage({
         {post.drama && (
           <div className="detail-drama-banner">
             <Link
-              href={`/drama/${encodeURIComponent(post.drama.title)}`}
+              href={dramaPath(post.drama.title, post.drama.year)}
               className="detail-drama-banner-link"
               title={`View ${post.drama.title}`}
             >

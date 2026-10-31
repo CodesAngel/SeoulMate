@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ArrowRight, Bookmark, MessageSquare, MoreHorizontal } from "lucide-react";
 import { getHomepageCommunity } from "@/lib/api";
+import { dramaPath } from "@/lib/drama";
 import { PosterImage } from "@/components/poster-image";
 import { ReactionButton } from "@/components/reaction-button";
 import { SpoilerContent } from "@/components/spoiler-content";
@@ -123,7 +124,7 @@ export function CommunityFromSection() {
                   {/* Associated Drama Title & Poster Media Banner */}
                   {dramaTitle && (
                     <Link
-                      href={`/drama/${encodeURIComponent(dramaTitle)}`}
+                      href={dramaPath(dramaTitle, post.drama?.year)}
                       className="feed-card-media-banner"
                       title={`View ${dramaTitle} details`}
                     >

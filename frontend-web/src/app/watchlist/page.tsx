@@ -21,7 +21,7 @@ import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
 import { EpisodeTracker } from "@/components/episode-tracker";
 import { PosterImage } from "@/components/poster-image";
-import { dramaKey } from "@/lib/drama";
+import { dramaHref, dramaKey } from "@/lib/drama";
 import type { WatchStatus, WatchlistEntry } from "@/lib/types";
 
 const STATUS_CONFIG: Record<
@@ -278,11 +278,7 @@ function KanbanCard({
   rating?: number;
 }) {
   const { drama, status } = entry;
-  const href = `/drama/${encodeURIComponent(drama.Title)}${
-    drama["Release Years"]
-      ? `?aired=${encodeURIComponent(drama["Release Years"] || "")}`
-      : ""
-  }`;
+  const href = dramaHref(drama);
 
   return (
     <article className="kanban-card">
