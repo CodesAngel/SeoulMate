@@ -9,7 +9,7 @@ import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
 import { VibeMatrix } from "@/components/vibe-matrix";
 import { searchDramas } from "@/lib/api";
-import { dramaKey } from "@/lib/drama";
+import { dramaHref, dramaKey } from "@/lib/drama";
 import type { Drama } from "@/lib/types";
 
 const genres = [
@@ -66,10 +66,6 @@ export function DiscoverClient({ initialResults = [] }: { initialResults?: Drama
         signal,
       ),
     enabled: ready,
-    // Server-rendered default results until the visitor's own list loads.
-    placeholderData: initialResults.length
-      ? { query: { Title: query }, recommendations: initialResults }
-      : undefined,
   });
 
   function applyFilters(event: FormEvent) {
@@ -199,7 +195,7 @@ export function DiscoverClient({ initialResults = [] }: { initialResults?: Drama
             <div>
               <span className="eyebrow">{intent ? `Understood as ${intent}` : "Your matches"}</span>
               <h2>
-                {result.isLoading
+                {result.isPending
                   ? "Finding the right stories…"
                   : `${dramas.length} dramas to explore`}
               </h2>
@@ -224,7 +220,19 @@ export function DiscoverClient({ initialResults = [] }: { initialResults?: Drama
             </div>
           )}
 
-          {result.isLoading ? (
+          {/* Results are personalised per visitor, so the generic server-rendered
+              list is not shown (it would visibly swap). Crawlers without
+              JavaScript still get it as plain links. */}
+          {initialResults.length > 0 && (
+            <noscript>
+              <ul className="drama-grid">
+                {initialResults.map((drama) => (
+                  <li key={dramaKey(drama)}><a href={dramaHref(drama)}>{drama.Title}</a></li>
+                ))}
+              </ul>
+            </noscript>
+          )}
+          {result.isPending ? (
             <DramaGridSkeleton count={8} />
           ) : dramas.length ? (
             <div className="drama-grid">

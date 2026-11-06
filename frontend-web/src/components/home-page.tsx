@@ -13,7 +13,7 @@ import { CommunityTrendingSection } from "@/components/community-trending-sectio
 import { CommunityFromSection } from "@/components/community-from-section";
 import { searchDramas } from "@/lib/api";
 import { MOOD_LINKS, QUICK_PROMPTS } from "@/lib/constants";
-import { dramaKey } from "@/lib/drama";
+import { dramaHref, dramaKey } from "@/lib/drama";
 import type { CommunityPost, Drama, TrendingCommunityPost } from "@/lib/types";
 
 const moodIcons = [HeartHandshake, Sparkles, WandSparkles];
@@ -61,19 +61,12 @@ export function HomePage({
         signal,
       ),
     enabled: ready,
-    // Server-rendered, non-personalised picks (so crawlers see drama links)
-    // until the visitor's own list loads.
-    placeholderData: initialPicks.length
-      ? { query: { Title: HOME_PICKS_QUERY }, recommendations: initialPicks }
-      : undefined,
   });
 
   // The home page is the public front door: adult titles stay out of both the
   // hero and the top picks (they remain reachable through search).
   const dramas = (homeQuery.data?.recommendations ?? []).filter((drama) => !isAdultTitle(drama));
-  // The hero waits for the real list: its daily pick uses the visitor's local
-  // date, which the server does not know.
-  const heroSource = homeQuery.isPlaceholderData ? [] : dramas;
+  const heroSource = dramas;
   // "Tonight's match" rotates daily through the personalised top results:
   // the same drama all day (local time), a different one tomorrow. Popular,
   // well-rated picks come first; if none qualify, any result is used.
@@ -155,7 +148,19 @@ export function HomePage({
             <div><span className="eyebrow">Selected for you</span><h2 className="display">Start with these</h2></div>
             <Link className="text-link" href="/discover?q=recommend%20me%20something%20great">See more matches <ArrowRight size={17} /></Link>
           </div>
-          {homeQuery.isLoading ? <DramaGridSkeleton count={5} /> : homeQuery.isError ? (
+          {/* Every visitor gets a personalised list, so the generic server-rendered
+              picks are not shown (they would visibly swap). Crawlers without
+              JavaScript still get them as plain links. */}
+          {initialPicks.length > 0 && (
+            <noscript>
+              <ul className="drama-grid">
+                {initialPicks.filter((drama) => !isAdultTitle(drama)).slice(0, 5).map((drama) => (
+                  <li key={dramaKey(drama)}><a href={dramaHref(drama)}>{drama.Title}</a></li>
+                ))}
+              </ul>
+            </noscript>
+          )}
+          {homeQuery.isPending ? <DramaGridSkeleton count={5} /> : homeQuery.isError ? (
             <div className="error-banner" role="alert">The recommendation service is unavailable. <button type="button" onClick={() => homeQuery.refetch()}>Try again</button></div>
           ) : (
             <div className="drama-grid">
