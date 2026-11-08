@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { HOME_PICKS_QUERY, HomePage } from "@/components/home-page";
+import { HomePage } from "@/components/home-page";
 import { JsonLd } from "@/components/json-ld";
-import { getHomeCommunityServer, getHomePicksServer } from "@/lib/catalog-server";
+import { getHomeCommunityServer, getHomeDiscoveryServer } from "@/lib/catalog-server";
 import { absoluteUrl, pageMetadata, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
@@ -26,15 +26,15 @@ const websiteJsonLd = {
 };
 
 export default async function Page() {
-  const [initialPicks, community] = await Promise.all([
-    getHomePicksServer(HOME_PICKS_QUERY),
+  const [discoveryPool, community] = await Promise.all([
+    getHomeDiscoveryServer(),
     getHomeCommunityServer(),
   ]);
   return (
     <>
       <JsonLd data={websiteJsonLd} />
       <HomePage
-        initialPicks={initialPicks}
+        discoveryPool={discoveryPool}
         initialTrending={community.trending}
         initialRecent={community.recent}
       />

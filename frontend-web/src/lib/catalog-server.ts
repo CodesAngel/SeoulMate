@@ -132,12 +132,92 @@ export async function getHomeCommunityServer() {
   return { trending, recent };
 }
 
-/** Non-personalised home picks; shown until the visitor's own list loads. */
-export async function getHomePicksServer(query: string): Promise<Drama[]> {
+// Home "discovery" pool: well-known, well-rated dramas the home page rotates
+// through daily, so visitors with little history still see something new.
+const DISCOVERY_MIN_RATING = 8;
+const DISCOVERY_MIN_WATCHERS = 15_000;
+const DISCOVERY_SIZE = 150;
+// The catalog stores genres without MyDramaList's order, so the card's genre
+// pill (the first genre) uses this order: headline genres first, broad ones
+// ("Drama", "Life") last, anything unlisted in between.
+const GENRE_ORDER = [
+  "Romance", "Comedy", "Thriller", "Mystery", "Action", "Fantasy", "Historical",
+  "Horror", "Crime", "Medical", "Law", "Melodrama", "Sci-Fi", "Supernatural", "Youth",
+];
+const BROAD_GENRES = ["Drama", "Life"];
+function genreRank(name: string) {
+  const headline = GENRE_ORDER.indexOf(name);
+  if (headline >= 0) return headline;
+  return BROAD_GENRES.includes(name) ? 1000 : 500;
+}
+
+type DiscoveryRow = {
+  id: number;
+  title: string;
+  aired: string | null;
+  rating_value: number | null;
+  episodes: number | null;
+  watchers: number | null;
+  publisher: string | null;
+  poster_original_key: string | null;
+  poster_thumbnail_key: string | null;
+  genres: { name: string }[];
+  keywords: { name: string }[];
+};
+
+/**
+ * Popular, well-rated dramas straight from the catalog (not the search API,
+ * whose generic home query leans on title words). Adult titles are removed
+ * here. Cached for a day; empty on error so the page still renders.
+ */
+export const getHomeDiscoveryServer = cache(async (): Promise<Drama[]> => {
+  if (IS_MOCK_MODE) return MOCK_DRAMAS;
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
+  const posterUrl = (objectKey: string | null) =>
+    objectKey
+      ? `${base}/storage/v1/object/public/drama-posters/${objectKey.split("/").map(encodeURIComponent).join("/")}`
+      : undefined;
   try {
-    const response = await searchDramas({ query, topN: 10 }, undefined, CACHE);
-    return response.recommendations;
+    const url =
+      `${base}/rest/v1/dramas?select=id,title,aired,rating_value,episodes,watchers,publisher,` +
+      `poster_original_key,poster_thumbnail_key,genres(name),keywords(name)` +
+      `&rating_value=gte.${DISCOVERY_MIN_RATING}&watchers=gte.${DISCOVERY_MIN_WATCHERS}` +
+      // Extra rows leave room for the adult filter below.
+      `&order=watchers.desc&limit=${DISCOVERY_SIZE + 50}`;
+    const response = await fetch(url, {
+      ...CACHE,
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (!response.ok) return [];
+    const rows = (await response.json()) as DiscoveryRow[];
+    return rows
+      .filter(
+        (row) =>
+          !row.genres.some((genre) => genre.name === "Mature") &&
+          !row.keywords.some((keyword) => /nudity/i.test(keyword.name)),
+      )
+      .slice(0, DISCOVERY_SIZE)
+      .map((row) => {
+        const genres = row.genres
+          .map((genre) => genre.name)
+          .sort((a, b) => genreRank(a) - genreRank(b));
+        const thumbnail = posterUrl(row.poster_thumbnail_key);
+        return {
+          drama_id: row.id,
+          Title: row.title,
+          Genre: genres.join(", "),
+          Network: row.publisher ?? undefined,
+          "Release Years": row.aired ?? undefined,
+          rating_value: row.rating_value ?? undefined,
+          episodes: row.episodes ?? undefined,
+          watchers: row.watchers ?? undefined,
+          poster_thumbnail_url: thumbnail,
+          poster_original_url: posterUrl(row.poster_original_key),
+          Image: thumbnail,
+        } satisfies Drama;
+      });
   } catch {
     return [];
   }
-}
+});

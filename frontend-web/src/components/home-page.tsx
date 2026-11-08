@@ -13,6 +13,7 @@ import { CommunityTrendingSection } from "@/components/community-trending-sectio
 import { CommunityFromSection } from "@/components/community-from-section";
 import { searchDramas } from "@/lib/api";
 import { MOOD_LINKS, QUICK_PROMPTS } from "@/lib/constants";
+import { dailySlice, libraryKeys, localDayNumber, personalShare } from "@/lib/daily-picks";
 import { dramaHref, dramaKey } from "@/lib/drama";
 import type { CommunityPost, Drama, TrendingCommunityPost } from "@/lib/types";
 
@@ -34,49 +35,99 @@ function isHeroWorthy(drama: Drama) {
   );
 }
 
-export const HOME_PICKS_QUERY = "recommend me something unforgettable";
+// Same search as "See more matches". ("…unforgettable" matched title words
+// like "Memory" and "Un-" and pulled in obscure dramas.)
+const HOME_PICKS_QUERY = "recommend me something great";
+const HOME_PICK_COUNT = 5;
+// Personalised picks rotate through this many of the visitor's top results.
+const PERSONAL_POOL_SIZE = 20;
+
+type LibrarySnapshot = { userId: string; keys: Set<string>; activity: number };
 
 export function HomePage({
-  initialPicks = [],
+  discoveryPool = [],
   initialTrending,
   initialRecent,
 }: {
-  initialPicks?: Drama[];
+  discoveryPool?: Drama[];
   initialTrending?: TrendingCommunityPost[];
   initialRecent?: CommunityPost[];
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const { ready, userId, sessionId } = useApp();
-  const homeQuery = useQuery({
+  const { ready, userId, sessionId, watchlist, ratingEntries } = useApp();
+
+  // What the visitor has saved or rated, captured once when their library has
+  // loaded. A snapshot (not live state) so saving a drama from these cards
+  // doesn't make it vanish from the page.
+  const [library, setLibrary] = useState<LibrarySnapshot | null>(null);
+  if (ready && library?.userId !== userId) {
+    const known = [...watchlist, ...ratingEntries.map((entry) => entry.drama)];
+    setLibrary({
+      userId,
+      keys: new Set(known.flatMap(libraryKeys)),
+      activity: new Set(known.map((drama) => libraryKeys(drama)[0])).size,
+    });
+  }
+  const personalCount = library ? personalShare(library.activity) : 0;
+
+  const personalQuery = useQuery({
     queryKey: ["home-recommendations", userId],
     queryFn: ({ signal }) =>
       searchDramas(
         {
           query: HOME_PICKS_QUERY,
-          topN: 10,
+          topN: PERSONAL_POOL_SIZE + 10,
           userId,
           sessionId,
         },
         signal,
       ),
-    enabled: ready,
+    // A visitor with no history gets discovery picks only, so the
+    // personalised search is skipped entirely.
+    enabled: ready && library !== null && personalCount > 0,
   });
 
+  // The rotation day: the same picks all day (local time), new ones tomorrow.
+  const [localDay] = useState(() => localDayNumber());
+
   // The home page is the public front door: adult titles stay out of both the
-  // hero and the top picks (they remain reachable through search).
-  const dramas = (homeQuery.data?.recommendations ?? []).filter((drama) => !isAdultTitle(drama));
-  const heroSource = dramas;
-  // "Tonight's match" rotates daily through the personalised top results:
-  // the same drama all day (local time), a different one tomorrow. Popular,
-  // well-rated picks come first; if none qualify, any result is used.
-  const [localDay] = useState(() =>
-    Math.floor((Date.now() - new Date().getTimezoneOffset() * 60_000) / 86_400_000),
+  // hero and the picks (they remain reachable through search). Dramas the
+  // visitor already saved or rated are skipped too.
+  const isFresh = (drama: Drama) =>
+    !isAdultTitle(drama) && !libraryKeys(drama).some((key) => library?.keys.has(key));
+  const personalPool = (personalQuery.data?.recommendations ?? [])
+    .filter(isFresh)
+    .slice(0, PERSONAL_POOL_SIZE);
+  // If the personalised search fails, discovery picks fill every slot.
+  const personalPicks = personalQuery.isError
+    ? []
+    : dailySlice(personalPool, personalCount, `${userId}|personal`, localDay);
+  const pickedKeys = new Set(personalPicks.flatMap(libraryKeys));
+  const freshDiscovery = discoveryPool.filter(
+    (drama) => isFresh(drama) && !libraryKeys(drama).some((key) => pickedKeys.has(key)),
   );
-  const heroWorthy = heroSource.filter(isHeroWorthy);
-  const heroPool = heroWorthy.length ? heroWorthy : heroSource;
-  const feature = heroPool.length ? heroPool[localDay % heroPool.length] : undefined;
-  const backdrop = heroPool.length > 1 ? heroPool[(localDay + 1) % heroPool.length] : undefined;
+  const discoveryPicks = dailySlice(
+    freshDiscovery,
+    HOME_PICK_COUNT - personalPicks.length,
+    `${userId}|discovery`,
+    localDay,
+  );
+  const picks = [...personalPicks, ...discoveryPicks];
+  const picksLoading = !library || (personalCount > 0 && personalQuery.isPending);
+
+  // "Tonight's match" also rotates daily: from the visitor's own well-known,
+  // well-rated matches once they have a taste, otherwise from the discovery
+  // pool. It never repeats one of the cards below.
+  const shownKeys = new Set(picks.flatMap(libraryKeys));
+  const notShown = (drama: Drama) => !libraryKeys(drama).some((key) => shownKeys.has(key));
+  const personalHeroes = personalPool.filter((drama) => isHeroWorthy(drama) && notShown(drama));
+  const heroPool = personalHeroes.length
+    ? personalHeroes
+    : freshDiscovery.filter((drama) => isHeroWorthy(drama) && notShown(drama));
+  const [feature, backdrop] = picksLoading
+    ? []
+    : dailySlice(heroPool, 2, `${userId}|hero`, localDay);
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -148,23 +199,23 @@ export function HomePage({
             <div><span className="eyebrow">Selected for you</span><h2 className="display">Start with these</h2></div>
             <Link className="text-link" href="/discover?q=recommend%20me%20something%20great">See more matches <ArrowRight size={17} /></Link>
           </div>
-          {/* Every visitor gets a personalised list, so the generic server-rendered
-              picks are not shown (they would visibly swap). Crawlers without
-              JavaScript still get them as plain links. */}
-          {initialPicks.length > 0 && (
+          {/* The picks depend on the visitor (their history and the day), so
+              none are rendered on the server (they would visibly swap).
+              Crawlers without JavaScript get discovery picks as plain links. */}
+          {discoveryPool.length > 0 && (
             <noscript>
               <ul className="drama-grid">
-                {initialPicks.filter((drama) => !isAdultTitle(drama)).slice(0, 5).map((drama) => (
+                {discoveryPool.slice(0, HOME_PICK_COUNT).map((drama) => (
                   <li key={dramaKey(drama)}><a href={dramaHref(drama)}>{drama.Title}</a></li>
                 ))}
               </ul>
             </noscript>
           )}
-          {homeQuery.isPending ? <DramaGridSkeleton count={5} /> : homeQuery.isError ? (
-            <div className="error-banner" role="alert">The recommendation service is unavailable. <button type="button" onClick={() => homeQuery.refetch()}>Try again</button></div>
+          {picksLoading ? <DramaGridSkeleton count={HOME_PICK_COUNT} /> : picks.length === 0 ? (
+            <div className="error-banner" role="alert">The recommendation service is unavailable. <button type="button" onClick={() => { void personalQuery.refetch(); router.refresh(); }}>Try again</button></div>
           ) : (
             <div className="drama-grid">
-              {dramas.slice(0, 5).map((drama, index) => <DramaCard key={dramaKey(drama)} drama={drama} position={index + 1} />)}
+              {picks.map((drama, index) => <DramaCard key={dramaKey(drama)} drama={drama} position={index + 1} />)}
             </div>
           )}
         </div>
