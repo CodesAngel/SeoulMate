@@ -214,7 +214,13 @@ export function DramaDetail({
                 )}
               </div>
 
-              <h1 className="display">{drama.Title}</h1>
+              <h1
+                className={`display${
+                  drama.Title.length > 40 ? " title-xlong" : drama.Title.length > 22 ? " title-long" : ""
+                }`}
+              >
+                {drama.Title}
+              </h1>
 
               <div className="detail-meta">
                 {drama.rating_value && (
@@ -438,7 +444,7 @@ export function DramaDetail({
           <div className="section-heading">
             <div>
               <span className="eyebrow">Keep the feeling</span>
-              <h2 className="display">More like {drama.Title}</h2>
+              <h2 className="display similar-title">More like {drama.Title}</h2>
             </div>
           </div>
           {similarQuery.isLoading ? (
