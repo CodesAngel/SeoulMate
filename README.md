@@ -53,7 +53,7 @@ SeoulMate understands moods, tropes, settings, actors and titles. It learns from
 - Recommendations that adapt to your ratings, saves and clicks
 - Watchlist with viewing statuses (Planned, Watching, Completed, On hold, Dropped) and personal 1–10 ratings
 - Taste profile, episode tracker and *Watch Together*: find dramas two people will both enjoy
-- A daily "Tonight's match" on the home page
+- Home picks and a "Tonight's match" that change every day, mixing your taste with popular discoveries
 
 **Community**
 - Discussions, reviews (with 1–10 scores) and recommendations, linked to dramas

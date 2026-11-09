@@ -2,7 +2,86 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-11-08
+
+### Home picks rotate daily
+
+"Start with these" and "Tonight's match" used to show the same dramas on every visit until the visitor's history changed. A visitor with little activity saw the same page every day.
+
+- **Daily rotation** (`frontend-web/src/lib/daily-picks.ts`):
+  - The picks stay the same all day (local time) and change the next day.
+  - Each visitor gets their own order: the pool is shuffled with a seed from their user ID, and each day takes the next 5.
+  - Nothing repeats until the whole pool has been shown.
+  - "Tonight's match" rotates the same way and never repeats one of the 5 cards.
+- **Mix by activity** (watchlist items plus ratings):
+
+  | Activity | Personalised | Discovery |
+  |---|---|---|
+  | none | 0 | 5 |
+  | 1–4 | 3 | 2 |
+  | 5 or more | 4 | 1 |
+
+  - Even a settled taste keeps one new discovery a day.
+  - A visitor with no history skips the personalised search entirely.
+  - If the personalised search fails, discovery picks fill all 5 slots.
+- **Discovery pool** (`getHomeDiscoveryServer` in `lib/catalog-server.ts`):
+  - The 150 most-watched dramas with a rating of 8 or higher and at least 15,000 watchers.
+  - Read straight from the catalog in Supabase, cached for a day.
+  - Adult titles (genre Mature or a nudity tag) are removed.
+  - The catalog doesn't keep MyDramaList's genre order, so headline genres (Romance, Comedy, Thriller…) are listed first and broad ones (Drama, Life) last. Cards show the first genre.
+  - Replaces `getHomePicksServer`. Crawlers without JavaScript get the pool's first 5 as plain links.
+- **Already-known dramas are skipped.** Dramas the visitor has saved or rated are left out of the picks. The library is captured once when it loads, so saving a drama from a card doesn't make the card vanish.
+- **Better personalised search.** The home search changed from "recommend me something unforgettable" to "recommend me something great", the same search "See more matches" uses. The old phrase matched title words and pulled in obscure dramas ("Memory", "Memorist", "Untouchable", "Bad-Memory Eraser"). The new one returns Crash Landing on You, Reply 1988, Signal, My Mister and similar.
+- **Checked** in headless Edge (Playwright) as a guest:
+  - A reload on the same day gave the same picks.
+  - With 6 saved dramas, none of them appeared.
+  - The next day's picks had no overlap with today's.
+- **Search ranking is unchanged** (frontend only), so the evaluation numbers are unaffected.
+
+### Drama page headings scale with title length
+
+- Long titles wrapped to 4 lines at the full heading size, for example "Dr. Romantic: APPENDIX, The Beginning of Everything".
+- The drama page title now steps down for titles over 22 characters (`title-long`) and over 40 characters (`title-xlong`). Short titles keep the large size.
+- The "More like …" heading is smaller for every drama (`similar-title`).
+- Styles are in `src/styles/drama-detail.css`.
+
+## 2026-11-07
+
+### Home and Discover results no longer swap after loading
+
+- **The problem:** the home "Start with these" row and the default `/discover` list first showed a generic list rendered on the server, then switched to the visitor's personalised list. Every visitor, including anonymous ones, has a user ID, so the two lists always differed. The server copy was also cached for a day and could be stale.
+- **The fix:** `home-page.tsx` and `discover-client.tsx` no longer use `placeholderData`. They show the loading skeleton until the visitor's own list arrives. The server picks remain as a `<noscript>` link list for crawlers.
+
 ## 2026-10-31
+
+### Search engine optimisation and page speed
+
+An SEO audit of the live site scored 37/100. After four rounds of fixes, a re-audit scored 84/100.
+
+- **Canonical URLs:** every page's canonical pointed at an unrelated site, because `NEXT_PUBLIC_SITE_URL` on Vercel had the wrong domain. The variable was corrected, and pages no longer inherit the layout's canonical. Each page sets its own title and canonical (`lib/site.ts`, `pageMetadata`).
+- **Crawling:**
+  - `robots.ts` added.
+  - `sitemap.ts` lists the 3 main pages, all 2,130 dramas and community posts.
+  - `public/llms.txt` and a share image at `/og.png` added.
+  - Private pages are marked `noindex`: account, watchlist, profile, Watch Together, auth, and new/edit community post.
+- **Drama URLs:**
+  - Drama pages are now `/drama/<title>-<year>` (`dramaSlug`, `dramaHref` in `lib/drama.ts`), with no collisions across the catalog.
+  - Old `/drama/Title?aired=` links redirect with a 308 (`proxy.ts`).
+  - Drama pages are rendered on the server: synopsis, cast, links and a "More like" list in the HTML.
+  - Each drama page has `TVSeries` and `BreadcrumbList` structured data. The home page has `WebSite` with a `SearchAction`.
+- **"At a glance" section** on drama pages: a short summary built from a template (`lib/drama-summary.ts`, no LLM). It is also the fallback meta description.
+- **Server-rendered `/discover` and `/community`:** they read the URL parameters on the server, so the heading and form are in the HTML. The home community sections also get their data from the server, refreshed every 10 minutes.
+- **Security headers** (`next.config.ts`): `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `frame-ancestors`, `Permissions-Policy`.
+- **Layout shift:**
+  - The streamed loading skeletons were shorter than the pages that replaced them, which pushed the footer around. All three `loading.tsx` screens now fill the viewport (`.route-loading { min-height: 100vh }`).
+  - Measured layout shift (CLS) on home, discover, drama and community is now between 0.0003 and 0.017.
+- **Accessibility:**
+  - Ratings and small text use a darker colour (`--lemon-ink`, 5.2:1 contrast).
+  - The card quick actions are no longer hidden from screen readers and show on keyboard focus.
+- **Faster drama pages:**
+  - The blurred backdrop uses the WebP thumbnail instead of the full poster.
+  - Posters in Supabase Storage are served with a 30-day cache: `upload_posters_to_storage.py` sends `max-age=2592000`, and `--skip-unchanged` re-uploads objects whose cache setting differs. All 4,260 objects were re-uploaded and verified.
+- **PageSpeed (mobile):** home performance 96–99, accessibility 100, CLS 0.
 
 ### SeoulMate is live
 
