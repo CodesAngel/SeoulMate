@@ -4,6 +4,14 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-11-14
 
+### Posters fall back to Supabase when Vercel refuses them
+
+Some posters on the live site showed "Poster unavailable". Vercel's image optimizer answered them with **402**, which most likely means the Hobby plan's monthly image allowance is used up (Google crawling the 2,130 drama pages since the sitemap went in adds many new poster sizes). Posters Vercel had already cached kept working; new ones failed.
+
+- `PosterImage` (`components/poster-image.tsx`) now tries Vercel's optimizer first and, if that fails, loads the same file straight from Supabase Storage (`unoptimized`). The placeholder shows only if both fail. A card that gets a new poster starts again with the optimizer.
+- Trade-off while the allowance is used up: fallback posters are the WebP thumbnails (about 37–50 KB instead of Vercel's 21–26 KB) and appear a moment later.
+- **Checked** against the production build with Playwright: normally all 13 posters on the home and drama pages load through the optimizer; with every optimizer request answered 402, all 13 still appear (loaded from Supabase), with no placeholders.
+
 ### Consistent headings and fonts
 
 A measurement of 11 pages at desktop and phone width showed oversized headings (page titles 61–67 px on desktop, 3 lines on phones), 8 different page-title sizes, mixed weights (some sections bold, the ones next to them not), and a body font that changed by device ("Avenir Next" exists only on Apple devices, so Windows showed Segoe UI and Android Roboto).

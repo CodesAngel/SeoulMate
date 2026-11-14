@@ -5,6 +5,15 @@ import { Clapperboard } from "lucide-react";
 import { useState } from "react";
 import { resolvePosterUrl } from "@/lib/api";
 
+/**
+ * "optimized": served through Vercel's image optimizer (smaller, cached).
+ * "direct": the optimizer refused the image (e.g. 402 once the plan's monthly
+ *   image allowance is used up), so the same file is loaded straight from
+ *   Supabase Storage. The WebP thumbnails there are already small.
+ * "failed": both attempts failed; show the placeholder.
+ */
+type Attempt = "optimized" | "direct" | "failed";
+
 export function PosterImage({
   src,
   alt,
@@ -19,10 +28,17 @@ export function PosterImage({
   /** Must be listed in `images.qualities` in next.config.ts. */
   quality?: number;
 }) {
-  const [failed, setFailed] = useState(false);
   const resolved = resolvePosterUrl(src);
+  const [attempt, setAttempt] = useState<Attempt>("optimized");
+  const [attemptFor, setAttemptFor] = useState(resolved);
 
-  if (!resolved || failed) {
+  // A reused card can receive a different poster: start again with the optimizer.
+  if (attemptFor !== resolved) {
+    setAttemptFor(resolved);
+    setAttempt("optimized");
+  }
+
+  if (!resolved || attempt === "failed") {
     return (
       <div className="poster-placeholder" role="img" aria-label={`${alt} poster unavailable`}>
         <Clapperboard size={30} />
@@ -33,15 +49,17 @@ export function PosterImage({
 
   return (
     <Image
+      key={attempt}
       src={resolved}
       alt={alt}
       fill
+      unoptimized={attempt === "direct"}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       sizes={sizes}
       quality={quality}
       className="poster-img"
-      onError={() => setFailed(true)}
+      onError={() => setAttempt((current) => (current === "optimized" ? "direct" : "failed"))}
     />
   );
 }
