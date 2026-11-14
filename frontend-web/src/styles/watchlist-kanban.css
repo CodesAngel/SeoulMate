@@ -96,7 +96,7 @@
 }
 .kanban-header-title h3 {
   margin: 0;
-  font: 600 0.95rem Georgia, serif;
+  font: 600 0.95rem var(--font-serif);
   color: var(--ink);
 }
 .kanban-count {
@@ -157,7 +157,7 @@
 }
 .kanban-info h4 {
   margin: 0 0 5px;
-  font: 600 0.88rem/1.25 Georgia, serif;
+  font: 600 0.88rem/1.25 var(--font-serif);
   color: var(--ink);
   white-space: nowrap;
   overflow: hidden;

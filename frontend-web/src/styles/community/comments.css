@@ -14,9 +14,10 @@
 }
 .comments-section-header h2 {
   margin: 0;
-  font-family: Georgia, serif;
-  font-size: 1.35rem;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: var(--fs-group);
+  font-weight: var(--heading-weight);
+  line-height: var(--lh-group);
   color: var(--c-mulberry);
 }
 .comment-composer-form {

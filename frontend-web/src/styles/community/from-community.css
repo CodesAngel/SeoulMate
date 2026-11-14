@@ -13,9 +13,10 @@
 }
 .from-community-heading {
   margin: 0 0 6px;
-  font-family: Georgia, serif;
-  font-size: clamp(1.6rem, 3vw, 2.1rem);
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: var(--fs-section);
+  font-weight: var(--heading-weight);
+  line-height: var(--lh-section);
   color: var(--c-mulberry);
   letter-spacing: -0.025em;
 }

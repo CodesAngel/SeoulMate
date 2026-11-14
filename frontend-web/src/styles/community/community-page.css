@@ -21,9 +21,10 @@
 }
 .community-page-title {
   margin: 4px 0 8px;
-  font-family: Georgia, serif;
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: var(--fs-page);
+  font-weight: var(--heading-weight);
+  line-height: var(--lh-page);
   color: var(--c-mulberry);
   letter-spacing: -0.03em;
 }
@@ -102,6 +103,10 @@
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  /* A flex item grows to its content width by default; cap it so the tab
+     row below can scroll inside it on phones. */
+  min-width: 0;
+  max-width: 100%;
 }
 .community-drama-filter-select {
   background: var(--c-white-card);
@@ -126,9 +131,19 @@
   border: 1px solid var(--c-lavender-border);
   padding: 4px;
   border-radius: 14px;
+  /* On narrow screens the tabs scroll inside the row instead of making the
+     whole page scroll sideways. */
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.community-filter-tabs::-webkit-scrollbar {
+  display: none;
 }
 .community-tab-btn {
   display: inline-flex;
+  flex-shrink: 0;
+  white-space: nowrap;
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
@@ -300,7 +315,7 @@
 }
 .post-card-title {
   margin: 0;
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--c-mulberry);
@@ -467,9 +482,10 @@
 }
 .signin-prompt-card h2 {
   margin: 0 0 10px;
-  font-family: Georgia, serif;
-  font-size: 1.75rem;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: var(--fs-group);
+  font-weight: var(--heading-weight);
+  line-height: var(--lh-group);
   color: var(--c-mulberry);
   letter-spacing: -0.02em;
 }

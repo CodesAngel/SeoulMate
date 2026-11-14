@@ -1,10 +1,22 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/components/app-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { AuthProvider } from "@/components/auth-provider";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+
+// Self-hosted at build time (no requests to Google from visitors), so every
+// device shows the same fonts. Used through --font-sans / --font-serif in tokens.css.
+const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
+const sourceSerif = Source_Serif_4({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  display: "swap",
+  variable: "--font-source-serif",
+});
 
 const defaultTitle = "SeoulMate — Find your next K-drama";
 
@@ -43,7 +55,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${sourceSerif.variable}`}>
       <body>
         <a className="skip-link" href="#main-content">Skip to content</a>
         <AuthProvider>

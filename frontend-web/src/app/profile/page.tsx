@@ -56,7 +56,7 @@ function PreferenceList({
           })}
         </div>
       ) : (
-        <p className="muted" style={{ fontSize: "0.82rem" }}>
+        <p className="muted text-note">
           Rate dramas featuring these creators to build this preference segment.
         </p>
       )}
@@ -325,7 +325,7 @@ export default function ProfilePage() {
           {/* Reset Action */}
           <div className="profile-card danger-zone-card">
             <h3>Reset Model Profile</h3>
-            <p className="muted" style={{ fontSize: "0.78rem" }}>
+            <p className="muted text-note">
               Clear all taste embeddings and start fresh from default cold-start weights.
             </p>
             <button

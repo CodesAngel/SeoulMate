@@ -346,7 +346,7 @@ function KanbanCard({
             ))}
           </select>
         ) : (
-          <span className="muted" style={{ fontSize: "0.72rem" }}>
+          <span className="muted text-tiny">
             Guest mode
           </span>
         )}

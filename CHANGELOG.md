@@ -4,6 +4,27 @@ Important project history reconstructed from Git commits and project documentati
 
 ## 2026-11-14
 
+### Consistent headings and fonts
+
+A measurement of 11 pages at desktop and phone width showed oversized headings (page titles 61–67 px on desktop, 3 lines on phones), 8 different page-title sizes, mixed weights (some sections bold, the ones next to them not), and a body font that changed by device ("Avenir Next" exists only on Apple devices, so Windows showed Segoe UI and Android Roboto).
+
+- **Fonts** (`app/layout.tsx`, `styles/tokens.css`): Inter for text and Source Serif 4 for headings, self-hosted through `next/font` (no requests to Google from visitors, no layout shift). Every device now shows the same fonts, and numbers line up evenly (Georgia's old-style digits made "0h" read like "oh"). CSS uses `--font-sans` / `--font-serif`; the 37 hard-coded Georgia/Avenir declarations are gone.
+- **One heading scale** in `tokens.css`, used by every stylesheet:
+
+  | Level | Desktop | Phone | Before (desktop / phone) |
+  |---|---|---|---|
+  | Home hero (`--fs-hero`) | 59 px | 40 px | 67 / 47 px |
+  | Page title (`--fs-page`) | 51 px | 34 px | 42–67 / 29–46 px |
+  | Long / very long titles | 40 / 34 px max | 30 / 28 px | 37 px |
+  | Section heading (`--fs-section`) | 33 px | 28 px | 23–43.5 / 23–39 px |
+  | Card/group heading (`--fs-group`) | 23 px | 22 px | 27–32 px |
+
+  All three heading levels use one weight (500). Small titles (drama cards, post cards, filters) keep their size. Phone-only size overrides in `responsive.css` were removed; the scale handles them.
+- **Inline font sizes** in the Fusion, Profile, Watchlist and Community pages moved to classes (`.text-note`, `.text-tiny`, `.eyebrow-accent`, `.button-sm`).
+- **Community tabs on phones**: the tab row was 493 px wide on a 390 px screen and made the whole page scroll sideways. It now scrolls inside its own row.
+- **Checked**: tsc, eslint and `next build` clean; the measurement script re-run against the production build in light and dark mode at 1280 px and 390 px. No page scrolls sideways (Community did before).
+- **Known, not changed**: in dark mode the "More like …" band on drama pages keeps a light background, so its heading is hard to read. This was already the case on the live site.
+
 ### "Top match" card for title searches (issue #3)
 
 Searching an exact title such as "curtain call" or "alchemy of souls" listed only dramas *like* it and left the drama itself out (title self-exclusion), so it looked like the search had failed.

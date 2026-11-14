@@ -1,6 +1,6 @@
 .profile-layout { padding: 48px 0 100px; display: grid; grid-template-columns: 1fr 340px; gap: 38px; align-items: start; }
 .profile-card { background: var(--cream); border: 1px solid var(--line); border-radius: 22px; padding: 28px; }
-.profile-card h2 { margin: 0 0 20px; font: 500 1.7rem Georgia, serif; }
+.profile-card h2 { margin: 0 0 20px; font: var(--heading-weight) var(--fs-group)/var(--lh-group) var(--font-serif); }
 .persona-card { background: var(--ink); color: white; overflow: hidden; position: relative; }
 .persona-card::after { content:""; position:absolute; width:170px; height:170px; border-radius:50%; right:-50px; top:-55px; background:var(--coral); opacity:.8; }
 .persona-card p { color: rgba(255,255,255,.65); }
@@ -17,7 +17,7 @@
 .rate-form input, .rate-form select { width:100%; height:46px; border:1px solid var(--line); border-radius:10px; padding:0 12px; background:white; outline:0; }
 .stat-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
 .stat-box { border:1px solid var(--line); border-radius:12px; padding:14px; }
-.stat-box strong { display:block; font:500 1.7rem Georgia,serif; }
+.stat-box strong { display:block; font:500 1.7rem var(--font-serif); }
 .stat-box span { font-size:.7rem; color:#7b7974; text-transform:uppercase; letter-spacing:.06em; }
 .danger-button { width:100%; margin-top:14px; border:1px solid #e7b1aa; color:#a83d30; background:transparent; border-radius:10px; padding:11px; font-weight:700; }
 .profile-loading { display: grid; gap: 14px; margin-bottom: 28px; }

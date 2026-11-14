@@ -61,7 +61,7 @@
 /* h2: it follows the page h1 directly (heading levels must not skip). */
 .vibe-header-left h2 {
   margin: 0;
-  font: 600 1.05rem Georgia, serif;
+  font: 600 1.05rem var(--font-serif);
   color: var(--ink);
 }
 .vibe-toggle-btn {

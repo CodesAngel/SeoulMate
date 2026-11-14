@@ -30,7 +30,7 @@
 }
 .fusion-hero-card h1 {
   margin: 0 0 10px;
-  font: 600 clamp(1.8rem, 3.5vw, 2.7rem) Georgia, serif;
+  font: var(--heading-weight) var(--fs-page)/var(--lh-page) var(--font-serif);
   color: var(--ink);
 }
 .fusion-hero-card p {
@@ -81,7 +81,7 @@
 }
 .fusion-card-head h3 {
   margin: 0;
-  font: 600 1.1rem Georgia, serif;
+  font: 600 1.1rem var(--font-serif);
   color: var(--ink);
 }
 .fusion-user-badge {
@@ -215,7 +215,7 @@
   justify-content: center;
 }
 .gauge-pct {
-  font: 700 1.9rem Georgia, serif;
+  font: 700 1.9rem var(--font-serif);
   color: var(--ink);
   line-height: 1;
 }
@@ -283,7 +283,7 @@
 }
 .fusion-results-header h2 {
   margin: 0;
-  font: 600 1.45rem Georgia, serif;
+  font: var(--heading-weight) var(--fs-section)/var(--lh-section) var(--font-serif);
   color: var(--ink);
 }
 .fusion-shared-tropes-row {

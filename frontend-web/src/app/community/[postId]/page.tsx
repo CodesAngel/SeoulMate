@@ -270,7 +270,7 @@ export default function PostDetailPage({
                 )}
               </div>
               <div className="detail-drama-info">
-                <span className="eyebrow" style={{ color: "var(--coral)", fontSize: "0.68rem" }}>
+                <span className="eyebrow eyebrow-accent">
                   Discussing Drama
                 </span>
                 <strong className="detail-drama-title">{post.drama.title}</strong>

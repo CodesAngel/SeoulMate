@@ -36,9 +36,10 @@
 }
 .trending-section-title {
   margin: 0;
-  font-family: Georgia, serif;
-  font-size: clamp(1.4rem, 2.4vw, 1.75rem);
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: var(--fs-section);
+  font-weight: var(--heading-weight);
+  line-height: var(--lh-section);
   color: var(--c-mulberry);
   letter-spacing: -0.02em;
 }
@@ -134,7 +135,7 @@
 }
 .trending-card-title {
   margin: 0;
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--c-mulberry);

@@ -18,7 +18,6 @@
   .hero { padding-top: 18px; }
   .hero-panel { grid-template-columns: 1fr; min-height: auto; }
   .hero-copy { padding: 48px 26px 38px; }
-  .hero h1 { font-size: clamp(2.85rem, 12vw, 3.8rem); }
   .hero-art { min-height: 420px; }
   .hero-art::after { background: linear-gradient(0deg, rgba(23,28,42,.82), transparent 60%); }
   .hero-search { align-items: stretch; padding-left: 14px; }
@@ -58,11 +57,9 @@
   .hero-search svg { align-self: center; }
   .hero-search button { grid-column: 1/-1; }
   .hero-art { min-height: 360px; }
-  .section-heading h2 { font-size: 2.45rem; }
   .filter-form { grid-template-columns: 1fr; }
   .filter-actions { grid-column: auto; }
   .results-toolbar { flex-direction: column; }
   .page-hero h1 span { display: block; }
-  .detail-copy h1 { font-size: 2.9rem; }
   .detail-row { grid-template-columns: 1fr; gap: 5px; }
 }

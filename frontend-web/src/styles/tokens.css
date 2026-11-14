@@ -13,6 +13,24 @@
   --line: #EEE8F5;
   --shadow: 0 12px 36px rgba(45, 23, 56, 0.06);
 
+  /* Typography. The fonts are self-hosted by next/font (app/layout.tsx sets
+     --font-inter and --font-source-serif on <html>); the fallbacks only show
+     if those files fail to load. Use these instead of naming fonts in CSS. */
+  --font-sans: var(--font-inter, system-ui), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-source-serif, Georgia), Georgia, "Times New Roman", serif;
+
+  /* Heading scale: one size per level, used on every page. */
+  --fs-hero: clamp(2.5rem, 4.6vw, 3.75rem);           /* home hero: 40-60px */
+  --fs-page: clamp(2.125rem, 4vw, 3.25rem);           /* page title (h1): 34-52px */
+  --fs-page-long: clamp(1.875rem, 3.1vw, 2.5rem);     /* long page titles: 30-40px */
+  --fs-page-xlong: clamp(1.75rem, 2.5vw, 2.125rem);   /* very long titles: 28-34px (never below a section heading) */
+  --fs-section: clamp(1.75rem, 2.6vw, 2.125rem);      /* section heading: 28-34px */
+  --fs-group: clamp(1.375rem, 1.8vw, 1.5rem);         /* card/group heading: 22-24px */
+  --heading-weight: 500;
+  --lh-page: 1.05;
+  --lh-section: 1.12;
+  --lh-group: 1.2;
+
   /* Community Design System */
   --c-mulberry: #2D1738;
   --c-ink: #151827;

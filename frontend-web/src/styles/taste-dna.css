@@ -17,7 +17,7 @@
   max-width: 580px;
 }
 .persona-hero-content h2 {
-  font: 600 clamp(1.8rem, 3.5vw, 2.7rem) Georgia, serif;
+  font: var(--heading-weight) var(--fs-section)/var(--lh-section) var(--font-serif);
   margin: 10px 0 12px;
   color: white;
 }
@@ -201,7 +201,7 @@
   color: var(--coral);
 }
 .modern-stat-box .stat-val {
-  font: 600 1.55rem Georgia, serif;
+  font: 600 1.55rem var(--font-serif);
   color: var(--ink);
 }
 .modern-stat-box .stat-desc {
@@ -245,7 +245,7 @@
 }
 .danger-zone-card h3 {
   margin: 0 0 6px;
-  font: 600 1rem Georgia, serif;
+  font: 600 1rem var(--font-serif);
   color: #991b1b;
 }
 .status-notice-message {

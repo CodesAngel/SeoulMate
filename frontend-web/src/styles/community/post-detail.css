@@ -71,9 +71,9 @@
 }
 .detail-post-title {
   margin: 0 0 16px;
-  font-family: Georgia, serif;
-  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: var(--fs-page-long);
+  font-weight: var(--heading-weight);
   color: var(--c-mulberry);
   line-height: 1.3;
   letter-spacing: -0.025em;

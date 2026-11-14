@@ -272,12 +272,12 @@ export default function TasteFusionPage() {
             </div>
           </div>
 
-          <div style={{ fontSize: "0.8rem", color: "var(--ink-soft)" }}>
+          <div className="muted text-note">
             Taste DNA derived from {watchlist.length} saved titles & {ratingEntries.length} ratings.
           </div>
 
           <div className="fusion-genre-list">
-            <span className="eyebrow" style={{ fontSize: "0.68rem", color: "#7d7f78" }}>
+            <span className="eyebrow">
               Your Top Affinities
             </span>
             {Object.entries(hostGenres)
@@ -304,7 +304,7 @@ export default function TasteFusionPage() {
 
         {/* Column 2: The Fusion Core Reactor */}
         <div className="fusion-reactor-column">
-          <span className="eyebrow" style={{ color: "var(--coral)", fontSize: "0.72rem" }}>
+          <span className="eyebrow eyebrow-accent">
             Fusion Reactor
           </span>
 
@@ -398,7 +398,7 @@ export default function TasteFusionPage() {
 
           {/* Custom Anchor Drama input */}
           <div className="friend-custom-input-box">
-            <label htmlFor="friend-drama-input" style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#7d7f78" }}>
+            <label htmlFor="friend-drama-input" className="eyebrow">
               Or Their Favorite Drama
             </label>
             <input
@@ -411,7 +411,7 @@ export default function TasteFusionPage() {
           </div>
 
           <div className="fusion-genre-list">
-            <span className="eyebrow" style={{ fontSize: "0.68rem", color: "#7d7f78" }}>
+            <span className="eyebrow">
               Their Flavor Focus
             </span>
             {Object.entries(selectedFriend.genres).map(([genre, score]) => (
@@ -456,9 +456,8 @@ export default function TasteFusionPage() {
 
             <button
               type="button"
-              className="ghost-button"
+              className="ghost-button button-sm"
               onClick={handleCopyShare}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.8rem", padding: "8px 14px", borderRadius: 10 }}
               title="Copy link to this Taste Fusion setup"
             >
               {copiedLink ? <Check size={14} color="#059669" /> : <Share2 size={14} />}

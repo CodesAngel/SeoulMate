@@ -306,7 +306,7 @@ export default function NewPostPage() {
               <ShieldAlert size={16} className="spoiler-icon" />
               <div>
                 <strong>Mark as containing spoilers</strong>
-                <p className="muted" style={{ margin: "2px 0 0", fontSize: "0.8rem" }}>
+                <p className="muted text-note" style={{ margin: "2px 0 0" }}>
                   Hides the content behind a reveal shield to protect viewers who haven&apos;t finished the show.
                 </p>
               </div>

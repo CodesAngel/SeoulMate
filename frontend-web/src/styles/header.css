@@ -4,7 +4,7 @@
 .mock-mode-badge { flex: 0 0 auto; padding: 5px 9px; border: 1px solid rgba(197, 91, 85, .28); border-radius: 999px; background: #fff0eb; color: #a33f3b; font-size: .68rem; font-weight: 800; letter-spacing: .06em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
 .brand-lockup { display: inline-flex; align-items: center; gap: 10px; }
 .brand-icon { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--coral); color: white; transform: rotate(-4deg); flex-shrink: 0; }
-.brand-name { font-family: Georgia, serif; font-size: 1.32rem; font-weight: 700; letter-spacing: -.04em; white-space: nowrap; }
+.brand-name { font-family: var(--font-serif); font-size: 1.32rem; font-weight: 700; letter-spacing: -.04em; white-space: nowrap; }
 .brand-name span { color: var(--coral); }
 .desktop-nav { display: flex; align-items: center; gap: clamp(10px, 1.4vw, 20px); font-size: .88rem; font-weight: 700; flex-shrink: 0; }
 .desktop-nav a { position: relative; padding: 26px 0 22px; color: #595c65; white-space: nowrap; }

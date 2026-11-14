@@ -31,7 +31,7 @@
 }
 .trailer-modal-header h3 {
   margin: 4px 0 0;
-  font: 600 1.25rem Georgia, serif;
+  font: 600 1.25rem var(--font-serif);
 }
 .trailer-modal-actions {
   display: flex;

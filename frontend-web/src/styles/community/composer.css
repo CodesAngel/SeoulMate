@@ -21,9 +21,10 @@
 }
 .composer-title {
   margin: 0 0 6px;
-  font-family: Georgia, serif;
-  font-size: 2rem;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: var(--fs-page-long);
+  font-weight: var(--heading-weight);
+  line-height: var(--lh-page);
   color: var(--c-mulberry);
   letter-spacing: -0.025em;
 }
