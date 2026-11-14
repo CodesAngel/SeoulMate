@@ -47,6 +47,9 @@ const recommendationSchema = z.object({
     expanded: z.string().optional(),
   }),
   recommendations: z.array(dramaSchema),
+  matched_drama: dramaSchema
+    .extend({ match_type: z.enum(["exact", "alias", "close", "loose"]).optional() })
+    .optional(),
   search_id: z.string().optional(),
 }).passthrough();
 const watchStatusSchema = z.enum(["planned", "watching", "completed", "paused", "dropped"]);

@@ -2933,6 +2933,23 @@ def recommend(
         },
         "recommendations": top_results,
     }
+    # Title searches list dramas *like* the title and leave the title itself out
+    # (issue #3). Return the resolved drama separately so the site can show it
+    # as a "Top match" card; the recommendations list is unchanged.
+    if title_similarity_mode:
+        matched = {k: v for k, v in drama.items() if k != "ranking_debug"}
+        if debug_info.get("resolved_title") == drama.get("Title"):
+            source = str(debug_info.get("resolved_source") or "")
+        else:
+            source = "exact" if drama.get("Title", "").lower() == title.lower().strip() else ""
+        if source in {"exact", "alias"}:
+            matched["match_type"] = source
+        elif source.startswith(("fuzzy", "typo")):
+            matched["match_type"] = "close"
+        else:
+            # Loose fuzzy match (WRatio >= 60): shown as "Closest title" on the site
+            matched["match_type"] = "loose"
+        response["matched_drama"] = matched
     if debug:
         response["debug"] = debug_info
 

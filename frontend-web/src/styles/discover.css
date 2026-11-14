@@ -16,7 +16,7 @@
 .results-toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; margin-bottom: 24px; }
 .results-toolbar h2 { margin: 5px 0 0; font: 500 2.1rem/1.1 Georgia, serif; }
 .results-toolbar p { margin: 6px 0 0; font-size: .8rem; color: #77746f; }
-.refresh-button { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; background: transparent; padding: 10px 15px; font-size: .78rem; font-weight: 800; }
+.refresh-button { display: inline-flex; flex-shrink: 0; white-space: nowrap; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; background: transparent; padding: 10px 15px; font-size: .78rem; font-weight: 800; }
 .refresh-button:hover { background: var(--cream); }
 .spinning { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -35,3 +35,26 @@
 .line-skeleton { height: 17px; margin-top: 13px; width: 84%; }
 .short-skeleton { height: 11px; margin-top: 8px; width: 45%; }
 @keyframes shimmer { to { background-position: -220% 0; } }
+/* "Top match" card: the drama a title search resolved to (issue #3). */
+.top-match { display: grid; grid-template-columns: 170px 1fr; gap: 26px; align-items: start; padding: 22px; margin-bottom: 38px; border: 1px solid var(--line); border-radius: 22px; background: var(--cream); box-shadow: var(--shadow); }
+.top-match-poster { display: block; }
+.top-match-copy { min-width: 0; }
+.top-match-copy h2 { margin: 6px 0 10px; font: 500 clamp(1.6rem, 3vw, 2.3rem)/1.08 Georgia, serif; overflow-wrap: anywhere; }
+.top-match-copy h2 a { color: inherit; text-decoration: none; }
+.top-match-copy h2 a:hover { color: var(--coral); }
+.top-match-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin: 0 0 12px; font-size: .85rem; color: var(--ink-soft); }
+.top-match-meta .rating { display: inline-flex; }
+.top-match-meta svg { display: inline-block; }
+.top-match-genres { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; padding: 0; list-style: none; }
+.top-match-genres li { padding: 4px 10px; border-radius: 999px; background: var(--paper-deep); font-size: .74rem; font-weight: 700; color: var(--ink-soft); }
+.top-match-synopsis { margin: 0 0 18px; font-size: .92rem; line-height: 1.6; color: var(--ink-soft); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.top-match-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.top-match-actions .primary-button, .top-match-actions .secondary-button { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 11px 20px; }
+.top-match-actions svg { display: inline-block; }
+.top-match-actions .secondary-button { border-radius: 999px; }
+.top-match-actions .secondary-button.saved { border-color: var(--coral); color: var(--coral); }
+@media (max-width: 640px) {
+  .top-match { grid-template-columns: 110px 1fr; gap: 16px; padding: 14px; border-radius: 18px; }
+  .top-match-synopsis { -webkit-line-clamp: 2; font-size: .85rem; }
+  .top-match-actions .primary-button, .top-match-actions .secondary-button { padding: 9px 14px; font-size: .82rem; }
+}

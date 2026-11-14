@@ -7,6 +7,7 @@ import { FormEvent, useState } from "react";
 import { useApp } from "@/components/app-provider";
 import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
+import { TopMatchCard } from "@/components/top-match-card";
 import { VibeMatrix } from "@/components/vibe-matrix";
 import { searchDramas } from "@/lib/api";
 import { dramaHref, dramaKey } from "@/lib/drama";
@@ -90,6 +91,7 @@ export function DiscoverClient({ initialResults = [] }: { initialResults?: Drama
   }
 
   const dramas = result.data?.recommendations ?? [];
+  const matched = result.data?.matched_drama;
   const intent = result.data?.analysis?.intent?.replaceAll("_", " ");
 
   return (
@@ -191,15 +193,26 @@ export function DiscoverClient({ initialResults = [] }: { initialResults?: Drama
         </aside>
 
         <section className="discover-results">
+          {!result.isPending && matched && <TopMatchCard drama={matched} />}
           <div className="results-toolbar">
             <div>
-              <span className="eyebrow">{intent ? `Understood as ${intent}` : "Your matches"}</span>
+              <span className="eyebrow">
+                {matched
+                  ? `${dramas.length} similar dramas`
+                  : intent
+                    ? `Understood as ${intent}`
+                    : "Your matches"}
+              </span>
               <h2>
                 {result.isPending
                   ? "Finding the right stories…"
-                  : `${dramas.length} dramas to explore`}
+                  : matched
+                    ? `Dramas like ${matched.Title}`
+                    : `${dramas.length} dramas to explore`}
               </h2>
-              {result.data?.query.expanded && <p>Expanded with: {result.data.query.expanded}</p>}
+              {!matched && result.data?.query.expanded && (
+                <p>Expanded with: {result.data.query.expanded}</p>
+              )}
             </div>
             <button
               className="refresh-button"

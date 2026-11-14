@@ -2,6 +2,23 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-11-14
+
+### "Top match" card for title searches (issue #3)
+
+Searching an exact title such as "curtain call" or "alchemy of souls" listed only dramas *like* it and left the drama itself out (title self-exclusion), so it looked like the search had failed.
+
+- **API** (`backend/app.py`): when a search resolves to a drama, `/recommend` now returns it in a new field, `matched_drama`, with `match_type`:
+  - `exact`: the title as typed;
+  - `alias`: a known other name ("goblin" → Guardian: The Lonely and Great God);
+  - `close`: a typo or high-confidence fuzzy match ("Hospitl Playlist");
+  - `loose`: a weak fuzzy match.
+  - The `recommendations` list is unchanged, so the drama still doesn't appear in its own similar list.
+  - Genre, mood, actor and "dramas like X" searches don't get the field.
+- **Site** (`/discover`, `components/top-match-card.tsx`): a "Top match" card (poster, rating, year, episodes, network, genres, short synopsis, View details, Save) sits above a "Dramas like X" heading. A `loose` match is labelled "Closest title" instead. Older API versions without the field just show the list as before. The "Fresh mix" button no longer wraps next to a long heading on phones.
+- **Evaluation unchanged:** 89.10% overall, P@3 66.12%, R@10 96.28%, MRR 0.992, NDCG 0.963, franchise 12/12, title self-exclusion 27/27, filters, genre detection and personalization 100%; regression suite 33/33.
+- **Deployed:** `app.py` updated on the API server and the service restarted; the live API returns `matched_drama`. The site shows the card once the frontend is pushed.
+
 ## 2026-11-08
 
 ### Home picks rotate daily

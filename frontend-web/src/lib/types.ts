@@ -114,6 +114,8 @@ export type RecommendationResponse = {
     confidence?: number;
   };
   recommendations: Drama[];
+  /** Set when the query named a drama: the list then holds dramas *like* it. */
+  matched_drama?: Drama & { match_type?: "exact" | "alias" | "close" | "loose" };
   personalization?: {
     applied?: boolean;
     summary?: string;
