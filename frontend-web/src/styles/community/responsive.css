@@ -8,6 +8,15 @@
   }
 }
 @media (max-width: 780px) {
+  /* Stacked headings: keep links and buttons left-aligned under the title. */
+  .trending-heading-row,
+  .from-community-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .from-community-heading {
+    margin-bottom: 10px;
+  }
   .trending-grid {
     display: flex;
     overflow-x: auto;

@@ -29,7 +29,7 @@
 .trust-item { padding: 22px 28px; background: #FFFFFF; display: flex; align-items: center; gap: 16px; }
 .trust-item strong { display: block; font-size: .94rem; color: var(--ink); }
 .trust-item span { display: block; color: var(--ink-soft); font-size: .78rem; margin-top: 2px; }
-.trust-number { font: 600 2rem var(--font-serif); color: var(--c-mulberry); }
+.trust-item .trust-number { display: block; margin: 0; line-height: 1.1; white-space: nowrap; font: 600 2rem var(--font-serif); color: var(--c-mulberry); }
 
 .section { padding: 72px 0; }
 .section.alt { background: #F8F7FC; }
