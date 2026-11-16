@@ -2,6 +2,26 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-11-16
+
+### Mobile layout fixes on the home page (issue #5)
+
+The live site was checked at phone widths (390 px and 360 px) in light and dark mode. No page scrolled sideways, but the home page had several layout faults. All fixes are CSS, plus one class name on the picks row.
+
+- **Search box and "Find my drama" button**: on phones the box wraps to two rows but kept its fully rounded "pill" shape, so it turned into a white blob and the button stuck out of its corners. On phones it is now a rounded rectangle with a full-width button. On tablets (461–780 px) the search icon sat at the top of the box; it is now centred.
+- **Numbers strip (2,130 / 89.10% / You)**: a more specific rule (`.trust-item span`) shrank the large numbers to small-text size on every screen. They now show at their intended size. On phones the three rows use a fixed number column, so the text lines up.
+- **Community headings on phones**: "See all discussions" was centred and "Join the conversation" pushed to the right edge. Both now sit under their headings on the left.
+- **"Start with these" on phones and tablets**: the five picks in a two-column grid left the last card alone in its row. It is now a sideways-scrolling row that snaps to each card: about 2.3 cards show at once, the first lines up with the heading, and the row runs to the screen edge. Desktop keeps the five-column grid. The loading skeleton uses the same row (`DramaGridSkeleton` takes a `className`).
+- **Card titles on phones** wrap to two lines instead of being cut after one ("Hometown Cha-Cha-Cha", not "Hometown Cha-…").
+- **"Top pick" badge on narrow cards** (≤ 460 px): smaller and without its icon, so it no longer runs into the bookmark button.
+
+### Dark mode: light bands fixed
+
+- The "Choose a feeling" band on the home page and the "More like …" band on drama pages kept a light background in dark mode, so their headings were hard to read (noted on 2026-11-14). The band colour is now a theme token, `--section-alt` (light `#F8F7FC`, dark the same navy as `--paper-deep`).
+- The arrow buttons on the three mood cards showed a white arrow on a white circle in dark mode. The arrow is now dark in both themes.
+
+**Checked**: screenshots with Playwright at 360, 390, 600/700 and 1280 px in light and dark mode; page width equals the screen width on every page tested (home, Discover, Community, Watchlist). tsc, eslint and `next build` clean.
+
 ## 2026-11-14
 
 ### Posters fall back to Supabase when Vercel refuses them

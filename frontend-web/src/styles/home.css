@@ -32,7 +32,7 @@
 .trust-item .trust-number { display: block; margin: 0; line-height: 1.1; white-space: nowrap; font: 600 2rem var(--font-serif); color: var(--c-mulberry); }
 
 .section { padding: 72px 0; }
-.section.alt { background: #F8F7FC; }
+.section.alt { background: var(--section-alt); }
 .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
 .section-heading .eyebrow { color: var(--ink-soft); }
 .section-heading h2 { font-size: var(--fs-section); line-height: var(--lh-section); margin: 8px 0 0; color: var(--c-mulberry); }
@@ -62,5 +62,5 @@
 .mood-card svg { background: rgba(255, 255, 255, 0.18); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 50%; padding: 8px; box-sizing: content-box; opacity: 1; }
 .mood-card h3 { font: var(--heading-weight) var(--fs-group)/var(--lh-group) var(--font-serif); margin: 14px 0 6px; color: white; }
 .mood-card p { font-size: .84rem; max-width: 260px; line-height: 1.5; margin: 0; color: rgba(255,255,255,.88); }
-.mood-card .arrow-disc { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: #FFFFFF; color: var(--ink); align-self: flex-end; box-shadow: 0 4px 14px rgba(0,0,0,.2); transition: transform 180ms ease; }
+.mood-card .arrow-disc { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: #FFFFFF; color: #151827; align-self: flex-end; box-shadow: 0 4px 14px rgba(0,0,0,.2); transition: transform 180ms ease; }
 .mood-card:hover .arrow-disc { transform: scale(1.08); }

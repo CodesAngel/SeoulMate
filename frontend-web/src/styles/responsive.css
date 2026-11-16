@@ -31,6 +31,13 @@
   .section { padding: 62px 0; }
   .section-heading { align-items: start; flex-direction: column; }
   .drama-grid, .discover-results .drama-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 23px 12px; }
+  /* Home "Start with these": a sideways row instead of a 2-column grid (5 picks
+     left one card alone). The row runs to the screen edges; the padding keeps
+     the first card lined up with the heading. About 2.3 cards show at once. */
+  .home-picks-row { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 14px; margin-inline: -14px; padding: 4px 14px 14px; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: rgba(23, 28, 42, 0.18) transparent; }
+  .home-picks-row::-webkit-scrollbar { height: 5px; }
+  .home-picks-row::-webkit-scrollbar-thumb { background: rgba(23, 28, 42, 0.18); border-radius: 999px; }
+  .home-picks-row > * { flex: 0 0 min(calc((100% - 24px) / 2.3), 230px); scroll-snap-align: start; }
   .mood-grid { grid-template-columns: 1fr; }
   .discover-layout { grid-template-columns: 1fr; padding-top: 28px; }
   .filter-panel { position: static; }
@@ -69,4 +76,8 @@
   .results-toolbar { flex-direction: column; }
   .page-hero h1 span { display: block; }
   .detail-row { grid-template-columns: 1fr; gap: 5px; }
+  /* Narrow cards: keep "Top pick" clear of the bookmark button. */
+  .card-ai-badge { top: 7px; left: 7px; padding: 3px 7px; font-size: .6rem; letter-spacing: .03em; }
+  .card-ai-badge svg { display: none; }
+  .save-button { top: 7px; right: 7px; width: 30px; height: 30px; }
 }

@@ -211,10 +211,10 @@ export function HomePage({
               </ul>
             </noscript>
           )}
-          {picksLoading ? <DramaGridSkeleton count={HOME_PICK_COUNT} /> : picks.length === 0 ? (
+          {picksLoading ? <DramaGridSkeleton count={HOME_PICK_COUNT} className="home-picks-row" /> : picks.length === 0 ? (
             <div className="error-banner" role="alert">The recommendation service is unavailable. <button type="button" onClick={() => { void personalQuery.refetch(); router.refresh(); }}>Try again</button></div>
           ) : (
-            <div className="drama-grid">
+            <div className="drama-grid home-picks-row">
               {picks.map((drama, index) => <DramaCard key={dramaKey(drama)} drama={drama} position={index + 1} />)}
             </div>
           )}

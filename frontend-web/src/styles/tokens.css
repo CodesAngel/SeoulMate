@@ -3,6 +3,8 @@
   --ink-soft: #5b6070;
   --paper: #FFFCF8;
   --paper-deep: #F5F6FA;
+  /* Background of the alternating `.section.alt` bands. */
+  --section-alt: #F8F7FC;
   --cream: #FFFFFF;
   --coral: #C63C6D;
   --coral-dark: #b0325f;
@@ -54,6 +56,7 @@
   --ink-soft: #a2abbd;
   --paper: #0b0e17;
   --paper-deep: #131724;
+  --section-alt: var(--paper-deep);
   --cream: #181e2e;
   --coral: #ff5e57;
   --coral-dark: #ff3b30;
