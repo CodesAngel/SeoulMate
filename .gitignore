@@ -11,6 +11,8 @@ frontend/.git/
 training/training_data/
 data/final/*.prev.csv
 data/final/*.candidate.csv
+# TMDB match report (holds TMDB names; terms forbid redistributing TMDB data)
+data/tmdb/
 training/models/
 training/faiss_index/
 training/faiss_index.*/

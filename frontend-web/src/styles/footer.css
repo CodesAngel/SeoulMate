@@ -3,3 +3,7 @@
 .footer-grid p { color: #75736f; font-size: .8rem; max-width: 340px; line-height: 1.6; }
 .footer-links { display: flex; gap: 22px; font-size: .8rem; font-weight: 700; }
 .footer-note { text-align: right; justify-self: end; }
+/* TMDB attribution (required by the TMDB API terms). Spans the full footer row. */
+.footer-grid .footer-credit { grid-column: 1 / -1; max-width: none; margin: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .72rem; color: var(--ink-soft); }
+.footer-credit a { display: inline-flex; }
+.footer-credit img { display: block; height: 10px; width: auto; }

@@ -18,12 +18,14 @@ import { useApp } from "@/components/app-provider";
 import { useAuth } from "@/components/auth-provider";
 import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
+import { PosterGallery } from "@/components/poster-gallery";
 import { PosterImage } from "@/components/poster-image";
 import { StarRating } from "@/components/star-rating";
 import { TrailerModal } from "@/components/trailer-modal";
 import { getDrama, searchDramas } from "@/lib/api";
 import { dramaHref, dramaKey } from "@/lib/drama";
 import { dramaSummarySentences } from "@/lib/drama-summary";
+import type { TmdbGallery } from "@/lib/tmdb";
 import type { Drama, WatchStatus } from "@/lib/types";
 
 const WATCH_STATUS_OPTIONS: Array<{ value: WatchStatus; label: string }> = [
@@ -47,12 +49,15 @@ export function DramaDetail({
   aired,
   initialDrama,
   initialSimilar,
+  posterGallery,
 }: {
   title: string;
   aired?: string;
   // Rendered on the server so search engines see the page content.
   initialDrama?: Drama;
   initialSimilar?: Drama[];
+  // Extra posters from TMDB (fetched on the server, cached a week).
+  posterGallery?: TmdbGallery;
 }) {
   const { user } = useAuth();
   const {
@@ -437,6 +442,8 @@ export function DramaDetail({
           </section>
         </div>
       </div>
+
+      {posterGallery && <PosterGallery gallery={posterGallery} title={drama.Title} />}
 
       {/* Similar Recommendations */}
       <section className="section alt">
