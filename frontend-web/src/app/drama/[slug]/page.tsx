@@ -6,7 +6,7 @@ import { getDramaServer, getSimilarServer, resolveDramaSlug } from "@/lib/catalo
 import { dramaPath, firstYear } from "@/lib/drama";
 import { dramaSummaryText } from "@/lib/drama-summary";
 import { absoluteUrl, DEFAULT_OG_IMAGE, metaDescription } from "@/lib/site";
-import { getTmdbPosters } from "@/lib/tmdb";
+import { getTmdbMedia } from "@/lib/tmdb";
 import type { Drama } from "@/lib/types";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -90,9 +90,9 @@ function breadcrumbJsonLd(title: string, url: string) {
 export default async function DramaPage({ params }: Props) {
   const { slug } = await params;
   const { entry, drama, path } = await load(slug);
-  const [similar, posterGallery] = await Promise.all([
+  const [similar, media] = await Promise.all([
     drama ? getSimilarServer(entry.title) : Promise.resolve([]),
-    drama ? getTmdbPosters(entry.title, entry.aired) : Promise.resolve(null),
+    drama ? getTmdbMedia(entry.title, entry.aired) : Promise.resolve(null),
   ]);
   const url = absoluteUrl(path);
 
@@ -104,7 +104,8 @@ export default async function DramaPage({ params }: Props) {
         aired={drama?.["Release Years"] ?? entry.aired ?? undefined}
         initialDrama={drama ?? undefined}
         initialSimilar={similar}
-        posterGallery={posterGallery ?? undefined}
+        posterGallery={media?.gallery ?? undefined}
+        trailer={media?.trailer ?? undefined}
       />
     </>
   );

@@ -25,7 +25,7 @@ import { TrailerModal } from "@/components/trailer-modal";
 import { getDrama, searchDramas } from "@/lib/api";
 import { dramaHref, dramaKey } from "@/lib/drama";
 import { dramaSummarySentences } from "@/lib/drama-summary";
-import type { TmdbGallery } from "@/lib/tmdb";
+import type { TmdbGallery, TmdbTrailer } from "@/lib/tmdb";
 import type { Drama, WatchStatus } from "@/lib/types";
 
 const WATCH_STATUS_OPTIONS: Array<{ value: WatchStatus; label: string }> = [
@@ -50,6 +50,7 @@ export function DramaDetail({
   initialDrama,
   initialSimilar,
   posterGallery,
+  trailer,
 }: {
   title: string;
   aired?: string;
@@ -58,6 +59,8 @@ export function DramaDetail({
   initialSimilar?: Drama[];
   // Extra posters from TMDB (fetched on the server, cached a week).
   posterGallery?: TmdbGallery;
+  // Official trailer from TMDB; without it the modal offers a YouTube search.
+  trailer?: TmdbTrailer;
 }) {
   const { user } = useAuth();
   const {
@@ -475,6 +478,7 @@ export function DramaDetail({
         isOpen={trailerOpen}
         onClose={() => setTrailerOpen(false)}
         dramaTitle={drama.Title}
+        youtubeKey={trailer?.youtubeKey}
       />
     </>
   );

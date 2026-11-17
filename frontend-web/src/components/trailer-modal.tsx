@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink, Search, X } from "lucide-react";
 
 interface TrailerModalProps {
   isOpen: boolean;
   onClose: () => void;
   dramaTitle: string;
+  // YouTube id of the official trailer (from TMDB). Without it we can only
+  // offer a YouTube search: YouTube no longer supports embedded searches.
+  youtubeKey?: string;
 }
 
-export function TrailerModal({ isOpen, onClose, dramaTitle }: TrailerModalProps) {
+export function TrailerModal({ isOpen, onClose, dramaTitle, youtubeKey }: TrailerModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,8 +34,11 @@ export function TrailerModal({ isOpen, onClose, dramaTitle }: TrailerModalProps)
   if (!isOpen) return null;
 
   const searchQuery = encodeURIComponent(`${dramaTitle} Korean drama official trailer`);
-  const embedUrl = `https://www.youtube-nocookie.com/embed?listType=search&list=${searchQuery}&autoplay=1`;
-  const externalUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+  const searchUrl = `https://www.youtube.com/results?search_query=${searchQuery}`;
+  const embedUrl = youtubeKey
+    ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(youtubeKey)}?autoplay=1&rel=0`
+    : null;
+  const externalUrl = `https://www.youtube.com/watch?v=${encodeURIComponent(youtubeKey ?? "")}`;
 
   return (
     <div
@@ -47,20 +53,24 @@ export function TrailerModal({ isOpen, onClose, dramaTitle }: TrailerModalProps)
       <div className="trailer-modal-container" ref={modalRef}>
         <div className="trailer-modal-header">
           <div>
-            <span className="eyebrow" style={{ color: "var(--lemon)" }}>Official Preview</span>
+            <span className="eyebrow" style={{ color: "var(--lemon)" }}>
+              {youtubeKey ? "Official Preview" : "Trailer"}
+            </span>
             <h3>{dramaTitle}</h3>
           </div>
           <div className="trailer-modal-actions">
-            <a
-              href={externalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="trailer-external-link"
-              title="Open in YouTube"
-            >
-              <ExternalLink size={16} />
-              <span>YouTube</span>
-            </a>
+            {youtubeKey && (
+              <a
+                href={externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="trailer-external-link"
+                title="Open in YouTube"
+              >
+                <ExternalLink size={16} />
+                <span>YouTube</span>
+              </a>
+            )}
             <button
               type="button"
               className="trailer-close-btn"
@@ -73,12 +83,22 @@ export function TrailerModal({ isOpen, onClose, dramaTitle }: TrailerModalProps)
         </div>
 
         <div className="trailer-video-frame">
-          <iframe
-            src={embedUrl}
-            title={`${dramaTitle} official trailer`}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+          {embedUrl ? (
+            <iframe
+              src={embedUrl}
+              title={`${dramaTitle} official trailer`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : (
+            <div className="trailer-missing">
+              <p>We don&apos;t have the official trailer for this drama yet.</p>
+              <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="trailer-search-link">
+                <Search size={16} />
+                <span>Search for it on YouTube</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
