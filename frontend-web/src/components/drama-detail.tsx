@@ -18,6 +18,7 @@ import { useApp } from "@/components/app-provider";
 import { useAuth } from "@/components/auth-provider";
 import { DramaCard } from "@/components/drama-card";
 import { DramaGridSkeleton } from "@/components/drama-grid-skeleton";
+import { CastSection } from "@/components/cast-section";
 import { PosterGallery } from "@/components/poster-gallery";
 import { PosterImage } from "@/components/poster-image";
 import { StarRating } from "@/components/star-rating";
@@ -25,7 +26,7 @@ import { TrailerModal } from "@/components/trailer-modal";
 import { getDrama, searchDramas } from "@/lib/api";
 import { dramaHref, dramaKey } from "@/lib/drama";
 import { dramaSummarySentences } from "@/lib/drama-summary";
-import type { TmdbGallery, TmdbTrailer } from "@/lib/tmdb";
+import type { TmdbCast, TmdbGallery, TmdbTrailer } from "@/lib/tmdb";
 import type { Drama, WatchStatus } from "@/lib/types";
 
 const WATCH_STATUS_OPTIONS: Array<{ value: WatchStatus; label: string }> = [
@@ -51,6 +52,7 @@ export function DramaDetail({
   initialSimilar,
   posterGallery,
   trailer,
+  cast,
 }: {
   title: string;
   aired?: string;
@@ -61,6 +63,8 @@ export function DramaDetail({
   posterGallery?: TmdbGallery;
   // Official trailer from TMDB; without it the modal offers a YouTube search.
   trailer?: TmdbTrailer;
+  // Cast photos and characters from TMDB; without it the cast stays as name tags.
+  cast?: TmdbCast;
 }) {
   const { user } = useAuth();
   const {
@@ -349,10 +353,12 @@ export function DramaDetail({
             </p>
           </section>
 
+          {cast && <CastSection cast={cast} catalogNames={actors} />}
+
           {/* Metadata & Tag Sections */}
           <section className="detail-columns">
             <div className="detail-col-main">
-              <h2>Cast & Production</h2>
+              <h2>{cast ? "Production" : "Cast & Production"}</h2>
               <div className="detail-list">
                 <div className="detail-row">
                   <strong>Genres</strong>
@@ -370,26 +376,28 @@ export function DramaDetail({
                   </div>
                 </div>
 
-                <div className="detail-row">
-                  <strong>Cast</strong>
-                  <div className="tag-list">
-                    {actors.length ? (
-                      actors.map((actor) => (
-                        <Link
-                          key={actor}
-                          href={`/discover?q=${encodeURIComponent(actor)}`}
-                          className="tag tag-actor"
-                          title={`Find dramas starring ${actor}`}
-                        >
-                          <Users size={12} />
-                          <span>{actor}</span>
-                        </Link>
-                      ))
-                    ) : (
-                      <span className="muted">Not listed</span>
-                    )}
+                {!cast && (
+                  <div className="detail-row">
+                    <strong>Cast</strong>
+                    <div className="tag-list">
+                      {actors.length ? (
+                        actors.map((actor) => (
+                          <Link
+                            key={actor}
+                            href={`/discover?q=${encodeURIComponent(actor)}`}
+                            className="tag tag-actor"
+                            title={`Find dramas starring ${actor}`}
+                          >
+                            <Users size={12} />
+                            <span>{actor}</span>
+                          </Link>
+                        ))
+                      ) : (
+                        <span className="muted">Not listed</span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {directors.length > 0 && (
                   <div className="detail-row">

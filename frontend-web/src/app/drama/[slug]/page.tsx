@@ -92,7 +92,7 @@ export default async function DramaPage({ params }: Props) {
   const { entry, drama, path } = await load(slug);
   const [similar, media] = await Promise.all([
     drama ? getSimilarServer(entry.title) : Promise.resolve([]),
-    drama ? getTmdbMedia(entry.title, entry.aired) : Promise.resolve(null),
+    drama ? getTmdbMedia(entry.title, entry.aired, list(drama.Cast)) : Promise.resolve(null),
   ]);
   const url = absoluteUrl(path);
 
@@ -106,6 +106,7 @@ export default async function DramaPage({ params }: Props) {
         initialSimilar={similar}
         posterGallery={media?.gallery ?? undefined}
         trailer={media?.trailer ?? undefined}
+        cast={media?.cast ?? undefined}
       />
     </>
   );
