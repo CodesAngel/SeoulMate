@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fan lists: proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/doc.css">
+</head>
+<body>
+<main class="page">
+  <nav class="doc-nav"><a href="index.html">← Fan features</a><span class="count">5 of 6</span><span class="sp"></span><a href="4-six-degrees.html">← Six degrees</a><a href="6-airing.html">Next: Airing calendar →</a></nav>
+
+  <h1>Fan lists: current and proposed</h1>
+  <p class="lead">Today a fan has one list, My list, sorted by watch status, and it's private. There's no way to say "these are my comfort dramas" and share that. The proposal lets fans make named lists with a short note on each drama, keep them private or make them public, and like each other's lists. Public lists also give Google pages people search for, like "best second lead dramas".</p>
+
+  <h2>1. Lists <small>like Letterboxd lists</small></h2>
+  <section class="fig" data-screen="screens/lists.html" data-url="/lists/comfort-dramas-for-rainy-days"
+    data-states="list:A list (visitor),owner:A list (owner editing),add:Add from a drama page,browse:Browse lists" data-default="list"
+    data-today-phone="list=today/watchlist-phone.webp;owner=today/watchlist-phone.webp;add=today/drama-top-phone.webp;browse=today/watchlist-phone.webp"
+    data-today-desk="list=today/watchlist-desk.webp;owner=today/watchlist-desk.webp;add=today/drama-top-desk.webp;browse=today/watchlist-desk.webp"
+    data-today-cap="list=My list: one private list per fan;owner=My list: one private list per fan;add=Drama page: only Add to My List;browse=My list: one private list per fan">
+    <div class="state-notes" data-for="list"><ul>
+      <li>Header: a strip of the first 4 posters, title, owner, last update, description.</li>
+      <li><b>Like</b>, <b>Share</b> and <b>Save a copy</b> (copies it into your own lists), plus a small <b>Report</b> link.</li>
+      <li>Each drama: number, poster, rating, year, episodes, the owner's note in italics, and a <b>Seen</b> badge if it's in your list.</li>
+      <li>Click <b>New list</b> in the side card to see the owner's view.</li>
+    </ul></div>
+    <div class="state-notes" data-for="owner"><ul>
+      <li>The owner gets <b>Private / Public</b>, drag handles to reorder, an editable note per drama (200 characters) and × to remove.</li>
+      <li>Lists start private.</li>
+    </ul></div>
+    <div class="state-notes" data-for="add"><ul>
+      <li>A new <b>Add to list</b> button next to <b>Add to My List</b> on every drama page.</li>
+      <li>On a computer it opens a small menu; on a phone, a sheet from the bottom. Tick lists, add an optional note, or make a new list.</li>
+      <li>Below the hero: <b>Featured in fan lists</b>, up to 3 public lists with this drama.</li>
+    </ul></div>
+    <div class="state-notes" data-for="browse"><ul>
+      <li><code>/lists</code>: Popular, New and Mine, as cards with a 4-poster strip, owner, size and likes.</li>
+      <li>Profile pages would show a fan's public lists the same way.</li>
+    </ul></div>
+  </section>
+
+  <h3 style="margin-top:28px">What changes</h3>
+  <ol>
+    <li><b>New pages:</b> <code>/lists</code> (browse) and <code>/lists/{id}</code> (one list). The URL can carry the title for readability, like drama pages.</li>
+    <li><b>Drama pages</b> get an <b>Add to list</b> button (secondary style, beside the existing primary button) and a <b>Featured in fan lists</b> section.</li>
+    <li><b>List page layout:</b> on a computer the list (one row per drama, 72 px posters) with a 320 px side column; on a phone one column with 60 px posters.</li>
+    <li><b>Notes are the point:</b> they're shown in the serif italic, so a list reads like a recommendation from a friend, not a table.</li>
+    <li><b>Navigation:</b> lists live under Community (the header item is highlighted in the mock).</li>
+  </ol>
+
+  <div class="cols">
+    <div>
+      <h3>Details</h3>
+      <ul>
+        <li><b>New tables</b> (Alembic migration, RLS like the community tables): <code>fan_lists (id, user_id, title ≤ 80, description ≤ 300, is_public, created_at, updated_at)</code>, <code>fan_list_items (list_id, drama_id, position, note ≤ 200)</code> with at most 50 per list, and <code>fan_list_likes (list_id, user_id, created_at)</code>.</li>
+        <li><b>Endpoints:</b> a new <code>/lists</code> router modelled on <code>community.py</code>: create, edit, delete; add, remove, reorder; like and unlike; <code>GET /lists?drama_id=</code> for the drama-page section.</li>
+        <li><b>Moderation:</b> titles and notes are public user text. Reuse the community limits and report flow.</li>
+        <li><b>SEO:</b> public lists with 5+ dramas and 3+ likes go into the sitemap.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cost</h3>
+      <ul>
+        <li>Plain database reads and writes, like community posts.</li>
+        <li>No search or ranking change. Later, liked lists could feed personalization; that would be a ranking change with a full evaluator run.</li>
+        <li>Size <b>M</b>. Needs no other feature first.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>To decide</h2>
+  <ol>
+    <li>Lists under Community, or their own item in the header?</li>
+    <li>Allow <b>Save a copy</b> of other fans' lists?</li>
+    <li>Up to 50 dramas per list: enough?</li>
+  </ol>
+</main>
+<script src="assets/doc.js"></script>
+</body>
+</html>

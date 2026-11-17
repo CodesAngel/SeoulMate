@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily quiz: proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/doc.css">
+</head>
+<body>
+<main class="page">
+  <nav class="doc-nav"><a href="index.html">← Fan features</a><span class="count">3 of 6</span><span class="sp"></span><a href="2-wrapped.html">← K-drama Wrapped</a><a href="4-six-degrees.html">Next: Six degrees →</a></nav>
+
+  <h1>Daily "Guess the drama": current and proposed</h1>
+  <p class="lead">Today nothing on the site changes from one day to the next unless the fan searches, so there's no reason to come back daily (the home picks rotate, but quietly). The proposal is a five-question picture quiz, the same for everyone each day, with a streak and a result fans can paste into a chat. It uses the 144 labelled pictures in <code>quiz/</code> and real poster close-ups.</p>
+
+  <h2>1. The quiz page <small>like Wordle: one a day, same for everyone, shareable squares</small></h2>
+  <section class="fig" data-screen="screens/quiz.html" data-url="/quiz"
+    data-states="picture:Picture question,wrong:Wrong answer,zoom:Poster close-up,right:Right answer,result:Result" data-default="picture"
+    data-today-phone="today/home-phone.webp" data-today-desk="today/home-desk.webp"
+    data-today-cap="Nothing like it today. The home page, where a daily link would go">
+    <div class="state-notes" data-for="picture"><ul>
+      <li><b>Picture questions</b> use the labelled images in <code>quiz/</code> (fan art and stills; not copied into this mockup).</li>
+      <li>Four choices: the answer plus three dramas of the <b>same genre and years</b>, never a season of the same show.</li>
+      <li>Tap a choice in the mock.</li>
+    </ul></div>
+    <div class="state-notes" data-for="wrong"><ul>
+      <li>The wrong pick turns red, the right one green, the rest fade.</li>
+      <li>A card shows the right drama with <b>View drama</b> and <b>My list</b>: every miss is a recommendation.</li>
+      <li>The progress bar keeps a red segment for this question.</li>
+    </ul></div>
+    <div class="state-notes" data-for="zoom"><ul>
+      <li><b>Poster close-ups</b> are a crop of a real poster from a drama with 20k+ watchers. The crop avoids the top and bottom thirds, where titles usually sit.</li>
+      <li>These make the supply endless; the 144 pictures alone last about four weeks.</li>
+    </ul></div>
+    <div class="state-notes" data-for="right"><ul>
+      <li>The full poster is revealed. If the drama is already in the fan's list, the button says so.</li>
+    </ul></div>
+    <div class="state-notes" data-for="result"><ul>
+      <li><b>Score, squares and streak.</b> <b>Share result</b> opens the phone's share sheet; <b>Copy</b> copies the text in the box.</li>
+      <li>The list of the five answers links to each drama.</li>
+      <li>The streak (side card) counts days in a row: Wednesday was missed, so Thursday to today is 5.</li>
+    </ul></div>
+  </section>
+
+  <h3 style="margin-top:28px">What changes</h3>
+  <ol>
+    <li><b>A new page, <code>/quiz</code></b>: one card with the date, streak, a 5-part progress bar, the picture, the question and four answers. On a computer a 320 px side column holds the week's streak, Practice mode and the rules; on a phone only the streak card stays, below.</li>
+    <li><b>Each day:</b> 3 picture questions and 2 poster close-ups, picked by a seed from the date, so everyone gets the same five.</li>
+    <li><b>Answers are 52 px tall buttons</b> in two columns on a computer and one column on a phone.</li>
+    <li><b>Result:</b> score, coloured squares, a share text ("SeoulMate Daily #12 4/5 🔥5"), the five answers, and a countdown to the next quiz.</li>
+    <li><b>Practice mode</b> keeps the category quiz planned in <code>quiz/README.md</code>: Cartoon 69, Historical 47, Reference 28, and endless poster close-ups.</li>
+    <li><b>Entry points:</b> a "Today's quiz" link on the home page and in the menu (to be designed with the home page).</li>
+  </ol>
+
+  <div class="cols">
+    <div>
+      <h3>Details</h3>
+      <ul>
+        <li><b>Images</b> go into a new public Storage bucket, <code>quiz-images</code>. <code>labels.json</code> becomes a table, <code>quiz_items</code> (id, type <code>cartoon</code> / <code>historical</code> / <code>reference</code> / <code>poster_crop</code>, image path, drama_id, crop box).</li>
+        <li><b>Endpoints:</b> <code>GET /quiz/daily?date=</code> returns 5 questions <b>without</b> answers; <code>POST /quiz/daily/answer</code> checks one. The answers aren't in the page source.</li>
+        <li><b>Streaks:</b> guests keep theirs in <code>localStorage</code>; signed-in fans get <code>quiz_results (user_id, quiz_date, score, time_ms)</code>, one row per day.</li>
+        <li><b>Rights:</b> the pictures are fan art and stills owned by others. Credit the artists, or launch with poster close-ups only.</li>
+        <li><b>Labels</b> must be checked before launch; one wrong answer key spoils a day.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cost</h3>
+      <ul>
+        <li>Five small reads a day per player; the daily set can be cached for the whole day.</li>
+        <li>Poster crops are made once per question and stored (a few KB each).</li>
+        <li>No search or ranking change.</li>
+        <li>Size <b>M</b>, after the labels are checked (Phase 0 in <code>quiz/README.md</code>).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>To decide</h2>
+  <ol>
+    <li>Launch with fan-art pictures (with credits), or poster close-ups only?</li>
+    <li>When does a new quiz start: midnight in Korea, or UTC?</li>
+    <li>A weekly leaderboard later, or keep it personal?</li>
+  </ol>
+</main>
+<script src="assets/doc.js"></script>
+</body>
+</html>

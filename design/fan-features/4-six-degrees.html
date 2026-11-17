@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Six degrees: proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/doc.css">
+</head>
+<body>
+<main class="page">
+  <nav class="doc-nav"><a href="index.html">← Fan features</a><span class="count">4 of 6</span><span class="sp"></span><a href="3-daily-quiz.html">← Daily quiz</a><a href="5-fan-lists.html">Next: Fan lists →</a></nav>
+
+  <h1>Six degrees of K-drama: current and proposed</h1>
+  <p class="lead">Today the only link between actors is the cast row on a drama page, and it leads to a search. The proposal is a small daily puzzle: link two actors through dramas they share, in as few steps as possible. Fans pick from menus that only offer real links, so they can't make a wrong step; the challenge is finding a short route. Every chain in the mock is real catalog data, found with the same search the game would use.</p>
+
+  <h2>1. The puzzle page <small>like "Six Degrees of Kevin Bacon"</small></h2>
+  <section class="fig" data-screen="screens/connect.html" data-url="/connect"
+    data-states="play:Playing,best:Solved (best),longer:Solved (longer),giveup:Gave up" data-default="play"
+    data-today-phone="today/drama-cast-phone.webp" data-today-desk="today/drama-cast-desk.webp"
+    data-today-cap="Nothing like it today. The closest thing: the cast row on a drama page">
+    <div class="state-notes" data-for="play"><ul>
+      <li>Step 1 is done: Park Bo Young was in <b>Gold Land</b> with <b>Kim Sung Cheol</b>.</li>
+      <li>Step 2's drama menu is open with Kim Sung Cheol's real dramas (8 in the catalog).</li>
+      <li><b>Click "Arthdal Chronicles Part 3"</b>: Song Joong Ki is in its cast, so the chain closes. Any other drama leads to the longer result.</li>
+    </ul></div>
+    <div class="state-notes" data-for="best"><ul>
+      <li>The chain is drawn as people and posters. On a phone it runs top to bottom.</li>
+      <li>Green squares, one per step, for the share text.</li>
+    </ul></div>
+    <div class="state-notes" data-for="longer"><ul>
+      <li>A real 3-step route: Oh My Ghost → Jo Jung Suk → Hospital Playlist → Shin Hyun Been → Reborn Rich.</li>
+      <li>The extra step shows as an amber square, and the shortest chain is shown underneath.</li>
+    </ul></div>
+    <div class="state-notes" data-for="giveup"><ul>
+      <li>Giving up shows the shortest chain and ends today's streak. Free play is still open.</li>
+    </ul></div>
+  </section>
+
+  <h3 style="margin-top:28px">What changes</h3>
+  <ol>
+    <li><b>A new page, <code>/connect</code></b>: today's pair at the top with the best possible number of steps, then the chain the fan builds, one row per step: <b>Drama</b> menu (the current actor's dramas, with posters and years) and <b>With co-star</b> menu (that drama's main cast).</li>
+    <li><b>If the target actor is in the chosen drama,</b> the chain closes by itself; no extra click.</li>
+    <li><b>Result card:</b> green when the fan matched the shortest chain, amber when longer (with the shortest shown), grey after giving up.</li>
+    <li><b>Free play</b> in the side column: any two actors, answered instantly ("Kim Go Eun → Lee Min Ho: 1 step, The King: Eternal Monarch").</li>
+    <li><b>Names link to actor pages</b> (feature 1), so the puzzle doubles as a way to browse.</li>
+  </ol>
+
+  <div class="cols">
+    <div>
+      <h3>Details</h3>
+      <ul>
+        <li><b>The graph:</b> actors and dramas, linked when an actor is billed 1st–6th (so links go through real roles, not cameos). About 3,300 actors and 15,600 credits.</li>
+        <li><b>Shortest path:</b> breadth-first search in memory, in a new small module <code>backend/connect.py</code>, built at startup from <code>meta.pkl</code> (already loaded).</li>
+        <li><b>Endpoints:</b> <code>GET /connect/daily</code> (today's pair and the best length) and <code>GET /connect/path?from=&amp;to=</code> ("no link within 6 steps" when there's none).</li>
+        <li><b>Daily pair:</b> chosen by a date seed from actors with 5+ dramas whose shortest chain is 2–4 steps.</li>
+        <li><b>No new tables:</b> daily results and streaks use <code>localStorage</code>, like the quiz.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cost</h3>
+      <ul>
+        <li>The graph adds a few MB of memory to the API; a search takes under 10 ms.</li>
+        <li>No search or ranking change.</li>
+        <li>Size <b>S</b>, about one session, once actor pages exist (it reuses their links).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>To decide</h2>
+  <ol>
+    <li>Main cast only (billed 1st–6th), or include supporting roles for more routes?</li>
+    <li>A daily pair plus free play, or free play only at first?</li>
+  </ol>
+</main>
+<script src="assets/doc.js"></script>
+</body>
+</html>

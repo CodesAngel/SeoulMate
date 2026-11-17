@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Actor pages: proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/doc.css">
+</head>
+<body>
+<main class="page">
+  <nav class="doc-nav"><a href="index.html">← Fan features</a><span class="count">1 of 6</span><span class="sp"></span><a href="2-wrapped.html">Next: K-drama Wrapped →</a></nav>
+
+  <h1>Actor pages: current and proposed</h1>
+  <p class="lead">Today a cast name on a drama page runs a Discover search for that name. The search finds the right dramas, but it shows them as search results: best match first, a "Fresh mix" button, and nothing about the person. The proposal gives every actor, director and writer a page of their own with all their dramas, how many you've seen, where to start, and who they work with. All of it comes from catalog tables that already exist (<code>people</code>, <code>drama_credits</code>, <code>dramas</code>). Use the buttons above each mock to switch between phone and computer, states, and themes.</p>
+
+  <h2>1. The person page <small>like an IMDb or MyDramaList name page, without photos</small></h2>
+  <section class="fig" data-screen="screens/actor.html" data-url="/people/park-bo-young"
+    data-states="guest:Signed out,member:Signed in,following:Following" data-default="member"
+    data-today-phone="today/discover-actor-phone.webp" data-today-desk="today/discover-actor-desk.webp"
+    data-today-cap="Where a cast link goes now: Discover, searching “Park Bo Young”">
+    <div class="state-notes" data-for="guest"><ul>
+      <li><b>Start here</b> is the person's highest-rated lead role (Daily Dose of Sunshine, 8.8).</li>
+      <li>No "Seen" badges and no <b>Not seen</b> filter: there's no watch history to use.</li>
+      <li><b>Follow</b> is shown but asks the visitor to sign in.</li>
+    </ul></div>
+    <div class="state-notes" data-for="member"><ul>
+      <li><b>You've watched 3 of 9</b> counts dramas in your list marked Completed or Watching.</li>
+      <li><b>Start here</b> becomes the highest-rated lead role you haven't seen (Our Unwritten Seoul, 8.7).</li>
+      <li>Cards you've seen get a green <b>Seen</b> badge; <b>Not seen 6</b> filters to the rest. Try the chips.</li>
+      <li>Click <b>Follow</b> in the mock to see the next state.</li>
+    </ul></div>
+    <div class="state-notes" data-for="following"><ul>
+      <li>The button turns into <b>Following</b> (click again to unfollow).</li>
+      <li>A note explains what following does: new dramas with this person show up in a Home row, "New from people you follow".</li>
+    </ul></div>
+  </section>
+
+  <h3 style="margin-top:28px">What changes</h3>
+  <ol>
+    <li><b>A page per person</b> at <code>/people/park-bo-young</code> (the name in kebab case; <code>people.name</code> is unique, so slugs can't clash yet). The browser title is "Park Bo Young dramas (9) | SeoulMate".</li>
+    <li><b>Header:</b> role, count and year range as an eyebrow; the name at the page-title size (<code>--fs-page</code>); "Known for" = the 3 dramas with the most watchers; three chips: average rating (8.3), lead roles (9 of 9) and the most frequent network (tvN, 4). <b>A collage of their 3 best-known posters instead of a photo:</b> the catalog has no photos, and scraping photos of real people raises rights questions.</li>
+    <li><b>Progress card</b> (signed in): seen count from your list, a bar, and <b>Start here</b> = the highest-rated lead role you haven't seen. Guests get the highest-rated lead role and a line saying what signing in adds.</li>
+    <li><b>Dramas grid:</b> the site's existing drama card, with the year added to the sub line ("2025 · 12 eps"), a <b>Seen</b> badge, newest first. <b>Filters are genre chips built from this person's own dramas</b> (only genres with 2 or more: Romance 6, Thriller 3), plus <b>Not seen</b> when signed in. Sort: Newest, Highest rated, Most watched.</li>
+    <li><b>Often works with:</b> people who share 2 or more dramas with this person, from cast (top 6 billed), directors and writers. For Park Bo Young: Lee Jung Eun (actor) and Yoo Je Won (director).</li>
+    <li><b>Directors and writers:</b> everyone else who made these dramas, one line each, 5 shown, then "Show all".</li>
+    <li><b>Layout:</b> on a computer, the grid (4 columns) on the left and a 330 px side column on the right. On a phone, one column: collage above the name, buttons full width, the filter chips scroll sideways, a 2-column grid, then the side cards.</li>
+  </ol>
+
+  <h2>2. The links that lead there</h2>
+  <p>People pages are only useful if they can be reached. Two places link to them: every cast, director and writer tag on a drama page, and actor searches on Discover.</p>
+  <section class="fig" data-screen="screens/entry.html" data-url="/drama/strong-girl-bong-soon-2017"
+    data-states="cast:Drama page,discover:Discover search" data-default="cast"
+    data-today-phone="cast=today/drama-cast-phone.webp;discover=today/discover-actor-phone.webp"
+    data-today-desk="cast=today/drama-cast-desk.webp;discover=today/discover-actor-desk.webp"
+    data-today-cap="cast=Drama page: cast tags link to a Discover search;discover=Discover: results only, nothing about the person">
+    <div class="state-notes" data-for="cast"><ul>
+      <li><b>Cast, Director and Writer tags link to people pages</b> instead of <code>/discover?q=</code>. Each tag shows how many dramas that person has in a small pill.</li>
+      <li><b>New Writer row:</b> the data has screenwriters, but the page doesn't show them today.</li>
+      <li><b>On a computer, hovering a name</b> for 300 ms shows a small card (two posters, count, how many you've seen, a link). The mock shows it open on Park Bo Young. Phones skip the card; a tap opens the page.</li>
+    </ul></div>
+    <div class="state-notes" data-for="discover"><ul>
+      <li>When the search is read as an actor search (it already is: "Understood as actor based"), <b>a person bar appears above the results</b> with a link to the page.</li>
+      <li><b>The results don't change.</b> The bar is display only, so search accuracy and the evaluation numbers are unaffected.</li>
+      <li>The response needs one extra field with the matched person's name; the analyzer already finds it.</li>
+    </ul></div>
+  </section>
+
+  <div class="cols">
+    <div>
+      <h3>Details</h3>
+      <ul>
+        <li><b>Data:</b> the page reads <code>people</code>, <code>drama_credits</code> and <code>dramas</code> from Supabase REST on the server, the same way <code>lib/catalog-server.ts</code> does, cached for a day. No backend change for the page itself.</li>
+        <li><b>Lead or supporting</b> comes from <code>billing_order</code>: 1–2 lead, 3–6 supporting; 7 and later aren't shown as cards (cameos). All 9 of Park Bo Young's roles are billed 1–2, so a Lead/Supporting filter would be useless here; it appears only when both sides have dramas.</li>
+        <li><b>Following:</b> a new table, <code>person_follows (user_id, person_id, created_at)</code>, with RLS like <code>watchlist_items</code>; <code>PUT</code>/<code>DELETE /me/follows/{person_id}</code> and <code>GET /me/follows</code> on the <code>/me</code> router.</li>
+        <li><b>SEO:</b> people with 3 or more dramas (about 1,400) go into <code>sitemap.ts</code> with <code>Person</code> JSON-LD.</li>
+        <li><b>Risk, duplicate spellings:</b> Park Seo Joon and Park Seo Jun would get two pages (issue #4 item 2). Fix that first.</li>
+        <li><b>Risk, same name:</b> two different people with one name are merged. "Lee Hyung Min, 13 dramas" may be more than one director. The proper fix is storing MyDramaList person IDs in the scraper.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cost</h3>
+      <ul>
+        <li>A page is 3 small REST reads, cached for a day: the person, their credits with drama rows, and the shared credits for "Often works with" (at most a few hundred rows).</li>
+        <li>Nothing runs on the search server, and the search results don't change, so there's no evaluator re-run for the page. The Discover bar adds one field to the response.</li>
+        <li>The sitemap grows from 2,133 to about 3,500 URLs.</li>
+        <li>Size <b>M</b>: about 2–3 sessions, plus the spelling fix.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>To decide</h2>
+  <ol>
+    <li>Is "lead = billed 1st or 2nd" right, or should 3rd count as lead too?</li>
+    <li>Pages for directors and writers at launch, or actors first?</li>
+    <li>Follow at launch, or later together with the Home row it feeds?</li>
+    <li>The hover card on drama pages: yes, or just plain links?</li>
+  </ol>
+</main>
+<script src="assets/doc.js"></script>
+</body>
+</html>

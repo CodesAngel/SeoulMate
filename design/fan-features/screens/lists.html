@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" data-state="list">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: fan lists</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/mock.css">
+<script src="../assets/mock.js"></script>
+<style>
+  .fl-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border-radius: 14px; overflow: hidden; }
+  .fl-strip .poster { border-radius: 0; }
+  /* List page */
+  .fl-head { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 34px; align-items: end; padding: 36px 0 30px; border-bottom: 1px solid var(--line); }
+  .fl-head h1 { font-size: var(--fs-page-long); line-height: var(--lh-page); margin: 8px 0 12px; color: var(--ink); }
+  .fl-by { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--ink-soft); margin-bottom: 12px; }
+  .fl-by .m-avatar { width: 26px; height: 26px; font-size: .62rem; }
+  .fl-by b { color: var(--ink); }
+  .fl-desc { color: var(--ink-soft); max-width: 560px; margin: 0 0 16px; line-height: 1.5; }
+  .fl-acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .fl-acts .liked { background: var(--coral); border-color: var(--coral); color: #fff; }
+  .fl-report { font-size: .78rem; color: var(--ink-soft); margin-left: 6px; display: inline-flex; gap: 5px; align-items: center; }
+  .fl-body { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 40px; padding: 26px 0 70px; }
+  .fl-item { display: grid; grid-template-columns: 28px 72px minmax(0, 1fr); gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); align-items: start; }
+  .fl-item .n { font-family: var(--font-serif); font-size: 1.3rem; color: var(--sage); padding-top: 4px; }
+  .fl-item .poster { border-radius: 10px; }
+  .fl-item h3 { font-family: var(--font-serif); font-weight: 600; font-size: 1.15rem; margin: 2px 0 4px; color: var(--ink); }
+  .fl-item .meta { font-size: .8rem; color: var(--ink-soft); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .fl-item .note { font-family: var(--font-serif); font-style: italic; color: var(--ink); margin: 10px 0 0; line-height: 1.45; }
+  .fl-item .side { display: flex; gap: 8px; margin-top: 10px; }
+  .fl-owner .fl-item { grid-template-columns: 22px 28px 72px minmax(0, 1fr) auto; }
+  .fl-grip { color: var(--ink-soft); padding-top: 26px; cursor: grab; }
+  .fl-noteedit { margin-top: 10px; border: 1.5px dashed var(--line); border-radius: 10px; padding: 9px 11px; font-family: var(--font-serif); font-style: italic; color: var(--ink); font-size: .95rem; }
+  .fl-noteedit.empty { color: var(--ink-soft); font-style: normal; font-family: var(--font-sans); font-size: .85rem; }
+  .fl-noteedit small { display: block; text-align: right; font-family: var(--font-sans); font-style: normal; font-size: .7rem; color: var(--ink-soft); }
+  .fl-x { color: var(--ink-soft); padding-top: 4px; }
+  .fl-vis { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--cream); }
+  .fl-vis span { padding: 6px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; color: var(--ink-soft); display: inline-flex; gap: 5px; align-items: center; }
+  .fl-vis span.on { background: var(--ink); color: var(--paper); }
+  .fl-aside .m-card { padding: 18px; margin-bottom: 18px; }
+  .fl-aside h3 { font-family: var(--font-serif); font-weight: 600; font-size: 1.1rem; margin: 0 0 12px; color: var(--ink); }
+  .fl-mini { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .fl-mini:first-of-type { border-top: 0; padding-top: 0; }
+  .fl-mini .fl-strip { grid-template-columns: repeat(2, 1fr); border-radius: 8px; }
+  .fl-mini b { display: block; font-size: .9rem; color: var(--ink); line-height: 1.3; }
+  .fl-mini span { font-size: .76rem; color: var(--ink-soft); }
+
+  /* Add to list, from a drama page */
+  .fl-drama { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 36px; padding: 34px 0 30px; }
+  .fl-drama .poster { border-radius: 18px; box-shadow: var(--shadow); }
+  .fl-drama h1 { font-size: var(--fs-page-long); line-height: var(--lh-page); margin: 10px 0 12px; color: var(--ink); }
+  .fl-drama .detail-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .fl-drama .acts { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; position: relative; }
+  .fl-addbtn.open { border-color: var(--ink); }
+  .fl-pop { position: absolute; z-index: 6; top: calc(100% + 8px); left: 150px; width: 360px; padding: 16px; }
+  .fl-pop h4 { margin: 0 0 10px; font-size: .95rem; color: var(--ink); }
+  .fl-check { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--line); font-size: .9rem; color: var(--ink); }
+  .fl-check .box { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--line); display: grid; place-items: center; flex: none; color: #fff; }
+  .fl-check .box.on { background: var(--coral); border-color: var(--coral); }
+  .fl-check small { margin-left: auto; color: var(--ink-soft); font-size: .74rem; display: inline-flex; gap: 4px; align-items: center; }
+  .fl-pop textarea { width: 100%; margin-top: 12px; border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 11px; font: inherit; font-size: .88rem; background: var(--cream); color: var(--ink); resize: none; height: 64px; }
+  .fl-pop .row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .fl-sheet-bg { display: none; }
+  .fl-featured { padding: 30px 0 60px; border-top: 1px solid var(--line); }
+  .fl-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  .fl-card { padding: 10px 10px 14px; }
+  .fl-card b { display: block; font-family: var(--font-serif); font-weight: 600; font-size: 1.08rem; margin: 12px 4px 4px; color: var(--ink); line-height: 1.3; }
+  .fl-card .meta { margin: 0 4px; font-size: .78rem; color: var(--ink-soft); display: flex; gap: 10px; align-items: center; }
+  .fl-card .meta span { display: inline-flex; gap: 4px; align-items: center; }
+
+  /* Browse */
+  .fl-browse-head { padding: 40px 0 22px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .fl-browse-head h1 { font-size: var(--fs-page); line-height: var(--lh-page); margin: 8px 0 0; color: var(--ink); }
+  .fl-tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+
+  @media (max-width: 1050px) { .fl-body { grid-template-columns: 1fr; } .fl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 780px) {
+    .fl-head { grid-template-columns: 1fr; gap: 18px; padding: 18px 0 22px; }
+    .fl-item { grid-template-columns: 22px 60px minmax(0, 1fr); gap: 12px; }
+    .fl-owner .fl-item { grid-template-columns: 18px 60px minmax(0, 1fr) auto; }
+    .fl-owner .fl-item .n { display: none; }
+    .fl-drama { grid-template-columns: 110px minmax(0, 1fr); gap: 16px; padding: 18px 0; align-items: start; }
+    .fl-drama h1 { font-size: 1.6rem; margin-top: 4px; }
+    .fl-drama .acts { grid-column: 1 / -1; position: static; }
+    .fl-drama .acts > .m-btn, .fl-drama .acts > .primary-button { flex: 1; justify-content: center; }
+    .fl-drama .detail-meta .meta-chip:nth-child(3) { display: none; }
+    .fl-sheet-bg { display: block; position: fixed; inset: 0; background: rgba(10, 10, 20, .45); z-index: 5; }
+    .fl-pop { position: fixed; left: 0; right: 0; bottom: 0; top: auto; width: auto; border-radius: 22px 22px 0 0; padding: 10px 18px 22px; }
+    .fl-pop::before { content: ""; display: block; width: 40px; height: 4px; border-radius: 4px; background: var(--line); margin: 0 auto 12px; }
+    .fl-grid { grid-template-columns: 1fr; gap: 14px; }
+    .fl-browse-head { padding: 22px 0 14px; }
+    .fl-tabs { overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<div data-header="community"></div>
+
+<!-- List page, as a visitor or as the owner -->
+<div data-when="list owner">
+  <div class="shell">
+    <section class="fl-head">
+      <div class="fl-strip" id="headstrip"></div>
+      <div>
+        <p class="m-eyebrow">Fan list · 8 dramas</p>
+        <h1 class="display">Comfort dramas for rainy days</h1>
+        <div class="fl-by"><span class="m-avatar" style="background:#9a78b5">MJ</span>by <b>minji</b> · updated Nov 12</div>
+        <p class="fl-desc">When work is too much and you need people being kind to each other.</p>
+        <div class="fl-acts" data-when="list">
+          <button class="m-btn liked"><i data-icon="heart" data-size="15"></i> Liked · 42</button>
+          <button class="m-btn"><i data-icon="share" data-size="15"></i> Share</button>
+          <button class="m-btn"><i data-icon="copy" data-size="15"></i> Save a copy</button>
+          <a class="fl-report" href="#"><i data-icon="flag" data-size="13"></i> Report</a>
+        </div>
+        <div class="fl-acts" data-when="owner">
+          <div class="fl-vis"><span><i data-icon="lock" data-size="13"></i> Private</span><span class="on"><i data-icon="globe" data-size="13"></i> Public</span></div>
+          <button class="m-btn small">Edit title</button>
+          <button class="m-btn small primary" data-go="list">Done</button>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="shell fl-body">
+    <div id="items"></div>
+    <aside class="fl-aside">
+      <div class="m-card">
+        <h3>More lists by minji</h3>
+        <div class="fl-mini"><div class="fl-strip"><div class="poster"><img src="../posters/ROOPo_4f.webp" alt=""></div><div class="poster"><img src="../posters/RQLeY_4f.webp" alt=""></div></div><div><b>Best second leads</b><span>5 dramas · ♥ 31</span></div></div>
+        <div class="fl-mini"><div class="fl-strip"><div class="poster"><img src="../posters/2WpKk_4f.webp" alt=""></div><div class="poster"><img src="../posters/jWJxbf.webp" alt=""></div></div><div><b>Historical romances that wrecked me</b><span>7 dramas · ♥ 64</span></div></div>
+      </div>
+      <div class="m-card" data-when="list">
+        <h3>Make your own</h3>
+        <p class="m-muted" style="font-size:.84rem;margin:0 0 12px">Lists are private until you make them public.</p>
+        <button class="m-btn dark small" data-go="owner"><i data-icon="plus" data-size="14"></i> New list</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Drama page: "Add to list" -->
+<div data-when="add">
+  <div class="shell fl-drama">
+    <div class="poster"><img src="../posters/ZeKv1_4f.webp" alt="Hometown Cha-Cha-Cha poster"></div>
+    <div>
+      <span class="eyebrow network-pill">tvN</span>
+      <h1 class="display">Hometown Cha-Cha-Cha</h1>
+      <div class="detail-meta"><span class="meta-chip rating-chip"><i data-icon="star" data-size="13"></i> 8.7<small>/10</small></span><span class="meta-chip">16 episodes</span><span class="meta-chip">Aug 28, 2021 - Oct 17, 2021</span></div>
+      <div class="acts">
+        <button class="primary-button" style="display:inline-flex;gap:8px;align-items:center"><i data-icon="bookmark" data-size="16"></i> Add to My List</button>
+        <button class="m-btn fl-addbtn open" style="border-radius:11px;padding:12px 16px"><i data-icon="list-plus" data-size="16"></i> Add to list</button>
+        <div class="fl-sheet-bg"></div>
+        <div class="m-card fl-pop">
+          <h4>Save “Hometown Cha-Cha-Cha” to…</h4>
+          <div class="fl-check"><span class="box on"><i data-icon="check" data-size="14"></i></span>Comfort dramas for rainy days<small><i data-icon="globe" data-size="12"></i> 8</small></div>
+          <div class="fl-check"><span class="box"></span>Best second leads<small><i data-icon="globe" data-size="12"></i> 5</small></div>
+          <div class="fl-check"><span class="box"></span>Rewatch in winter<small><i data-icon="lock" data-size="12"></i> 3</small></div>
+          <textarea placeholder="Why is it on this list? (optional, 200 characters)">The whole seaside village heals you. Watch with tea.</textarea>
+          <div class="row"><a class="text-link" href="#"><i data-icon="plus" data-size="14"></i> New list</a><button class="m-btn primary small" data-go="list">Save</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <section class="shell fl-featured">
+    <p class="eyebrow">From the community</p>
+    <h2 class="m-h2" style="margin-top:6px">Featured in fan lists</h2>
+    <div class="fl-grid" id="featured"></div>
+  </section>
+</div>
+
+<!-- Browse all lists -->
+<div data-when="browse">
+  <div class="shell">
+    <div class="fl-browse-head">
+      <div><span class="eyebrow">Made by fans</span><h1 class="display">Fan lists</h1></div>
+      <button class="m-btn dark"><i data-icon="plus" data-size="15"></i> New list</button>
+    </div>
+    <div class="fl-tabs"><span class="m-chip on">Popular</span><span class="m-chip">New</span><span class="m-chip">Mine <small>3</small></span></div>
+    <div class="fl-grid" id="browse" style="padding-bottom:60px"></div>
+  </div>
+</div>
+
+<script>
+  const strip = (ids) => ids.map((p) => `<div class="poster"><img src="../posters/${p}.webp" alt=""></div>`).join('');
+  document.getElementById('headstrip').innerHTML = strip(['ZeKv1_4f', 'EVe0p_4f', 'RXXL6_4f', '4QLgQ_4f']);
+  const items = [
+    ['Hometown Cha-Cha-Cha', 'ZeKv1_4f', '8.7', 2021, 16, 'The whole seaside village heals you. Watch with tea.'],
+    ['Reply 1988', 'EVe0p_4f', '9.0', 2015, 20, 'Long, but every episode feels like family dinner.'],
+    ['Hospital Playlist', 'RXXL6_4f', '9.0', 2020, 12, 'Five friends, a band, zero villains.'],
+    ['Our Beloved Summer', '4QLgQ_4f', '8.6', 2021, 16, ''],
+    ['When the Weather Is Fine', '2ebvW_4f', '8.1', 2020, 16, 'Snow, books and a very slow romance.'],
+    ['Because This Is My First Life', 'PdBoyf', '8.4', 2017, 16, ''],
+    ['Welcome to Samdal-ri', 'wJwdQ1_4f', '8.6', 2023, 16, 'Jeju, old friends, starting over.'],
+    ['Our Blues', '48LYQ_4f', '8.6', 2022, 20, ''],
+  ];
+  const star = '<span class="rating" style="display:inline-flex"><i data-icon="star" data-size="12"></i> ';
+  document.getElementById('items').innerHTML =
+    `<div data-when="list">${items.map(([t, img, r, y, e, note], i) => `
+      <div class="fl-item"><span class="n">${i + 1}</span><div class="poster"><img src="../posters/${img}.webp" alt=""></div>
+      <div><h3>${t}</h3><div class="meta">${star}${r}</span> · ${y} · ${e} eps${i === 0 || i === 2 ? ' · <span class="m-badge seen"><i data-icon="check" data-size="10"></i> Seen</span>' : ''}</div>
+      ${note ? `<p class="note">“${note}”</p>` : ''}</div></div>`).join('')}</div>
+     <div class="fl-owner" data-when="owner">${items.map(([t, img, r, y, e, note], i) => `
+      <div class="fl-item"><span class="fl-grip"><i data-icon="grip" data-size="16"></i></span><span class="n">${i + 1}</span><div class="poster"><img src="../posters/${img}.webp" alt=""></div>
+      <div><h3>${t}</h3><div class="meta">${star}${r}</span> · ${y} · ${e} eps</div>
+      <div class="fl-noteedit ${note ? '' : 'empty'}">${note ? `“${note}”<small>${note.length} / 200</small>` : 'Add a note (optional)'}</div></div>
+      <span class="fl-x"><i data-icon="x" data-size="16"></i></span></div>`).join('')}
+      <button class="m-btn block" style="margin-top:16px"><i data-icon="plus" data-size="15"></i> Add dramas</button></div>`;
+  const lists = [
+    ['Comfort dramas for rainy days', 'minji', 8, 42, ['ZeKv1_4f', 'EVe0p_4f', 'RXXL6_4f', '4QLgQ_4f']],
+    ['Start here if you\'re new to K-dramas', 'jae', 12, 118, ['g0wylo_4f', 'JkD8Xf', 'v24Pg_4f', 'kOpKmf']],
+    ['Thrillers that kept me up', 'soo', 9, 57, ['WAEAp_4f', '6wYZO_4f', 'XNeKO_4f', '4v6zJ_4f']],
+    ['Historical romances that wrecked me', 'minji', 7, 64, ['2WpKk_4f', 'b3RmlV_4f', 'jWJxbf', 'Beg4z_4f']],
+    ['Best second leads', 'minji', 5, 31, ['ROOPo_4f', 'RQLeY_4f', 'jWJxbf', '2DNbwf']],
+    ['Slow, healing, small towns', 'dan', 10, 22, ['48LYQ_4f', 'wJwdQ1_4f', 'QJKJP7_4f', '2ebvW_4f']],
+  ];
+  const card = ([t, by, n, likes, ps]) => `<a class="m-card fl-card" href="#" data-go="list"><div class="fl-strip">${strip(ps)}</div><b>${t}</b><div class="meta"><span>by ${by}</span><span>${n} dramas</span><span><i data-icon="heart" data-size="12"></i> ${likes}</span></div></a>`;
+  document.getElementById('browse').innerHTML = lists.map(card).join('');
+  document.getElementById('featured').innerHTML = [lists[0], lists[5], ['Small-town love stories', 'hana', 6, 19, ['ZeKv1_4f', 'wJwdQ1_4f', '2ebvW_4f', '48LYQ_4f']]].map(card).join('');
+</script>
+</body>
+</html>

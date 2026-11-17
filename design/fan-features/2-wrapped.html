@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-drama Wrapped: proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/doc.css">
+</head>
+<body>
+<main class="page">
+  <nav class="doc-nav"><a href="index.html">← Fan features</a><span class="count">2 of 6</span><span class="sp"></span><a href="1-actor-pages.html">← Actor pages</a><a href="3-daily-quiz.html">Next: Daily quiz →</a></nav>
+
+  <h1>K-drama Wrapped: current and proposed</h1>
+  <p class="lead">Today the Taste profile page analyses taste (a persona, a genre radar, favourite actors) and shows four "Marathon Stats" boxes, but nothing tells a fan about their year. The proposal adds a yearly summary told as six full-screen slides, ending in an image fans can post. Every number is counted from the fan's list and ratings; nothing is generated. The sample below is a real set of 23 catalog dramas, and the numbers on the slides were computed from them.</p>
+
+  <h2>1. The slides <small>like Spotify Wrapped</small></h2>
+  <section class="fig" data-screen="screens/wrapped.html" data-url="/wrapped/2026"
+    data-states="s1:1 Totals,s2:2 Actor,s3:3 Trope,s4:4 Genres,s5:5 Top rated,s6:6 Share card,locked:Not enough yet,entry:Profile banner" data-default="s1"
+    data-today-phone="today/profile-phone.webp" data-today-desk="today/profile-desk.webp"
+    data-today-cap="Taste profile today (signed out, so it's empty)">
+    <div class="state-notes" data-for="s1"><ul>
+      <li><b>23 dramas</b> = list items marked Completed with <code>updated_at</code> in 2026.</li>
+      <li><b>392 episodes</b> = the <code>episodes</code> of those dramas (plus episodes watched on dramas still Watching, once that's saved; see Details).</li>
+      <li><b>448 hours</b> = episodes × each drama's <code>duration</code> ("1 hr. 10 min." → 70 min; 60 if blank).</li>
+      <li>Behind the numbers: a tilted wall of the year's posters.</li>
+      <li>Click the card, the arrows or <b>Next</b> to go on.</li>
+    </ul></div>
+    <div class="state-notes" data-for="s2"><ul>
+      <li><b>Most-watched actor</b> = the actor billed 1st–3rd most often in those dramas.</li>
+      <li>In this sample Lee Jong Suk and Park Bo Young tie at 3. Ties go to the one whose dramas the fan rated higher, and the slide says so.</li>
+    </ul></div>
+    <div class="state-notes" data-for="s3"><ul>
+      <li><b>Favourite trope</b> = the story tag found in most of the fan's dramas, weighted so common tags don't always win (the same IDF weighting used for similar-drama scores).</li>
+      <li>In this sample: Nice Male Lead (8 of 23), then Friendship (6), Healing and Bromance (5).</li>
+    </ul></div>
+    <div class="state-notes" data-for="s4"><ul>
+      <li><b>Genre mix</b>: genre counts, top 5, as bars.</li>
+      <li><b>Fan type</b> is a fixed rule, not a model: "The Romantic" (romance in 60%+ of dramas), "The Binger" (200+ hours), "The Sleuth" (thriller or mystery 40%+), and a few more. This sample is 87% romance.</li>
+    </ul></div>
+    <div class="state-notes" data-for="s5"><ul>
+      <li><b>Top-rated</b> = the fan's highest score in <code>ratings</code> this year. Ties go to the drama finished first.</li>
+      <li>The 10/10 for Reply 1988 is sample data.</li>
+    </ul></div>
+    <div class="state-notes" data-for="s6"><ul>
+      <li><b>The share card</b> is the downloadable image (1080 × 1350, drawn here at 4:5).</li>
+      <li><b>Save image</b> downloads it; <b>Copy link</b> makes a public snapshot page whose preview in chats is this same image.</li>
+      <li>The snapshot holds only these numbers, never the fan's live list, and the owner can delete it.</li>
+    </ul></div>
+    <div class="state-notes" data-for="locked"><ul>
+      <li>Fewer than 3 dramas finished this year: Wrapped stays locked, with a progress bar and a link to My list.</li>
+    </ul></div>
+    <div class="state-notes" data-for="entry"><ul>
+      <li>From December, the Taste profile page shows a banner above Marathon Stats. Home could show the same banner for a week.</li>
+    </ul></div>
+  </section>
+
+  <h3 style="margin-top:28px">What changes</h3>
+  <ol>
+    <li><b>A new page, <code>/wrapped/2026</code></b>, signed in only. On a phone the slides fill the screen (no site header); on a computer they sit in a 400 × 720 card with arrows on both sides, and ← → keys work.</li>
+    <li><b>Six slides</b>, each one number with a short sentence: totals, top actor, top trope, genre mix and fan type, top-rated drama, share card. A progress bar at the top shows where you are.</li>
+    <li><b>Always dark</b>, in the site's plum colours (<code>--c-mulberry</code> #2D1738 into the dark theme's paper), whatever theme the fan uses. The page around the card follows the theme.</li>
+    <li><b>A share image and a public snapshot page</b>, <code>/wrapped/s/{id}</code>.</li>
+    <li><b>A banner on the Taste profile page</b> from 1 December, linking to it.</li>
+  </ol>
+
+  <div class="cols">
+    <div>
+      <h3>Details</h3>
+      <ul>
+        <li><b>Needed first:</b> the episode tracker saves progress in the browser only (<code>localStorage</code>). Move it to the database (new column <code>watchlist_items.episodes_watched</code>, saved through the existing watchlist <code>PUT</code>). Without that, episodes and hours count finished dramas only. The airing calendar (feature 6) needs the same column.</li>
+        <li><b>API:</b> <code>GET /me/wrapped?year=2026</code> returns the stats as JSON, computed on request.</li>
+        <li><b>Sharing:</b> <code>POST /me/wrapped/share</code> saves a snapshot to a new table, <code>wrapped_shares (id, user_id, year, stats_json, created_at)</code>.</li>
+        <li><b>Share image:</b> Next's image response API (read the Next 16 docs in <code>node_modules/next/dist/docs/</code> first). The same image is the snapshot page's <code>og:image</code>.</li>
+        <li><b>"Completed this year"</b> uses <code>updated_at</code>. If a fan edits an old item in 2026, it would count as finished in 2026. A separate <code>completed_at</code> column set when the status becomes Completed fixes that.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cost</h3>
+      <ul>
+        <li>One query over the fan's list and ratings (tens of rows) plus catalog fields already in memory on the server: milliseconds.</li>
+        <li>The share image is drawn once per share and cached.</li>
+        <li>No search or ranking change.</li>
+        <li>Size <b>M</b>. To be useful this year it must be live by about <b>1 December</b>. Most fans joined recently, so the first year is a soft launch.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>To decide</h2>
+  <ol>
+    <li>Use <code>updated_at</code> for "finished this year", or add <code>completed_at</code> first?</li>
+    <li>Six slides, or fewer (for example, drop the top-rated slide)?</li>
+    <li>Which fan types, and should the share card show the fan's display name or stay anonymous?</li>
+    <li>Ship for 1 December, or wait until next year when there is more history?</li>
+  </ol>
+</main>
+<script src="assets/doc.js"></script>
+</body>
+</html>

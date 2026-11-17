@@ -1,0 +1,49 @@
+/* Shared styles for the mock screens. The site's own compiled CSS (site.css) is loaded first,
+   so the header, cards, buttons, tags and tokens are the real ones. This file only adds the
+   fonts (the site self-hosts them through next/font) and a few helpers used by every screen. */
+:root { --font-inter: "Inter"; --font-source-serif: "Source Serif 4"; }
+
+[data-when]:not(.when-on) { display: none !important; }
+.hdr-guest { display: none; }
+html[data-state="guest"] .hdr-guest { display: inline; }
+html[data-state="guest"] .hdr-user { display: none; }
+
+body { min-height: 100vh; }
+img { max-width: 100%; }
+.poster { position: relative; aspect-ratio: 2 / 3; border-radius: 12px; overflow: hidden; background: #f0edf5; flex: none; }
+.poster img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+[data-theme="dark"] .poster { background: #1b2132; }
+.poster-img { object-fit: cover; }
+
+/* Panels that match the site's white cards (dark: --cream). */
+.m-card { background: var(--cream); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 4px 18px #2d17380a; }
+[data-theme="dark"] .m-card { background: #121726; border-color: rgba(255, 255, 255, .08); box-shadow: 0 4px 20px rgba(0, 0, 0, .45); }
+
+.m-chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--cream); color: var(--ink); border-radius: 999px; padding: 7px 13px; font-size: .8rem; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.m-chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.m-chip small { font-weight: 600; opacity: .65; }
+
+.m-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; padding: 11px 20px; font-weight: 700; font-size: .9rem; border: 1px solid var(--line); background: var(--cream); color: var(--ink); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.m-btn.primary { background: var(--coral); border-color: var(--coral); color: #fff; }
+.m-btn.dark { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.m-btn.small { padding: 7px 13px; font-size: .8rem; }
+.m-btn.block { width: 100%; }
+
+.m-avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: .85rem; flex: none; }
+.m-muted { color: var(--ink-soft); }
+.m-eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--coral); margin: 0; }
+.m-h2 { font-family: var(--font-serif); font-weight: var(--heading-weight); font-size: var(--fs-group); line-height: var(--lh-group); margin: 0 0 14px; color: var(--ink); }
+.m-row { display: flex; align-items: center; gap: 10px; }
+.m-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 3px 8px; font-size: .64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.m-badge.seen { background: #e7f6ee; color: #17784a; }
+.m-badge.lead { background: rgba(21, 24, 39, .82); color: #fff; }
+.m-badge.expected { background: var(--paper-deep); color: var(--ink-soft); }
+.m-badge.new { background: var(--coral); color: #fff; }
+[data-theme="dark"] .m-badge.seen { background: rgba(11, 232, 129, .14); color: #3ef0a0; }
+
+/* Progress bar like the episode tracker's. */
+.m-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.m-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--coral); }
+
+/* Small marks on posters inside drama cards. */
+.card-seen { position: absolute; z-index: 3; top: 10px; left: 10px; }

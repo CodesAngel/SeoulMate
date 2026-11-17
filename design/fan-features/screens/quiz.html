@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en" data-state="picture">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: daily quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/mock.css">
+<script src="../assets/mock.js"></script>
+<style>
+  .qz { display: grid; grid-template-columns: minmax(0, 640px) 320px; gap: 34px; justify-content: center; padding: 34px 0 70px; }
+  .qz-card { padding: 22px 24px 24px; }
+  .qz-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .qz-top h1 { font-family: var(--font-serif); font-weight: 500; font-size: var(--fs-group); margin: 4px 0 0; color: var(--ink); }
+  .qz-streak { display: inline-flex; align-items: center; gap: 6px; background: var(--c-amber-light); color: var(--lemon-ink); font-weight: 800; font-size: .8rem; border-radius: 999px; padding: 6px 12px; white-space: nowrap; }
+  .qz-segs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 18px 0 8px; }
+  .qz-segs span { height: 6px; border-radius: 4px; background: var(--line); }
+  .qz-segs .ok { background: #22a06b; } .qz-segs .bad { background: #d9415e; } .qz-segs .cur { background: var(--coral); opacity: .5; }
+  .qz-sub { font-size: .8rem; color: var(--ink-soft); margin-bottom: 14px; }
+  .qz-media { border-radius: 16px; overflow: hidden; aspect-ratio: 16 / 10; position: relative; background: var(--paper-deep); }
+  .qz-fanart { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--ink-soft); font-size: .85rem; background: repeating-linear-gradient(135deg, var(--paper-deep) 0 14px, var(--section-alt) 14px 28px); padding: 20px; }
+  .qz-fanart svg { margin: 0 auto 8px; display: block; }
+  .qz-zoom { position: absolute; inset: 0; background-size: 260%; background-position: 46% 30%; background-repeat: no-repeat; }
+  .qz-zoom-tag { position: absolute; left: 12px; bottom: 12px; background: rgba(21, 24, 39, .8); color: #fff; font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 4px 10px; display: inline-flex; gap: 6px; align-items: center; }
+  .qz-full { position: absolute; inset: 0; display: flex; justify-content: center; background: #151827; }
+  .qz-full img { height: 100%; width: auto; }
+  .qz-q { font-family: var(--font-serif); font-weight: 600; font-size: 1.3rem; margin: 18px 0 12px; color: var(--ink); }
+  .qz-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .qz-c { display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; border: 1.5px solid var(--line); background: var(--cream); color: var(--ink); border-radius: 14px; padding: 13px 15px; font-weight: 700; font-size: .92rem; cursor: pointer; min-height: 52px; }
+  .qz-c:hover { border-color: var(--ink-soft); }
+  .qz-c.ok { border-color: #22a06b; background: #e9f7f0; color: #11633f; }
+  .qz-c.bad { border-color: #d9415e; background: #fdecef; color: #a3213b; }
+  .qz-c.dim { opacity: .5; }
+  [data-theme="dark"] .qz-c.ok { background: rgba(34, 160, 107, .16); color: #5fe0a5; }
+  [data-theme="dark"] .qz-c.bad { background: rgba(217, 65, 94, .16); color: #ff8aa0; }
+  .qz-reveal { display: flex; gap: 14px; align-items: center; margin-top: 14px; padding: 14px; border-radius: 14px; background: var(--section-alt); border: 1px solid var(--line); }
+  .qz-reveal .poster { width: 58px; border-radius: 8px; }
+  .qz-reveal .lbl { font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+  .qz-reveal .lbl.bad { color: #d9415e; } .qz-reveal .lbl.ok { color: #22a06b; }
+  .qz-reveal b { display: block; font-family: var(--font-serif); font-size: 1.05rem; color: var(--ink); }
+  .qz-reveal .meta { font-size: .8rem; color: var(--ink-soft); margin: 2px 0 8px; }
+  .qz-reveal .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .qz-next { margin-top: 16px; }
+
+  .qz-score { text-align: center; padding: 8px 0 4px; }
+  .qz-score .big { font-family: var(--font-serif); font-size: 4rem; font-weight: 600; line-height: 1; color: var(--ink); }
+  .qz-score .big small { font-size: 1.8rem; color: var(--ink-soft); }
+  .qz-squares { display: flex; gap: 6px; justify-content: center; margin: 12px 0; }
+  .qz-squares span { width: 30px; height: 30px; border-radius: 7px; background: #22a06b; }
+  .qz-squares span.bad { background: #d9415e; }
+  .qz-sharebox { font-family: "Cascadia Mono", Consolas, monospace; font-size: .82rem; background: var(--paper-deep); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; white-space: pre; color: var(--ink); margin: 6px 0 12px; overflow-x: auto; }
+  .qz-answers { margin-top: 18px; border-top: 1px solid var(--line); }
+  .qz-a { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: .88rem; color: var(--ink); }
+  .qz-a .poster { width: 34px; border-radius: 5px; }
+  .qz-a .t { flex: 1; } .qz-a .t small { display: block; color: var(--ink-soft); font-size: .74rem; }
+  .qz-a .ok { color: #22a06b; } .qz-a .bad { color: #d9415e; }
+
+  .qz-aside .m-card { padding: 18px; margin-bottom: 18px; }
+  .qz-aside h3 { font-family: var(--font-serif); font-weight: 600; font-size: 1.1rem; margin: 0 0 10px; color: var(--ink); }
+  .qz-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: .7rem; color: var(--ink-soft); font-weight: 700; }
+  .qz-week i { display: grid; place-items: center; margin: 5px auto 0; width: 30px; height: 30px; border-radius: 50%; background: var(--paper-deep); font-style: normal; color: var(--ink); font-size: .74rem; }
+  .qz-week i.done { background: #22a06b; color: #fff; }
+  .qz-week i.today { outline: 2px solid var(--coral); outline-offset: 2px; }
+  .qz-modes { display: grid; gap: 8px; }
+  .qz-mode { display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-weight: 700; font-size: .86rem; color: var(--ink); }
+  .qz-mode small { color: var(--ink-soft); font-weight: 600; }
+  .qz-how { font-size: .84rem; color: var(--ink-soft); padding-left: 18px; margin: 0; list-style: disc; }
+  .qz-how li { margin-bottom: 6px; }
+
+  @media (max-width: 1050px) { .qz { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 780px) {
+    .qz { padding: 16px 0 50px; gap: 18px; }
+    .qz-card { padding: 16px; border-radius: 16px; }
+    .qz-choices { grid-template-columns: 1fr; gap: 8px; }
+    .qz-c { min-height: 48px; padding: 11px 14px; }
+    .qz-media { aspect-ratio: 4 / 3; }
+    .qz-aside .practice, .qz-aside .how { display: none; }
+  }
+</style>
+</head>
+<body>
+<div data-header=""></div>
+<main class="shell qz">
+  <div>
+    <div class="m-card qz-card">
+      <div class="qz-top">
+        <div><p class="m-eyebrow">Daily quiz #12</p><h1>Monday, Nov 16</h1></div>
+        <span class="qz-streak"><i data-icon="flame" data-size="15"></i> <span data-when="picture wrong zoom right">4-day streak</span><span data-when="result">5-day streak</span></span>
+      </div>
+
+      <!-- Question 2: a picture -->
+      <div data-when="picture wrong">
+        <div class="qz-segs"><span class="ok"></span><span class="cur" data-when="picture"></span><span class="bad" data-when="wrong"></span><span></span><span></span><span></span></div>
+        <div class="qz-sub">Question 2 of 5 · Picture</div>
+        <div class="qz-media"><div class="qz-fanart"><div><i data-icon="image" data-size="34"></i><b style="color:var(--ink)">Fan art from quiz/Cartoon Image</b><br>not copied into this mockup · shown with the artist's credit</div></div></div>
+        <p class="qz-q">Which drama is this?</p>
+        <div class="qz-choices">
+          <button class="qz-c" data-go="wrong" data-when="picture">Hotel del Luna</button>
+          <button class="qz-c" data-go="wrong" data-when="picture">Guardian: The Lonely and Great God</button>
+          <button class="qz-c" data-go="wrong" data-when="picture">The Legend of the Blue Sea</button>
+          <button class="qz-c" data-go="wrong" data-when="picture">Moon Lovers: Scarlet Heart Ryeo</button>
+          <button class="qz-c bad" data-when="wrong">Hotel del Luna <i data-icon="x" data-size="18"></i></button>
+          <button class="qz-c ok" data-when="wrong">Guardian: The Lonely and Great God <i data-icon="check" data-size="18"></i></button>
+          <button class="qz-c dim" data-when="wrong">The Legend of the Blue Sea</button>
+          <button class="qz-c dim" data-when="wrong">Moon Lovers: Scarlet Heart Ryeo</button>
+        </div>
+        <div data-when="wrong">
+          <div class="qz-reveal">
+            <div class="poster"><img src="../posters/JkD8Xf.webp" alt=""></div>
+            <div><span class="lbl bad">Not quite. It's</span><b>Guardian: The Lonely and Great God</b><div class="meta"><span class="rating" style="display:inline-flex"><i data-icon="star" data-size="12"></i> 8.8</span> · 2016 · 16 eps · tvN</div>
+              <div class="acts"><a class="m-btn small" href="#">View drama</a><a class="m-btn small" href="#"><i data-icon="bookmark" data-size="13"></i> My list</a></div></div>
+          </div>
+          <button class="m-btn primary block qz-next" data-go="zoom">Next question <i data-icon="arrow-right" data-size="16"></i></button>
+        </div>
+      </div>
+
+      <!-- Question 3: a poster close-up -->
+      <div data-when="zoom right">
+        <div class="qz-segs"><span class="ok"></span><span class="bad"></span><span class="cur" data-when="zoom"></span><span class="ok" data-when="right"></span><span></span><span></span></div>
+        <div class="qz-sub">Question 3 of 5 · Poster close-up</div>
+        <div class="qz-media">
+          <div class="qz-zoom" data-when="zoom" style="background-image:url(../posters/g0wylo_4f.webp)"></div>
+          <span class="qz-zoom-tag" data-when="zoom"><i data-icon="zoom" data-size="13"></i> A close-up of a real poster</span>
+          <div class="qz-full" data-when="right"><img src="../posters/g0wylo_4f.webp" alt="Crash Landing on You poster"></div>
+        </div>
+        <p class="qz-q">Which drama's poster is this?</p>
+        <div class="qz-choices">
+          <button class="qz-c" data-go="right" data-when="zoom">The King: Eternal Monarch</button>
+          <button class="qz-c" data-go="right" data-when="zoom">Crash Landing on You</button>
+          <button class="qz-c" data-go="right" data-when="zoom">It's Okay to Not Be Okay</button>
+          <button class="qz-c" data-go="right" data-when="zoom">Hotel del Luna</button>
+          <button class="qz-c dim" data-when="right">The King: Eternal Monarch</button>
+          <button class="qz-c ok" data-when="right">Crash Landing on You <i data-icon="check" data-size="18"></i></button>
+          <button class="qz-c dim" data-when="right">It's Okay to Not Be Okay</button>
+          <button class="qz-c dim" data-when="right">Hotel del Luna</button>
+        </div>
+        <div data-when="right">
+          <div class="qz-reveal">
+            <div class="poster"><img src="../posters/g0wylo_4f.webp" alt=""></div>
+            <div><span class="lbl ok">Right!</span><b>Crash Landing on You</b><div class="meta"><span class="rating" style="display:inline-flex"><i data-icon="star" data-size="12"></i> 9.0</span> · 2019 · 16 eps · tvN</div>
+              <div class="acts"><a class="m-btn small" href="#">View drama</a><span class="m-btn small"><i data-icon="check" data-size="13"></i> In your list</span></div></div>
+          </div>
+          <button class="m-btn primary block qz-next" data-go="result">Next question <i data-icon="arrow-right" data-size="16"></i></button>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div data-when="result">
+        <div class="qz-score">
+          <p class="m-eyebrow" style="margin-top:18px">Today's score</p>
+          <div class="big">4<small>/5</small></div>
+          <div class="qz-squares"><span></span><span class="bad"></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="qz-sharebox">SeoulMate Daily #12  4/5  🔥5
+🟩🟥🟩🟩🟩
+seoulmate-azure.vercel.app/quiz</div>
+        <div class="m-row" style="flex-wrap:wrap"><button class="m-btn primary"><i data-icon="share" data-size="15"></i> Share result</button><button class="m-btn"><i data-icon="copy" data-size="15"></i> Copy</button><span class="m-muted" style="font-size:.82rem;margin-left:auto"><i data-icon="clock" data-size="13"></i> Next quiz in 7 h 12 min</span></div>
+        <div class="qz-answers">
+          <div class="qz-a"><div class="poster"><img src="../posters/Beg4z_4f.webp" alt=""></div><div class="t">Alchemy of Souls<small>Picture</small></div><span class="ok"><i data-icon="check" data-size="18"></i></span></div>
+          <div class="qz-a"><div class="poster"><img src="../posters/JkD8Xf.webp" alt=""></div><div class="t">Guardian: The Lonely and Great God<small>Picture · you said Hotel del Luna</small></div><span class="bad"><i data-icon="x" data-size="18"></i></span></div>
+          <div class="qz-a"><div class="poster"><img src="../posters/g0wylo_4f.webp" alt=""></div><div class="t">Crash Landing on You<small>Poster close-up</small></div><span class="ok"><i data-icon="check" data-size="18"></i></span></div>
+          <div class="qz-a"><div class="poster"><img src="../posters/b3RmlV_4f.webp" alt=""></div><div class="t">Mr. Queen<small>Picture</small></div><span class="ok"><i data-icon="check" data-size="18"></i></span></div>
+          <div class="qz-a"><div class="poster"><img src="../posters/vAnBe_4f.webp" alt=""></div><div class="t">Vincenzo<small>Poster close-up</small></div><span class="ok"><i data-icon="check" data-size="18"></i></span></div>
+        </div>
+        <button class="m-btn block" style="margin-top:16px" data-go="picture">Play again (mock)</button>
+      </div>
+    </div>
+  </div>
+
+  <aside class="qz-aside">
+    <div class="m-card">
+      <h3>Your streak</h3>
+      <div class="qz-week">
+        <div>Tue<i class="done">10</i></div><div>Wed<i>11</i></div><div>Thu<i class="done">12</i></div><div>Fri<i class="done">13</i></div><div>Sat<i class="done">14</i></div><div>Sun<i class="done">15</i></div><div>Mon<i class="today" data-when="picture wrong zoom right">16</i><i class="today done" data-when="result">16</i></div>
+      </div>
+      <p class="m-muted" style="font-size:.78rem;margin:12px 0 0">Play once a day to keep it going. Signed in, it follows you to other devices.</p>
+    </div>
+    <div class="m-card practice">
+      <h3>Practice mode</h3>
+      <div class="qz-modes">
+        <div class="qz-mode">Cartoon pictures <small>69</small></div>
+        <div class="qz-mode">Historical scenes <small>47</small></div>
+        <div class="qz-mode">Reference pictures <small>28</small></div>
+        <div class="qz-mode">Poster close-ups <small>unlimited</small></div>
+      </div>
+    </div>
+    <div class="m-card how">
+      <h3>How it works</h3>
+      <ul class="qz-how"><li>Everyone gets the same 5 questions each day.</li><li>3 pictures and 2 poster close-ups.</li><li>Wrong choices are dramas of the same genre and years, never a season of the same show.</li></ul>
+    </div>
+  </aside>
+</main>
+</body>
+</html>

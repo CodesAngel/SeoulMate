@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en" data-state="s1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: K-drama Wrapped</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/mock.css">
+<script src="../assets/mock.js"></script>
+<style>
+  .wr-page { display: flex; align-items: center; justify-content: center; gap: 22px; padding: 26px 0 30px; }
+  .wr-arrow { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: var(--cream); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+  .wr-arrow[disabled] { opacity: .35; cursor: default; }
+  .wr-help { text-align: center; font-size: .8rem; color: var(--ink-soft); margin: -14px 0 30px; }
+  .wr-story { width: 400px; height: 720px; border-radius: 26px; position: relative; overflow: hidden; color: #fff; background: linear-gradient(165deg, #43195a 0%, #251433 45%, #12141f 100%); box-shadow: 0 30px 60px rgba(30, 10, 40, .35); display: flex; flex-direction: column; }
+  .wr-story.alt { background: linear-gradient(165deg, #6b1c43 0%, #2b1230 50%, #12141f 100%); }
+  .wr-story.teal { background: linear-gradient(165deg, #134a4a 0%, #18233a 55%, #12141f 100%); }
+  .wr-top { padding: 14px 16px 0; position: relative; z-index: 3; }
+  .wr-bars { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .wr-bars span { height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .28); }
+  .wr-bars span.done { background: #fff; }
+  .wr-head { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: .78rem; font-weight: 700; }
+  .wr-head b { font-weight: 800; }
+  .wr-x { width: 30px; height: 30px; border-radius: 50%; background: rgba(255, 255, 255, .14); display: grid; place-items: center; }
+  .wr-body { flex: 1; padding: 22px 26px 0; position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; }
+  .wr-foot { padding: 14px 18px 18px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 3; font-size: .78rem; color: rgba(255, 255, 255, .7); }
+  .wr-next { background: #fff; color: #1b1426; border-radius: 999px; padding: 9px 16px; font-weight: 800; font-size: .85rem; display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .wr-eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #f3a8c6; margin: 0 0 12px; }
+  .wr-big { font-family: var(--font-serif); font-weight: 500; font-size: 2.6rem; line-height: 1.05; margin: 0 0 14px; letter-spacing: -.01em; }
+  .wr-big em { color: #ff8db8; }
+  .wr-text { color: rgba(255, 255, 255, .82); font-size: .95rem; line-height: 1.5; margin: 0 0 16px; }
+  .wr-text b { color: #fff; }
+  .wr-mosaic { position: absolute; inset: -40px -60px auto -60px; height: 330px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; transform: rotate(-8deg); opacity: .32; z-index: 1; }
+  .wr-mosaic .poster { border-radius: 8px; }
+  .wr-mosaic::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, #251433 92%); }
+  .wr-stats { display: grid; gap: 10px; margin-top: 140px; }
+  .wr-stat { display: flex; align-items: baseline; gap: 12px; }
+  .wr-stat b { font-family: var(--font-serif); font-size: 3.2rem; font-weight: 600; line-height: 1; }
+  .wr-stat span { font-size: 1rem; color: rgba(255, 255, 255, .8); }
+  .wr-posters { display: flex; gap: 10px; margin: 6px 0 16px; }
+  .wr-posters .poster { flex: 1; border-radius: 10px; box-shadow: 0 10px 24px rgba(0, 0, 0, .35); }
+  .wr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .wr-chips span { background: rgba(255, 255, 255, .12); border-radius: 999px; padding: 5px 11px; font-size: .78rem; font-weight: 700; }
+  .wr-genres { display: grid; gap: 12px; margin: 8px 0 20px; }
+  .wr-g { display: grid; grid-template-columns: 74px 1fr 26px; gap: 10px; align-items: center; font-size: .85rem; font-weight: 700; }
+  .wr-g i { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, #ff8db8, #c45ad9); }
+  .wr-g em { font-style: normal; text-align: right; color: rgba(255, 255, 255, .75); }
+  .wr-type { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .18); border-radius: 16px; padding: 14px 16px; }
+  .wr-type b { display: block; font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; }
+  .wr-type span { font-size: .82rem; color: rgba(255, 255, 255, .78); }
+  .wr-top1 { display: flex; gap: 16px; align-items: flex-end; }
+  .wr-top1 .poster { width: 150px; border-radius: 12px; box-shadow: 0 16px 34px rgba(0, 0, 0, .45); }
+  .wr-score { font-family: var(--font-serif); font-size: 3rem; font-weight: 600; line-height: 1; }
+  .wr-score small { font-size: 1.2rem; color: rgba(255, 255, 255, .6); }
+
+  /* Share card: the downloadable 1080 x 1350 image, drawn at 4:5 */
+  .wr-card { background: #fffcf8; color: #151827; border-radius: 16px; overflow: hidden; aspect-ratio: 4 / 5; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0, 0, 0, .4); }
+  .wr-card .ch { background: #2d1738; color: #fff; padding: 14px 16px 12px; }
+  .wr-card .ch p { margin: 0; font-size: .58rem; font-weight: 800; letter-spacing: .16em; color: #f3a8c6; }
+  .wr-card .ch h4 { margin: 4px 0 0; font-family: var(--font-serif); font-weight: 500; font-size: 1.3rem; }
+  .wr-card .cs { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid #eee8f5; }
+  .wr-card .cs div { padding: 9px 6px; text-align: center; border-right: 1px solid #eee8f5; }
+  .wr-card .cs div:last-child { border-right: 0; }
+  .wr-card .cs b { display: block; font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; }
+  .wr-card .cs span { font-size: .6rem; color: #5b6070; }
+  .wr-card .cb { display: grid; grid-template-columns: 1fr 92px; gap: 12px; padding: 12px 14px; flex: 1; }
+  .wr-card .cb dl { margin: 0; display: grid; gap: 9px; align-content: start; }
+  .wr-card dt { font-size: .55rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #5b6070; }
+  .wr-card dd { margin: 1px 0 0; font-size: .82rem; font-weight: 700; }
+  .wr-card .p1 { text-align: center; font-size: .62rem; color: #5b6070; }
+  .wr-card .p1 .poster { border-radius: 8px; margin-bottom: 4px; }
+  .wr-card .cf { display: flex; justify-content: space-between; padding: 8px 14px; font-size: .58rem; color: #5b6070; border-top: 1px solid #eee8f5; }
+  .wr-share { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+  .wr-share .wide { grid-column: 1 / -1; }
+  .wr-btn { border-radius: 999px; padding: 10px 12px; font-weight: 800; font-size: .82rem; display: inline-flex; gap: 6px; align-items: center; justify-content: center; background: rgba(255, 255, 255, .14); color: #fff; }
+  .wr-btn.main { background: #fff; color: #1b1426; }
+
+  .wr-lock { text-align: left; }
+  .wr-lock .ic { width: 54px; height: 54px; border-radius: 50%; background: rgba(255, 255, 255, .12); display: grid; place-items: center; margin-bottom: 18px; }
+  .wr-lock .m-bar { background: rgba(255, 255, 255, .2); margin: 4px 0 8px; }
+  .wr-lock .m-bar span { background: #ff8db8; }
+
+  /* Profile entry point */
+  .wr-entry { padding: 30px 0 60px; }
+  .wr-banner { display: flex; gap: 20px; align-items: center; padding: 18px 20px; border-radius: 20px; color: #fff; background: linear-gradient(120deg, #43195a, #6b1c43); margin: 20px 0 26px; }
+  .wr-banner .stack { display: flex; }
+  .wr-banner .stack .poster { width: 46px; border-radius: 7px; border: 2px solid rgba(255, 255, 255, .7); margin-left: -14px; }
+  .wr-banner .stack .poster:first-child { margin-left: 0; }
+  .wr-banner b { display: block; font-family: var(--font-serif); font-size: 1.35rem; font-weight: 500; }
+  .wr-banner > div > span { font-size: .85rem; color: rgba(255, 255, 255, .8); }
+  .wr-banner .wr-next { margin-left: auto; }
+  .wr-entry .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  @media (max-width: 780px) {
+    html:not([data-state="entry"]) .site-header { display: none; }
+    .wr-page { padding: 0; display: block; }
+    .wr-arrow, .wr-help { display: none; }
+    .wr-story { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+    .wr-banner { flex-wrap: wrap; }
+    .wr-banner .wr-next { margin-left: 0; }
+    .wr-entry .stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div data-header="profile"></div>
+
+<!-- The story: slides 1-6 and the locked state -->
+<div data-when="s1 s2 s3 s4 s5 s6 locked">
+  <div class="wr-page">
+    <button class="wr-arrow" id="prev" aria-label="Previous"><i data-icon="chevron-left" data-size="20"></i></button>
+
+    <div class="wr-story" id="story">
+      <div class="wr-top">
+        <div class="wr-bars" id="bars"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="wr-head"><span><b>SeoulMate</b> Wrapped 2026</span><span class="wr-x"><i data-icon="x" data-size="15"></i></span></div>
+      </div>
+
+      <!-- 1 -->
+      <div class="wr-body" data-when="s1" style="justify-content:flex-start">
+        <div class="wr-mosaic" id="mosaic"></div>
+        <div style="position:relative;z-index:2" class="wr-stats">
+          <p class="wr-eyebrow">Your 2026 in K-dramas</p>
+          <div class="wr-stat"><b>23</b><span>dramas finished</span></div>
+          <div class="wr-stat"><b>392</b><span>episodes</span></div>
+          <div class="wr-stat"><b>448</b><span>hours</span></div>
+          <p class="wr-text" style="margin-top:10px">That's <b>18 days and 16 hours</b> of K-dramas.</p>
+        </div>
+      </div>
+      <!-- 2 -->
+      <div class="wr-body" data-when="s2">
+        <p class="wr-eyebrow">Your most-watched actor</p>
+        <h2 class="wr-big">Lee Jong Suk</h2>
+        <p class="wr-text">Lead in <b>3 of your dramas</b> this year.</p>
+        <div class="wr-posters">
+          <div class="poster"><img src="../posters/1zDn5_4f.webp" alt="Pinocchio"></div>
+          <div class="poster"><img src="../posters/6wjE0_4f.webp" alt="W"></div>
+          <div class="poster"><img src="../posters/jQV45J_4f.webp" alt="While You Were Sleeping"></div>
+        </div>
+        <p class="wr-text" style="font-size:.82rem">Pinocchio · W · While You Were Sleeping<br>Tied with Park Bo Young (3); your ratings broke the tie.</p>
+      </div>
+      <!-- 3 -->
+      <div class="wr-body wr-alt" data-when="s3">
+        <p class="wr-eyebrow">Your favourite trope</p>
+        <h2 class="wr-big">You can't resist <em>a nice male lead.</em></h2>
+        <p class="wr-text">It's in <b>8 of your 23 dramas</b>, more than any other story tag once very common ones are weighed down.</p>
+        <p class="wr-eyebrow" style="color:rgba(255,255,255,.6);margin-top:8px">You also loved</p>
+        <div class="wr-chips"><span>Friendship · 6</span><span>Healing · 5</span><span>Bromance · 5</span></div>
+      </div>
+      <!-- 4 -->
+      <div class="wr-body" data-when="s4">
+        <p class="wr-eyebrow">Your genre mix</p>
+        <div class="wr-genres">
+          <div class="wr-g"><span>Romance</span><i style="width:100%"></i><em>20</em></div>
+          <div class="wr-g"><span>Comedy</span><i style="width:80%"></i><em>16</em></div>
+          <div class="wr-g"><span>Drama</span><i style="width:55%"></i><em>11</em></div>
+          <div class="wr-g"><span>Life</span><i style="width:45%"></i><em>9</em></div>
+          <div class="wr-g"><span>Fantasy</span><i style="width:30%"></i><em>6</em></div>
+        </div>
+        <div class="wr-type"><span>Your fan type</span><b>The Romantic</b><span>Romance in 20 of your 23 dramas (87%).</span></div>
+      </div>
+      <!-- 5 -->
+      <div class="wr-body" data-when="s5">
+        <p class="wr-eyebrow">Your top-rated drama</p>
+        <div class="wr-top1">
+          <div class="poster"><img src="../posters/EVe0p_4f.webp" alt="Reply 1988"></div>
+          <div><div class="wr-score">10<small>/10</small></div><p class="wr-text" style="margin:6px 0 0">your rating</p></div>
+        </div>
+        <h2 class="wr-big" style="font-size:2.1rem;margin-top:18px">Reply 1988</h2>
+        <p class="wr-text">2015 · 20 episodes · the highest score you gave this year (ties go to the one you finished first).</p>
+      </div>
+      <!-- 6 -->
+      <div class="wr-body" data-when="s6" style="justify-content:flex-start;padding-top:16px">
+        <p class="wr-eyebrow" style="margin-bottom:10px">Share your year</p>
+        <div class="wr-card">
+          <div class="ch"><p>SEOULMATE WRAPPED 2026</p><h4>Minji's year in K-dramas</h4></div>
+          <div class="cs"><div><b>23</b><span>dramas</span></div><div><b>392</b><span>episodes</span></div><div><b>448</b><span>hours</span></div></div>
+          <div class="cb">
+            <dl><div><dt>Fan type</dt><dd>The Romantic</dd></div><div><dt>Top actor</dt><dd>Lee Jong Suk · 3</dd></div><div><dt>Top trope</dt><dd>Nice male lead</dd></div><div><dt>Top genres</dt><dd>Romance · Comedy · Drama</dd></div></dl>
+            <div class="p1"><div class="poster"><img src="../posters/EVe0p_4f.webp" alt=""></div>#1 Reply 1988</div>
+          </div>
+          <div class="cf"><span>seoulmate-azure.vercel.app/wrapped</span><span>Made with SeoulMate</span></div>
+        </div>
+        <div class="wr-share">
+          <span class="wr-btn main"><i data-icon="download" data-size="15"></i> Save image</span>
+          <span class="wr-btn"><i data-icon="link" data-size="15"></i> Copy link</span>
+          <span class="wr-btn wide" data-go="s1"><i data-icon="play" data-size="12"></i> Watch again</span>
+        </div>
+      </div>
+      <!-- locked -->
+      <div class="wr-body wr-lock" data-when="locked">
+        <div class="ic"><i data-icon="lock" data-size="24"></i></div>
+        <p class="wr-eyebrow">Wrapped 2026</p>
+        <h2 class="wr-big" style="font-size:2.1rem">Your Wrapped unlocks after 3 finished dramas.</h2>
+        <p class="wr-text">You've finished <b>1</b> this year.</p>
+        <div class="m-bar"><span style="width:33%"></span></div>
+        <p class="wr-text" style="font-size:.85rem">Mark dramas as <b>Completed</b> in My list. Only dramas finished in 2026 count.</p>
+        <span class="wr-next" style="align-self:flex-start;margin-top:6px">Open My list <i data-icon="arrow-right" data-size="15"></i></span>
+      </div>
+
+      <div class="wr-foot" data-when="s1 s2 s3 s4 s5"><span>Tap to continue</span><span class="wr-next" id="next">Next <i data-icon="arrow-right" data-size="15"></i></span></div>
+    </div>
+
+    <button class="wr-arrow" id="next2" aria-label="Next"><i data-icon="chevron-right" data-size="20"></i></button>
+  </div>
+  <p class="wr-help" data-when="s1 s2 s3 s4 s5 s6">Click the card or press → to go on. ← goes back. Esc closes.</p>
+</div>
+
+<!-- Entry point on the Taste profile page -->
+<div data-when="entry">
+  <div class="shell wr-entry">
+    <span class="eyebrow">Personalized AI profile</span>
+    <h1 class="display" style="font-size:var(--fs-page);line-height:var(--lh-page);margin:10px 0 0">Your K-Drama Taste DNA</h1>
+    <div class="wr-banner">
+      <div class="stack"><div class="poster"><img src="../posters/EVe0p_4f.webp" alt=""></div><div class="poster"><img src="../posters/6wjE0_4f.webp" alt=""></div><div class="poster"><img src="../posters/ZeKv1_4f.webp" alt=""></div></div>
+      <div><b>Your 2026 Wrapped is ready</b><span>23 dramas, 448 hours, and the trope you can't resist.</span></div>
+      <span class="wr-next" data-go="s1">Open Wrapped <i data-icon="arrow-right" data-size="15"></i></span>
+    </div>
+    <div class="m-card" style="padding:22px">
+      <h2 class="m-h2">Marathon Stats</h2>
+      <div class="stats">
+        <div class="modern-stat-box"><b style="font:600 1.6rem var(--font-serif)">448h</b><span class="eyebrow">Est. watch time</span></div>
+        <div class="modern-stat-box"><b style="font:600 1.6rem var(--font-serif)">23</b><span class="eyebrow">Completed</span></div>
+        <div class="modern-stat-box"><b style="font:600 1.6rem var(--font-serif)">8.7</b><span class="eyebrow">Avg score</span></div>
+        <div class="modern-stat-box"><b style="font:600 1.6rem var(--font-serif)">19</b><span class="eyebrow">Total ratings</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const order = ['s1', 's2', 's3', 's4', 's5', 's6'];
+  const posters = ['1zDn5_4f','6wjE0_4f','jQV45J_4f','g0wylo_4f','v24Pg_4f','ZeKv1_4f','4QLgQ_4f','wJAkqn_4f','pd4DkE_4f','x4K4VE_4f','dgJJz_4f','ROOPo_4f','XZqYJf','vlNOX_4f','0w0mZ6_4f','Beg4z_4f','b3RmlV_4f','x4kN8X_4f'];
+  document.getElementById('mosaic').innerHTML = posters.map((p) => `<div class="poster"><img src="../posters/${p}.webp" alt=""></div>`).join('');
+  const step = (dir) => {
+    const i = order.indexOf(document.documentElement.dataset.state);
+    if (i < 0) return;
+    const j = Math.max(0, Math.min(order.length - 1, i + dir));
+    if (j !== i) mockSetState(order[j]);
+  };
+  document.getElementById('next').addEventListener('click', (e) => { e.stopPropagation(); step(1); });
+  document.getElementById('next2').addEventListener('click', () => step(1));
+  document.getElementById('prev').addEventListener('click', () => step(-1));
+  document.getElementById('story').addEventListener('click', (e) => { if (!e.target.closest('[data-go], .wr-btn')) step(1); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') step(1); if (e.key === 'ArrowLeft') step(-1); });
+  window.onMockState = (s) => {
+    const i = order.indexOf(s);
+    document.querySelectorAll('#bars span').forEach((b, k) => b.classList.toggle('done', k <= i));
+    document.getElementById('bars').style.visibility = i < 0 ? 'hidden' : 'visible';
+    const st = document.getElementById('story');
+    st.classList.toggle('alt', s === 's3' || s === 's6');
+    st.classList.toggle('teal', s === 's4');
+    document.getElementById('prev').disabled = i <= 0;
+    document.getElementById('next2').disabled = i < 0 || i === order.length - 1;
+  };
+</script>
+</body>
+</html>

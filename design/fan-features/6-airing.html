@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airing calendar: proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/doc.css">
+</head>
+<body>
+<main class="page">
+  <nav class="doc-nav"><a href="index.html">← Fan features</a><span class="count">6 of 6</span><span class="sp"></span><a href="5-fan-lists.html">← Fan lists</a><a href="index.html">Overview →</a></nav>
+
+  <h1>Airing now and calendar: current and proposed</h1>
+  <p class="lead">Today the site doesn't know what's on air. My list has an episode counter for dramas you're watching, but it can't tell you a new episode came out. The proposal shows this week's episodes, highlights the ones on your list, and offers a private calendar link so the phone reminds you. Episode dates are estimated from each drama's start date and airing days, and always labelled "expected".</p>
+
+  <h2>1. This week <small>like a TV guide, only for your dramas</small></h2>
+  <section class="fig" data-screen="screens/airing.html" data-url="/airing"
+    data-states="week:This week,home:Home strip,watchlist:My list badges" data-default="week"
+    data-today-phone="week=today/watchlist-phone.webp;home=today/home-phone.webp;watchlist=today/watchlist-phone.webp"
+    data-today-desk="week=today/watchlist-desk.webp;home=today/home-desk.webp;watchlist=today/watchlist-desk.webp"
+    data-today-cap="week=Nothing like it today. My list has no airing info;home=Home today: no reminder of new episodes;watchlist=My list today: no sign a new episode is out">
+    <div class="state-notes" data-for="week"><ul>
+      <li>A banner on top when a drama on your list has an episode today, with <b>Watched Ep 9</b> to move your progress on.</li>
+      <li><b>On a computer:</b> a 7-day grid, today outlined. <b>On a phone:</b> a strip of days (dots mark days with episodes, pink for your list) and that day's episodes below. Tap the days in the mock.</li>
+      <li>The days come from the real catalog: Love in Disguise airs Mon/Tue (Ep 9–10 this week), 100 Days of Deception Sat/Sun (Ep 13–14), Training the Intern Sundays (Ep 8).</li>
+      <li><b>Coming soon is empty, honestly:</b> no drama in the catalog starts in the next 30 days, because the catalog is refreshed by hand.</li>
+    </ul></div>
+    <div class="state-notes" data-for="home"><ul>
+      <li>The same banner sits above the home hero, only when something on your list airs today.</li>
+    </ul></div>
+    <div class="state-notes" data-for="watchlist"><ul>
+      <li>On My list, airing dramas get a badge: <b>Ep 9 out today</b> (pink) when the expected count is ahead of your progress, or <b>Airing · Ep 13 on Sat</b> (grey) for planned ones.</li>
+      <li>Everything else on the board is unchanged.</li>
+    </ul></div>
+  </section>
+
+  <h3 style="margin-top:28px">What changes</h3>
+  <ol>
+    <li><b>A new page, <code>/airing</code></b>: the "new tonight" banner, the week, Coming soon, and the calendar link.</li>
+    <li><b>Home</b> gets the banner above the hero on days something on your list airs.</li>
+    <li><b>My list</b> gets the two badges on airing dramas.</li>
+    <li><b>Private calendar link</b> (an <code>.ics</code> feed) for Google or Apple Calendar: expected episode days for your Watching and Plan to watch dramas. Reminders without email.</li>
+  </ol>
+
+  <div class="cols">
+    <div>
+      <h3>Details</h3>
+      <ul>
+        <li><b>What the data has:</b> <code>aired</code> gives start and end dates, so "on air" = start ≤ today ≤ end.</li>
+        <li><b>What it lacks:</b> airing weekdays. MyDramaList pages have "Aired On" (for example "Monday, Tuesday"); the scraper saves those pages, so it needs one new field, carried into a new column <code>dramas.air_days</code>. The mock guesses the days from the start date and episode count.</li>
+        <li><b>Gaps in the data today:</b> many 2026 dramas have only a start date ("Oct 4, 2026 - ?") and no network (<code>publisher</code> is blank for them), so the page can't show channels yet.</li>
+        <li><b>Freshness:</b> airing data goes stale within days. The refresh scrape needs a schedule (the nightly catalog job, still open), at least for airing and upcoming dramas.</li>
+        <li><b>Endpoints:</b> <code>GET /airing?week=</code>, <code>GET /airing/upcoming</code>, and <code>GET /me/calendar.ics?token=</code> with a per-user secret token (new column <code>profiles.calendar_token</code>, resettable).</li>
+        <li><b>Badges</b> need <code>watchlist_items.episodes_watched</code>, the same column as Wrapped.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Cost</h3>
+      <ul>
+        <li>Catalog reads only; a week's grid is a few rows.</li>
+        <li>The real cost is keeping data fresh: a scheduled scrape, a scraper change and date logic.</li>
+        <li>No search or ranking change.</li>
+        <li>Size <b>L</b>. It's only as good as the scrape schedule, which is why it's last.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>To decide</h2>
+  <ol>
+    <li>Build the nightly catalog refresh first (needed here anyway), then this page?</li>
+    <li>Show channels and streaming services once <code>publisher</code> is filled in for new dramas?</li>
+    <li>The calendar link: worth it at launch, or later?</li>
+  </ol>
+</main>
+<script src="assets/doc.js"></script>
+</body>
+</html>

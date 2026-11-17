@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SeoulMate fan features</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/doc.css">
+<style>
+  .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; margin: 20px 0 10px; }
+  .feature { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; text-decoration: none; color: var(--ink); }
+  .feature:hover { border-color: var(--ink); }
+  .feature img { width: 130px; height: 233px; object-fit: cover; object-position: top; border-radius: 10px; border: 1px solid var(--line); }
+  .feature h3 { color: var(--ink); text-transform: none; letter-spacing: 0; font-size: 16px; margin: 2px 0 6px; }
+  .feature p { font-size: 13.5px; color: var(--soft); margin: 0 0 10px; }
+  .feature .meta { font-size: 12.5px; color: var(--soft); }
+  .feature .meta b { color: var(--ink); }
+  .feature .open { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--accent); }
+</style>
+</head>
+<body>
+<main class="page">
+  <h1>SeoulMate fan features: proposals</h1>
+  <p class="lead">Six features that give fans something to do besides searching. Each page shows <b>today's site next to the proposed design</b>, at the same scale, on a phone and on a computer, in light and dark. The mocks use the site's real compiled CSS, header and drama cards, real posters, and real catalog data (titles, ratings, casts, airing dates). Buttons above each mock switch states, and most buttons inside the mocks work. Written plan: <code>docs/plans/FAN_FEATURES_PLAN.md</code>.</p>
+
+  <div class="features">
+    <a class="feature" href="1-actor-pages.html"><img src="thumbs/actor.webp" alt=""><div><h3>1. Actor and writer pages</h3><p>A page per person: all their dramas, how many you've seen, where to start, who they work with, and Follow.</p><div class="meta">Size <b>M</b> · needs the actor spelling fix (issue #4)</div><span class="open">Open →</span></div></a>
+    <a class="feature" href="2-wrapped.html"><img src="thumbs/wrapped.webp" alt=""><div><h3>2. K-drama Wrapped</h3><p>Your year in six slides (dramas, hours, top actor, favourite trope, genres) and an image to share.</p><div class="meta">Size <b>M</b> · needs episode progress saved in the database · live by 1 Dec</div><span class="open">Open →</span></div></a>
+    <a class="feature" href="3-daily-quiz.html"><img src="thumbs/quiz.webp" alt=""><div><h3>3. Daily "Guess the drama"</h3><p>Five picture questions a day, the same for everyone, with a streak and a shareable score.</p><div class="meta">Size <b>M</b> · needs the quiz labels checked</div><span class="open">Open →</span></div></a>
+    <a class="feature" href="4-six-degrees.html"><img src="thumbs/connect.webp" alt=""><div><h3>4. Six degrees of K-drama</h3><p>Link two actors through shared dramas in as few steps as possible. Daily pair plus free play.</p><div class="meta">Size <b>S</b> · after actor pages</div><span class="open">Open →</span></div></a>
+    <a class="feature" href="5-fan-lists.html"><img src="thumbs/lists.webp" alt=""><div><h3>5. Fan lists</h3><p>Named lists with a note on each drama, private or public, likeable and shareable.</p><div class="meta">Size <b>M</b> · needs nothing first</div><span class="open">Open →</span></div></a>
+    <a class="feature" href="6-airing.html"><img src="thumbs/airing.webp" alt=""><div><h3>6. Airing now and calendar</h3><p>This week's episodes, your dramas highlighted, badges on My list, and a private calendar link.</p><div class="meta">Size <b>L</b> · needs a scraper change and a nightly refresh</div><span class="open">Open →</span></div></a>
+  </div>
+
+  <h2>Suggested order</h2>
+  <ol class="order">
+    <li><b>Actor pages:</b> the data is ready, fans browse by actor more than anything else, and about 1,400 pages help Google traffic. Fix duplicate actor spellings first.</li>
+    <li><b>Wrapped:</b> next, so it's live by 1 December. It needs episode progress saved in the database, which the airing calendar also uses.</li>
+    <li><b>Daily quiz:</b> the strongest reason to come back every day. Poster close-ups solve the small picture supply.</li>
+    <li><b>Six degrees:</b> a small add-on once actor pages exist.</li>
+    <li><b>Fan lists:</b> community content and search pages; needs nothing else first.</li>
+    <li><b>Airing calendar:</b> last, because it depends on a scheduled scraper.</li>
+  </ol>
+
+  <h2>Shared groundwork</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Change</th><th>Used by</th><th>Kind</th></tr>
+    <tr><td>Merge duplicate actor spellings (issue #4 item 2)</td><td>Actor pages, Six degrees, Wrapped's top actor</td><td>Data</td></tr>
+    <tr><td><code>watchlist_items.episodes_watched</code> (episode tracker saved to the database instead of the browser)</td><td>Wrapped, Airing badges</td><td>Migration + watchlist <code>PUT</code></td></tr>
+    <tr><td>Scheduled catalog refresh</td><td>Airing calendar; also keeps new dramas in search</td><td>Ops (open item)</td></tr>
+    <tr><td>None of the six changes search or ranking</td><td>—</td><td>No evaluator re-run needed, except the one-field Discover addition for actor pages (results unchanged)</td></tr>
+  </table></div>
+
+  <h2>Questions for you</h2>
+  <ol>
+    <li>Do you agree with the order, or should Wrapped go first because of the December date?</li>
+    <li>Which features should I turn into real code first? Each page ends with its own "To decide" questions.</li>
+    <li>Is this mockup style what you wanted for future designs?</li>
+  </ol>
+
+  <p class="note">How these are made: <code>screens/*.html</code> are the mocks (they load <code>assets/site.css</code>, a copy of the site's compiled CSS from <code>next build</code>, so they look exactly like the site). <code>today/</code> holds screenshots of the live site taken on 2026-11-16. <code>posters/</code> holds small copies of real catalog posters. Open any <code>.html</code> file in a browser; the fonts load from Google Fonts.</p>
+</main>
+</body>
+</html>

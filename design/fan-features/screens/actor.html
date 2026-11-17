@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en" data-state="member">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: actor page</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/mock.css">
+<script src="../assets/mock.js"></script>
+<style>
+  .pp-hero { background: var(--section-alt); border-bottom: 1px solid var(--line); padding: 40px 0 34px; overflow: hidden; }
+  .pp-hero-inner { display: flex; gap: 40px; align-items: center; justify-content: space-between; }
+  .pp-crumbs { font-size: .8rem; color: var(--ink-soft); margin-bottom: 18px; }
+  .pp-crumbs a { color: var(--ink-soft); }
+  .pp-name { font-size: var(--fs-page); line-height: var(--lh-page); margin: 8px 0 12px; color: var(--ink); }
+  .pp-known { color: var(--ink-soft); margin: 0 0 16px; max-width: 520px; line-height: 1.5; }
+  .pp-known a { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  .pp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .pp-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .pp-actions .hint { font-size: .8rem; color: var(--ink-soft); }
+  .pp-collage { position: relative; width: 340px; margin-right: 14px; height: 240px; flex: none; }
+  .pp-collage .poster { position: absolute; width: 132px; box-shadow: 0 14px 30px rgba(45, 23, 56, .22); border: 3px solid var(--cream); }
+  .pp-collage .poster:nth-child(1) { left: 0; top: 30px; transform: rotate(-7deg); }
+  .pp-collage .poster:nth-child(2) { left: 98px; top: 0; z-index: 2; }
+  .pp-collage .poster:nth-child(3) { left: 196px; top: 30px; transform: rotate(7deg); }
+
+  .pp-body { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 40px; padding: 34px 0 70px; }
+  .pp-progress { padding: 18px 20px; margin-bottom: 30px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 22px; align-items: center; }
+  .pp-progress .top { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 8px; }
+  .pp-progress .top span { color: var(--ink-soft); font-weight: 600; font-size: .85rem; }
+  .pp-progress .sub { font-size: .8rem; color: var(--ink-soft); margin-top: 8px; }
+  .pp-start { display: flex; gap: 14px; align-items: center; padding-left: 22px; border-left: 1px solid var(--line); }
+  .pp-start .poster { width: 52px; border-radius: 8px; }
+  .pp-start .title { font-family: var(--font-serif); font-weight: 600; font-size: 1.05rem; color: var(--ink); }
+  .pp-start .meta { font-size: .8rem; color: var(--ink-soft); }
+  .pp-start .why { font-size: .78rem; color: var(--ink-soft); margin-top: 2px; }
+  .pp-start .go { margin-left: auto; }
+  .pp-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .pp-head .m-h2 { margin: 0; }
+  .pp-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .pp-sort { font-size: .82rem; font-weight: 700; color: var(--ink); display: inline-flex; gap: 6px; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--cream); }
+  .pp-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px 16px; }
+  .pp-grid .drama-card[hidden] { display: none; }
+  .card-ai-badge.lead { background: rgba(21, 24, 39, .82); color: #fff; }
+
+  .pp-aside .m-card { padding: 18px 18px 8px; margin-bottom: 20px; }
+  .pp-aside h3 { font-family: var(--font-serif); font-weight: 600; font-size: 1.15rem; margin: 0 0 4px; color: var(--ink); }
+  .pp-aside .lead-in { font-size: .8rem; color: var(--ink-soft); margin: 0 0 10px; }
+  .pp-person { display: flex; gap: 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--line); }
+  .pp-person:first-of-type { border-top: 0; }
+  .pp-person .m-avatar { width: 38px; height: 38px; font-size: .78rem; }
+  .pp-person b { display: block; font-size: .92rem; color: var(--ink); }
+  .pp-person div span { font-size: .78rem; color: var(--ink-soft); }
+  .pp-person .role { margin-left: auto; font-size: .72rem; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
+  .pp-more { display: block; text-align: center; font-size: .82rem; font-weight: 700; color: var(--coral); padding: 10px 0 8px; border-top: 1px solid var(--line); }
+  .pp-follow-note { padding: 14px 16px; border-radius: 14px; background: var(--c-berry-light); color: var(--ink); font-size: .85rem; display: flex; gap: 10px; }
+  .pp-follow-note svg { color: var(--coral); flex: none; margin-top: 2px; }
+
+  @media (max-width: 1050px) { .pp-body { grid-template-columns: 1fr; } .pp-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 780px) {
+    .pp-hero { padding: 22px 0 26px; }
+    .pp-hero-inner { flex-direction: column-reverse; align-items: stretch; gap: 18px; }
+    .pp-collage { width: 100%; height: 150px; }
+    .pp-collage .poster { width: 84px; border-width: 2px; }
+    .pp-collage .poster:nth-child(1) { left: calc(50% - 130px); top: 18px; }
+    .pp-collage .poster:nth-child(2) { left: calc(50% - 42px); }
+    .pp-collage .poster:nth-child(3) { left: calc(50% + 46px); top: 18px; }
+    .pp-crumbs { display: none; }
+    .pp-actions .m-btn { flex: 1; }
+    .pp-body { padding-top: 22px; gap: 10px; }
+    .pp-progress { grid-template-columns: 1fr; gap: 14px; padding: 16px; margin-bottom: 24px; }
+    .pp-start { border-left: 0; border-top: 1px solid var(--line); padding: 14px 0 0; }
+    .pp-filters { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 18px; padding: 0 14px; scrollbar-width: none; }
+    .pp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+  }
+</style>
+</head>
+<body>
+<div data-header=""></div>
+<main>
+  <section class="pp-hero">
+    <div class="shell pp-hero-inner">
+      <div class="pp-copy">
+        <nav class="pp-crumbs"><a href="#">Discover</a> / <a href="#">People</a> / Park Bo Young</nav>
+        <p class="m-eyebrow">Actor · 9 dramas · 2015–2026</p>
+        <h1 class="display pp-name">Park Bo Young</h1>
+        <p class="pp-known">Known for <a href="#">Strong Girl Bong Soon</a>, <a href="#">Doom at Your Service</a> and <a href="#">Abyss</a>.</p>
+        <div class="pp-chips">
+          <span class="meta-chip rating-chip"><i data-icon="star" data-size="13"></i> 8.3<small> avg</small></span>
+          <span class="meta-chip">Lead in 9 of 9</span>
+          <span class="meta-chip">Most on tvN (4)</span>
+        </div>
+        <div class="pp-actions">
+          <button class="m-btn primary" data-go="following" data-when="member"><i data-icon="heart" data-size="16"></i> Follow</button>
+          <button class="m-btn primary" data-when="guest"><i data-icon="heart" data-size="16"></i> Follow</button>
+          <button class="m-btn" data-go="member" data-when="following"><i data-icon="check" data-size="16"></i> Following</button>
+          <button class="m-btn"><i data-icon="share" data-size="16"></i> Share</button>
+          <span class="hint" data-when="guest">Sign in to follow</span>
+        </div>
+      </div>
+      <div class="pp-collage" aria-hidden="true">
+        <div class="poster"><img src="../posters/XZqYJf.webp" alt=""></div>
+        <div class="poster"><img src="../posters/vlNOX_4f.webp" alt=""></div>
+        <div class="poster"><img src="../posters/QKRW2f.webp" alt=""></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="shell pp-body">
+    <div class="pp-main">
+      <div class="m-card pp-progress" data-when="member following">
+        <div>
+          <div class="top">You've watched 3 of 9 <span>33%</span></div>
+          <div class="m-bar"><span style="width:33%"></span></div>
+          <div class="sub">From your list: Strong Girl Bong Soon, Doom at Your Service, Daily Dose of Sunshine</div>
+        </div>
+        <div class="pp-start">
+          <div class="poster"><img src="../posters/NdEn1A_4f.webp" alt=""></div>
+          <div>
+            <p class="m-eyebrow">Start here</p>
+            <div class="title">Our Unwritten Seoul</div>
+            <div class="meta"><span class="rating" style="display:inline-flex"><i data-icon="star" data-size="12"></i> 8.7</span> · 2025 · 12 eps</div>
+            <div class="why">Highest-rated one you haven't seen</div>
+          </div>
+          <a class="text-link go" href="#"><i data-icon="arrow-right" data-size="18"></i></a>
+        </div>
+      </div>
+      <div class="m-card pp-progress" data-when="guest">
+        <div>
+          <div class="top">New to Park Bo Young?</div>
+          <div class="sub" style="margin-top:0">Sign in and this card shows how many you've watched and which one to watch next.</div>
+        </div>
+        <div class="pp-start">
+          <div class="poster"><img src="../posters/QJKJP7_4f.webp" alt=""></div>
+          <div>
+            <p class="m-eyebrow">Start here</p>
+            <div class="title">Daily Dose of Sunshine</div>
+            <div class="meta"><span class="rating" style="display:inline-flex"><i data-icon="star" data-size="12"></i> 8.8</span> · 2023 · 12 eps</div>
+            <div class="why">Highest-rated lead role</div>
+          </div>
+          <a class="text-link go" href="#"><i data-icon="arrow-right" data-size="18"></i></a>
+        </div>
+      </div>
+
+      <div class="pp-head">
+        <h2 class="m-h2">Dramas</h2>
+        <span class="pp-sort">Newest first <i data-icon="chevron-down" data-size="14"></i></span>
+      </div>
+      <div class="pp-filters" id="filters">
+        <button class="m-chip on" data-f="all">All <small>9</small></button>
+        <button class="m-chip" data-f="romance">Romance <small>6</small></button>
+        <button class="m-chip" data-f="thriller">Thriller <small>3</small></button>
+        <button class="m-chip" data-f="unseen" data-when="member following">Not seen <small>6</small></button>
+      </div>
+      <div class="pp-grid" id="grid"></div>
+    </div>
+
+    <aside class="pp-aside">
+      <div class="pp-follow-note" data-when="following" style="margin-bottom:20px"><i data-icon="bell" data-size="16"></i><div>New Park Bo Young dramas will show up on your home page under <b>New from people you follow</b>.</div></div>
+      <div class="m-card">
+        <h3>Often works with</h3>
+        <p class="lead-in">People in 2 or more of these dramas</p>
+        <div class="pp-person"><span class="m-avatar" style="background:#6b4f8a">LJ</span><div><b>Lee Jung Eun</b><span>Daily Dose of Sunshine, Light Shop</span></div><span class="role">Actor</span></div>
+        <div class="pp-person"><span class="m-avatar" style="background:#2f5a7a">YJ</span><div><b>Yoo Je Won</b><span>Oh My Ghost, Abyss</span></div><span class="role">Director</span></div>
+      </div>
+      <div class="m-card">
+        <h3>Directors and writers</h3>
+        <p class="lead-in">One drama each, newest first</p>
+        <div class="pp-person"><span class="m-avatar" style="background:#8a5a3c">HJ</span><div><b>Hwang Jo Yoon</b><span>Gold Land</span></div><span class="role">Writer</span></div>
+        <div class="pp-person"><span class="m-avatar" style="background:#3c7a64">LK</span><div><b>Lee Kang</b><span>Our Unwritten Seoul</span></div><span class="role">Writer</span></div>
+        <div class="pp-person"><span class="m-avatar" style="background:#7a3c55">LN</span><div><b>Lee Na Eun</b><span>Melo Movie</span></div><span class="role">Writer</span></div>
+        <div class="pp-person"><span class="m-avatar" style="background:#4a4f8a">KF</span><div><b>Kang Full</b><span>Light Shop</span></div><span class="role">Writer</span></div>
+        <div class="pp-person"><span class="m-avatar" style="background:#8a3c3c">BM</span><div><b>Baek Mi Kyung</b><span>Strong Girl Bong Soon</span></div><span class="role">Writer</span></div>
+        <a class="pp-more" href="#">Show all 16</a>
+      </div>
+    </aside>
+  </div>
+</main>
+<script>
+  const D = [
+    { t: 'Gold Land', img: 'nOzye6_4f', r: '7.7', y: 2026, eps: 10, g: 'Action', tags: 'thriller' },
+    { t: 'Melo Movie', img: 'YYlemA_4f', r: '8.2', y: 2025, eps: 10, g: 'Romance', tags: 'romance' },
+    { t: 'Our Unwritten Seoul', img: 'NdEn1A_4f', r: '8.7', y: 2025, eps: 12, g: 'Romance', tags: 'romance' },
+    { t: 'Light Shop', img: 'oQYpKY_4f', r: '8.5', y: 2024, eps: 8, g: 'Thriller', tags: 'thriller' },
+    { t: 'Daily Dose of Sunshine', img: 'QJKJP7_4f', r: '8.8', y: 2023, eps: 12, g: 'Life', tags: '', seen: 1 },
+    { t: 'Doom at Your Service', img: 'vlNOX_4f', r: '8.4', y: 2021, eps: 16, g: 'Comedy', tags: 'romance', seen: 1 },
+    { t: 'Abyss', img: 'QKRW2f', r: '7.8', y: 2019, eps: 16, g: 'Mystery', tags: 'romance' },
+    { t: 'Strong Girl Bong Soon', img: 'XZqYJf', r: '8.7', y: 2017, eps: 16, g: 'Action', tags: 'romance', seen: 1 },
+    { t: 'Oh My Ghost', img: 'bvp1Vf', r: '8.3', y: 2015, eps: 16, g: 'Thriller', tags: 'romance thriller' },
+  ];
+  document.getElementById('grid').innerHTML = D.map((d) =>
+    mockCard({ ...d, sub: `${d.y} · ${d.eps} eps`, attrs: ` data-tags="${d.tags}" data-seen="${d.seen ? 1 : 0}"` })
+  ).join('');
+  // Seen badges only exist on cards marked seen; give them data-when so guests don't see them.
+  document.querySelectorAll('#grid .card-seen').forEach((b) => b.setAttribute('data-when', 'member following'));
+  document.getElementById('filters').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    document.querySelectorAll('#filters .m-chip').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('#grid .drama-card').forEach((c) => {
+      const f = b.dataset.f;
+      c.hidden = !(f === 'all' || (f === 'unseen' ? c.dataset.seen === '0' : c.dataset.tags.includes(f)));
+    });
+  });
+  window.onMockState = (s) => { if (s === 'guest') document.querySelector('[data-f="all"]').click(); };
+</script>
+</body>
+</html>

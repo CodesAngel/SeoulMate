@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" data-state="week">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: airing now</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/mock.css">
+<script src="../assets/mock.js"></script>
+<style>
+  .ai-tonight { display: flex; gap: 16px; align-items: center; padding: 14px 18px; border-radius: 18px; color: #fff; background: linear-gradient(120deg, #2d1738, #5b1d45); }
+  .ai-tonight .poster { width: 48px; border-radius: 8px; }
+  .ai-tonight > div:nth-child(2) { flex: 1; min-width: 0; }
+  .ai-tonight p { margin: 0; font-size: .7rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #f3a8c6; }
+  .ai-tonight b { display: block; font-family: var(--font-serif); font-size: 1.2rem; font-weight: 500; }
+  .ai-tonight span.s { font-size: .82rem; color: rgba(255, 255, 255, .78); }
+  .ai-tonight .go { margin-left: auto; display: flex; gap: 8px; }
+  .ai-tonight .wbtn { background: #fff; color: #1b1426; border-radius: 999px; padding: 8px 14px; font-weight: 800; font-size: .82rem; display: inline-flex; gap: 6px; align-items: center; white-space: nowrap; }
+  .ai-tonight .wbtn.ghost { background: rgba(255, 255, 255, .14); color: #fff; }
+
+  .ai-page { padding: 26px 0 70px; }
+  .ai-title { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin: 30px 0 18px; }
+  .ai-title h1 { font-size: var(--fs-page); line-height: var(--lh-page); margin: 8px 0 0; color: var(--ink); }
+  .ai-legend { font-size: .8rem; color: var(--ink-soft); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .ai-legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .ai-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--coral); display: inline-block; }
+  .ai-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+  .ai-day { border: 1px solid var(--line); border-radius: 16px; background: var(--cream); padding: 10px; min-height: 270px; }
+  .ai-day.today { border-color: var(--coral); box-shadow: 0 0 0 1px var(--coral); }
+  .ai-day h3 { margin: 0 0 10px; font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); display: flex; justify-content: space-between; }
+  .ai-day h3 b { font-family: var(--font-serif); font-size: 1.2rem; letter-spacing: 0; color: var(--ink); }
+  .ai-day.today h3 b { color: var(--coral); }
+  .ai-ep { margin-bottom: 12px; }
+  .ai-ep .poster { border-radius: 10px; margin-bottom: 6px; }
+  .ai-ep .mine { position: absolute; top: 6px; left: 6px; z-index: 2; }
+  .ai-ep b { display: block; font-family: var(--font-serif); font-weight: 600; font-size: .9rem; line-height: 1.25; color: var(--ink); }
+  .ai-ep span { font-size: .74rem; color: var(--ink-soft); }
+  .ai-empty { font-size: .76rem; color: var(--ink-soft); text-align: center; padding: 70px 4px 0; }
+  .ai-strip { display: none; }
+  .ai-list { display: none; }
+  .ai-row { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .ai-row .poster { width: 52px; border-radius: 8px; }
+  .ai-row b { display: block; font-family: var(--font-serif); font-weight: 600; font-size: 1rem; color: var(--ink); }
+  .ai-row span { font-size: .8rem; color: var(--ink-soft); }
+  .ai-row .m-badge { margin-left: auto; flex: none; }
+  .ai-lower { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 22px; margin-top: 30px; }
+  .ai-lower .m-card { padding: 20px; }
+  .ai-lower h2 { font-family: var(--font-serif); font-weight: 500; font-size: var(--fs-group); margin: 0 0 8px; color: var(--ink); }
+  .ai-lower p { font-size: .88rem; color: var(--ink-soft); margin: 0 0 14px; line-height: 1.5; }
+  .ai-cal { display: flex; gap: 12px; align-items: flex-start; }
+  .ai-cal .ic { width: 42px; height: 42px; border-radius: 12px; background: var(--c-berry-light); color: var(--coral); display: grid; place-items: center; flex: none; }
+
+  /* Home strip */
+  .ai-home-strip { margin: 18px auto 14px; }
+  /* Watchlist badge */
+  .ai-badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .ai-out { display: inline-flex; gap: 5px; align-items: center; font-size: .68rem; font-weight: 800; border-radius: 999px; padding: 3px 8px; background: var(--coral); color: #fff; }
+  .ai-next { display: inline-flex; gap: 5px; align-items: center; font-size: .68rem; font-weight: 800; border-radius: 999px; padding: 3px 8px; background: var(--paper-deep); color: var(--ink-soft); }
+  .ai-wl-head { padding: 34px 0 20px; }
+  .ai-wl-head h1 { font-size: var(--fs-page); line-height: var(--lh-page); margin: 10px 0 0; color: var(--ink); }
+
+  @media (max-width: 1050px) { .ai-lower { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) {
+    .ai-week { display: none; }
+    .ai-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 8px; }
+    .ai-strip button { border: 1px solid var(--line); background: var(--cream); border-radius: 12px; padding: 7px 0 8px; text-align: center; font-size: .66rem; font-weight: 800; color: var(--ink-soft); text-transform: uppercase; cursor: pointer; }
+    .ai-strip button b { display: block; font-family: var(--font-serif); font-size: 1.05rem; color: var(--ink); text-transform: none; }
+    .ai-strip button i { display: block; width: 6px; height: 6px; border-radius: 50%; margin: 3px auto 0; background: transparent; }
+    .ai-strip button.has i { background: var(--ink-soft); }
+    .ai-strip button.mine i { background: var(--coral); }
+    .ai-strip button.on { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .ai-strip button.on b { color: var(--paper); }
+    .ai-list { display: block; }
+  }
+  @media (max-width: 780px) {
+    .ai-tonight { flex-wrap: wrap; padding: 14px; }
+    .ai-tonight .go { margin-left: 0; width: 100%; }
+    .ai-tonight .wbtn { flex: 1; justify-content: center; }
+    .ai-title { margin: 22px 0 14px; }
+    .ai-page { padding-top: 16px; }
+    .hero { padding-top: 0; }
+  }
+</style>
+</head>
+<body>
+<div data-header=""></div>
+
+<!-- /airing -->
+<main class="shell ai-page" data-when="week">
+  <div class="ai-tonight">
+    <div class="poster"><img src="../posters/gOyrqq_4f.webp" alt=""></div>
+    <div><p>New tonight · on your list</p><b>Love in Disguise · Ep 9</b><span class="s">You're on Ep 8 of 12. Expected tonight, from the airing pattern.</span></div>
+    <div class="go"><span class="wbtn ghost">View drama</span><span class="wbtn"><i data-icon="check" data-size="14"></i> Watched Ep 9</span></div>
+  </div>
+  <div class="ai-title">
+    <div><p class="m-eyebrow">Nov 16 – 22</p><h1 class="display">On air this week</h1></div>
+    <div class="ai-legend"><span><span class="ai-dot"></span> On your list</span><span><i data-icon="info" data-size="14"></i> Episode dates are expected, not confirmed</span></div>
+  </div>
+  <div class="ai-week" id="week"></div>
+  <div class="ai-strip" id="strip"></div>
+  <div class="ai-list" id="list"></div>
+  <div class="ai-lower">
+    <div class="m-card">
+      <h2>Coming soon</h2>
+      <p>Nothing in the catalog starts between Nov 16 and Dec 16. New dramas only appear here after a catalog refresh, which runs by hand today; a nightly refresh would fill this row.</p>
+      <a class="text-link" href="#">Browse dramas that ended this month <i data-icon="arrow-right" data-size="14"></i></a>
+    </div>
+    <div class="m-card">
+      <div class="ai-cal">
+        <span class="ic"><i data-icon="calendar" data-size="20"></i></span>
+        <div><h2 style="font-size:1.25rem">Reminders on your phone</h2><p>Add your Watching and Plan to watch dramas to Google or Apple Calendar. Expected episode days appear as events. No email needed.</p>
+        <button class="m-btn primary small"><i data-icon="link" data-size="14"></i> Copy private calendar link</button></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Home: strip above the hero -->
+<main data-when="home">
+  <div class="shell ai-home-strip">
+    <div class="ai-tonight">
+      <div class="poster"><img src="../posters/gOyrqq_4f.webp" alt=""></div>
+      <div><p>New tonight · on your list</p><b>Love in Disguise · Ep 9</b><span class="s">You're on Ep 8 of 12</span></div>
+      <div class="go"><span class="wbtn ghost">This week</span><span class="wbtn"><i data-icon="check" data-size="14"></i> Watched Ep 9</span></div>
+    </div>
+  </div>
+  <section class="hero"><div class="shell hero-panel"><div class="hero-copy"><span class="eyebrow">Stories matched to your mood</span><h1 class="display">Your next <em>obsession</em> is one search away.</h1><p>Tell SeoulMate what you want to feel, who you want to watch, or the story you cannot stop thinking about.</p><form class="hero-search"><i data-icon="search" data-size="18"></i><input placeholder="Try “a funny fantasy with found family”" aria-label="Describe your next drama"><button type="button">Find my drama</button></form><div class="prompt-row"><a href="#">Healing romance</a><a href="#">Smart crime thriller</a><a href="#">Found family</a><a href="#">Fantasy with heart</a></div></div><div class="hero-art"><div class="hero-poster-back"><img class="poster-img" alt="Reply 1988" src="../posters/EVe0p_4f.webp" style="position:absolute;height:100%;width:100%;inset:0"></div><div class="hero-poster-main"><img class="poster-img" alt="The Glory" src="../posters/4v6zJ_4f.webp" style="position:absolute;height:100%;width:100%;inset:0"></div><div class="hero-feature-label"><span>Tonight's match</span><h2>The Glory</h2></div></div></div></section>
+</main>
+
+<!-- My list: badges on airing dramas -->
+<main data-when="watchlist">
+  <div class="shell ai-wl-head"><span class="eyebrow">Personal library</span><h1 class="display">My Drama Collection</h1></div>
+  <div class="shell kanban-board">
+    <div class="kanban-column kanban-watching">
+      <div class="kanban-column-header"><div class="kanban-header-title"><i data-icon="play" data-size="16"></i><h3>Currently Watching</h3></div><span class="kanban-count">1</span></div>
+      <div class="kanban-card-list">
+        <article class="kanban-card">
+          <div class="kanban-card-inner">
+            <a href="#" class="kanban-thumbnail" style="position:relative;display:block;width:58px;height:87px;flex-shrink:0;overflow:hidden"><img class="poster-img" src="../posters/gOyrqq_4f.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%"></a>
+            <div class="kanban-info"><a href="#"><h4>Love in Disguise</h4></a>
+              <div class="kanban-meta-row"><span class="kanban-meta-item"><i data-icon="star" data-size="12"></i> 8.4</span><span class="kanban-meta-item">12 eps</span></div>
+              <div class="ai-badge-row"><span class="ai-out"><i data-icon="bell" data-size="11"></i> Ep 9 out today</span></div>
+            </div>
+          </div>
+          <div class="kanban-tracker-wrap"><div class="episode-tracker"><div class="episode-tracker-header"><span class="ep-label">Episode Progress</span><span class="ep-count"><strong>8</strong> / 12</span></div><div class="ep-progress-bar"><div class="ep-progress-fill" style="width:67%"></div></div><div class="ep-buttons"><button type="button" class="ep-btn"><i data-icon="minus" data-size="13"></i></button><button type="button" class="ep-btn ep-btn-plus"><i data-icon="plus" data-size="13"></i><span>Next Ep</span></button></div></div></div>
+          <div class="kanban-card-footer"><select class="kanban-status-select"><option>Move: Watching</option></select><button type="button" class="kanban-remove-btn"><i data-icon="trash" data-size="14"></i></button></div>
+        </article>
+      </div>
+    </div>
+    <div class="kanban-column kanban-planned">
+      <div class="kanban-column-header"><div class="kanban-header-title"><i data-icon="bookmark" data-size="16"></i><h3>Plan to Watch</h3></div><span class="kanban-count">2</span></div>
+      <div class="kanban-card-list">
+        <article class="kanban-card">
+          <div class="kanban-card-inner">
+            <a href="#" class="kanban-thumbnail" style="position:relative;display:block;width:58px;height:87px;flex-shrink:0;overflow:hidden"><img class="poster-img" src="../posters/gOy6mW_4f.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%"></a>
+            <div class="kanban-info"><a href="#"><h4>100 Days of Deception</h4></a>
+              <div class="kanban-meta-row"><span class="kanban-meta-item"><i data-icon="star" data-size="12"></i> 8.6</span><span class="kanban-meta-item">16 eps</span></div>
+              <div class="ai-badge-row"><span class="ai-next"><i data-icon="calendar" data-size="11"></i> Airing · Ep 13 on Sat</span></div>
+            </div>
+          </div>
+          <div class="kanban-card-footer"><select class="kanban-status-select"><option>Move: Plan to Watch</option></select><button type="button" class="kanban-remove-btn"><i data-icon="trash" data-size="14"></i></button></div>
+        </article>
+        <article class="kanban-card">
+          <div class="kanban-card-inner">
+            <a href="#" class="kanban-thumbnail" style="position:relative;display:block;width:58px;height:87px;flex-shrink:0;overflow:hidden"><img class="poster-img" src="../posters/ZeKv1_4f.webp" alt="" style="position:absolute;inset:0;width:100%;height:100%"></a>
+            <div class="kanban-info"><a href="#"><h4>Hometown Cha-Cha-Cha</h4></a>
+              <div class="kanban-meta-row"><span class="kanban-meta-item"><i data-icon="star" data-size="12"></i> 8.7</span><span class="kanban-meta-item">16 eps</span></div>
+            </div>
+          </div>
+          <div class="kanban-card-footer"><select class="kanban-status-select"><option>Move: Plan to Watch</option></select><button type="button" class="kanban-remove-btn"><i data-icon="trash" data-size="14"></i></button></div>
+        </article>
+      </div>
+    </div>
+    <div class="kanban-column kanban-completed">
+      <div class="kanban-column-header"><div class="kanban-header-title"><i data-icon="check" data-size="16"></i><h3>Completed</h3></div><span class="kanban-count">0</span></div>
+      <div class="kanban-card-list"><div class="kanban-empty-drop"><span>No dramas here yet</span></div></div>
+    </div>
+    <div class="kanban-column kanban-paused">
+      <div class="kanban-column-header"><div class="kanban-header-title"><i data-icon="clock" data-size="16"></i><h3>On Hold &amp; Dropped</h3></div><span class="kanban-count">0</span></div>
+      <div class="kanban-card-list"><div class="kanban-empty-drop"><span>No dramas here yet</span></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const P = {
+    lid: ['Love in Disguise', 'gOyrqq_4f', 12, true],
+    hd: ['100 Days of Deception', 'gOy6mW_4f', 16, true],
+    ti: ['Training the Intern', 'y6WgqB_4f', 10, false],
+  };
+  const days = [
+    ['Mon', 16, [['lid', 9]], true], ['Tue', 17, [['lid', 10]]], ['Wed', 18, []], ['Thu', 19, []], ['Fri', 20, []],
+    ['Sat', 21, [['hd', 13]]], ['Sun', 22, [['hd', 14], ['ti', 8]]],
+  ];
+  const tile = ([k, ep]) => { const [t, img, n, mine] = P[k];
+    return `<div class="ai-ep"><div class="poster"><img src="../posters/${img}.webp" alt="">${mine ? '<span class="m-badge new mine">On your list</span>' : ''}</div><b>${t}</b><span>Ep ${ep} of ${n} · expected</span></div>`; };
+  document.getElementById('week').innerHTML = days.map(([d, n, eps, today]) =>
+    `<div class="ai-day ${today ? 'today' : ''}"><h3>${today ? 'Today' : d} <b>${n}</b></h3>${eps.length ? eps.map(tile).join('') : '<div class="ai-empty">No episodes in the catalog</div>'}</div>`).join('');
+  const strip = document.getElementById('strip'), list = document.getElementById('list');
+  strip.innerHTML = days.map(([d, n, eps], i) => `<button data-i="${i}" class="${eps.length ? 'has' : ''} ${eps.some(([k]) => P[k][3]) ? 'mine' : ''}">${d}<b>${n}</b><i></i></button>`).join('');
+  const show = (i) => {
+    strip.querySelectorAll('button').forEach((b) => b.classList.toggle('on', +b.dataset.i === i));
+    const [d, n, eps, today] = days[i];
+    list.innerHTML = `<p class="m-eyebrow" style="margin:14px 0 2px;color:var(--ink-soft)">${today ? 'Today · ' : ''}${d} ${n} Nov</p>` + (eps.length ? eps.map(([k, ep]) => { const [t, img, total, mine] = P[k];
+      return `<div class="ai-row"><div class="poster"><img src="../posters/${img}.webp" alt=""></div><div><b>${t}</b><span>Ep ${ep} of ${total} · expected</span></div>${mine ? '<span class="m-badge new">On your list</span>' : ''}</div>`; }).join('')
+      : '<p class="m-muted" style="font-size:.86rem;padding:14px 0">No episodes in the catalog on this day.</p>');
+  };
+  strip.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) show(+b.dataset.i); });
+  show(0);
+</script>
+</body>
+</html>

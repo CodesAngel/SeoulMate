@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en" data-state="play">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock: six degrees</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="stylesheet" href="../assets/mock.css">
+<script src="../assets/mock.js"></script>
+<style>
+  .cx { display: grid; grid-template-columns: minmax(0, 660px) 320px; gap: 34px; justify-content: center; padding: 34px 0 70px; }
+  .cx-card { padding: 22px 24px 24px; }
+  .cx-card h1 { font-family: var(--font-serif); font-weight: 500; font-size: var(--fs-group); margin: 4px 0 18px; color: var(--ink); }
+  .cx-pair { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 18px; border-radius: 16px; background: var(--section-alt); border: 1px solid var(--line); text-align: center; }
+  .cx-pair .m-avatar { width: 58px; height: 58px; font-size: 1.05rem; margin: 0 auto 8px; }
+  .cx-pair b { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; color: var(--ink); }
+  .cx-pair small { display: block; font-size: .75rem; color: var(--ink-soft); }
+  .cx-pair .arrow { color: var(--ink-soft); }
+  .cx-best { font-size: .82rem; color: var(--ink-soft); margin: 10px 0 18px; text-align: center; }
+  .cx-steps { position: relative; padding-left: 26px; }
+  .cx-steps::before { content: ""; position: absolute; left: 8px; top: 10px; bottom: 30px; width: 2px; background: var(--line); }
+  .cx-step { position: relative; margin-bottom: 18px; }
+  .cx-step::before { content: ""; position: absolute; left: -24px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--coral); border: 3px solid var(--cream); box-shadow: 0 0 0 1px var(--coral); }
+  .cx-step.todo::before { background: var(--cream); }
+  .cx-step .who { font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .cx-step .who span { font-weight: 500; color: var(--ink-soft); }
+  .cx-sel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cx-select { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1.5px solid var(--line); background: var(--cream); border-radius: 12px; padding: 10px 12px; font-size: .88rem; font-weight: 600; color: var(--ink); min-width: 0; }
+  .cx-select span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .cx-select small { display: block; font-size: .64rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  .cx-select.open { border-color: var(--coral); }
+  .cx-select.empty { color: var(--ink-soft); }
+  .cx-dd { position: relative; }
+  .cx-menu { position: absolute; z-index: 4; left: 0; right: 0; top: calc(100% + 6px); padding: 6px; max-height: 270px; overflow: auto; }
+  .cx-opt { display: flex; gap: 10px; align-items: center; padding: 7px 8px; border-radius: 10px; font-size: .86rem; color: var(--ink); cursor: pointer; }
+  .cx-opt:hover, .cx-opt.hl { background: var(--paper-deep); }
+  .cx-opt .poster { width: 26px; border-radius: 4px; }
+  .cx-opt small { color: var(--ink-soft); margin-left: auto; font-size: .74rem; }
+  .cx-opt .hit { color: #22a06b; font-weight: 800; font-size: .7rem; }
+  .cx-btns { display: flex; gap: 8px; margin-top: 4px; }
+
+  .cx-result { border-radius: 16px; padding: 18px; background: #e9f7f0; border: 1px solid #bfe6d2; margin-top: 4px; }
+  .cx-result.meh { background: #fdf5e4; border-color: #f0dcae; }
+  .cx-result.lost { background: var(--section-alt); border-color: var(--line); }
+  [data-theme="dark"] .cx-result { background: rgba(34, 160, 107, .12); border-color: rgba(34, 160, 107, .35); }
+  [data-theme="dark"] .cx-result.meh { background: rgba(227, 167, 47, .12); border-color: rgba(227, 167, 47, .35); }
+  [data-theme="dark"] .cx-result.lost { background: var(--paper-deep); border-color: var(--line); }
+  .cx-result h2 { font-family: var(--font-serif); font-weight: 600; font-size: 1.25rem; margin: 0 0 4px; color: var(--ink); }
+  .cx-result p { margin: 0 0 14px; font-size: .88rem; color: var(--ink-soft); }
+  .cx-path { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .cx-node { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 74px; text-align: center; font-size: .7rem; font-weight: 700; color: var(--ink); line-height: 1.2; }
+  .cx-node .m-avatar { width: 44px; height: 44px; font-size: .8rem; }
+  .cx-node .poster { width: 44px; border-radius: 6px; }
+  .cx-node.drama { font-weight: 500; color: var(--ink-soft); }
+  .cx-path > svg { color: var(--ink-soft); flex: none; }
+  .cx-sq { display: flex; gap: 5px; margin-bottom: 12px; }
+  .cx-sq span { width: 22px; height: 22px; border-radius: 5px; background: #22a06b; }
+  .cx-sq span.y { background: #e3a72f; }
+  .cx-small { font-size: .8rem; color: var(--ink-soft); margin: 0 0 6px; font-weight: 700; }
+  .cx-path.mini .cx-node { width: 62px; font-size: .64rem; }
+  .cx-path.mini .m-avatar, .cx-path.mini .poster { width: 34px; }
+  .cx-path.mini .m-avatar { height: 34px; font-size: .7rem; }
+
+  .cx-aside .m-card { padding: 18px; margin-bottom: 18px; }
+  .cx-aside h3 { font-family: var(--font-serif); font-weight: 600; font-size: 1.1rem; margin: 0 0 4px; color: var(--ink); }
+  .cx-aside p { font-size: .82rem; color: var(--ink-soft); margin: 0 0 12px; }
+  .cx-in { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); border-radius: 12px; padding: 9px 12px; font-size: .88rem; font-weight: 600; color: var(--ink); margin-bottom: 8px; background: var(--cream); }
+  .cx-in small { color: var(--ink-soft); font-weight: 700; width: 34px; }
+  .cx-free-res { margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--paper-deep); font-size: .82rem; color: var(--ink); display: flex; gap: 10px; align-items: center; }
+  .cx-free-res .poster { width: 34px; border-radius: 5px; }
+  .cx-how { font-size: .82rem; color: var(--ink-soft); padding-left: 18px; margin: 0; list-style: disc; }
+  .cx-how li { margin-bottom: 6px; }
+
+  @media (max-width: 1050px) { .cx { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 780px) {
+    .cx { padding: 16px 0 50px; gap: 18px; }
+    .cx-card { padding: 16px; }
+    .cx-sel { grid-template-columns: 1fr; }
+    .cx-path { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .cx-path > svg { transform: rotate(90deg); margin-left: 14px; }
+    .cx-node { flex-direction: row; width: auto; gap: 10px; font-size: .82rem; text-align: left; }
+    .cx-path.mini { display: none; }
+    .cx-aside .how { display: none; }
+  }
+</style>
+</head>
+<body>
+<div data-header=""></div>
+<main class="shell cx">
+  <div class="m-card cx-card">
+    <p class="m-eyebrow">Six degrees #12 · Today's pair</p>
+    <h1>Link these two actors</h1>
+    <div class="cx-pair">
+      <div><span class="m-avatar" style="background:#7a2f55">PB</span><b>Park Bo Young</b><small>9 dramas</small></div>
+      <div class="arrow"><i data-icon="arrow-right" data-size="26"></i></div>
+      <div><span class="m-avatar" style="background:#2f4f7a">SJ</span><b>Song Joong Ki</b><small>10 dramas</small></div>
+    </div>
+    <p class="cx-best">Shortest possible: <b>2 steps</b> · main cast only (top 6 billed)</p>
+
+    <!-- Playing -->
+    <div data-when="play">
+      <div class="cx-steps">
+        <div class="cx-step">
+          <div class="who">Park Bo Young <span>was in</span></div>
+          <div class="cx-sel">
+            <div class="cx-select"><span><small>Drama</small>Gold Land (2026)</span><i data-icon="chevron-down" data-size="16"></i></div>
+            <div class="cx-select"><span><small>With co-star</small>Kim Sung Cheol</span><i data-icon="chevron-down" data-size="16"></i></div>
+          </div>
+        </div>
+        <div class="cx-step todo">
+          <div class="who">Kim Sung Cheol <span>was in</span></div>
+          <div class="cx-sel">
+            <div class="cx-dd">
+              <div class="cx-select open empty"><span><small>Drama</small>Choose a drama</span><i data-icon="chevron-down" data-size="16"></i></div>
+              <div class="m-card cx-menu">
+                <div class="cx-opt" data-go="longer"><div class="poster"><img src="../posters/4QLgQ_4f.webp" alt=""></div>Our Beloved Summer<small>2021</small></div>
+                <div class="cx-opt hl" data-go="best"><div class="poster"><img src="../posters/23m6wf.webp" alt=""></div>Arthdal Chronicles Part 3<small>2019</small></div>
+                <div class="cx-opt" data-go="longer"><div class="poster"><img src="../posters/dWyEW_4f.webp" alt=""></div>Do You Like Brahms?<small>2020</small></div>
+                <div class="cx-opt" data-go="longer"><div class="poster"><img src="../posters/PxNq13_4f.webp" alt=""></div>Hellbound Season 2<small>2024</small></div>
+                <div class="cx-opt" data-go="longer"><div class="poster"><img src="../posters/ElxBWf.webp" alt=""></div>The Wind Blows<small>2019</small></div>
+                <div class="cx-opt" data-go="longer"><div class="poster"><img src="../posters/33EKef.webp" alt=""></div>To. Jenny<small>2018</small></div>
+              </div>
+            </div>
+            <div class="cx-select empty"><span><small>With co-star</small>Pick a drama first</span><i data-icon="chevron-down" data-size="16"></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="cx-btns" style="margin-top:200px"><button class="m-btn"><i data-icon="arrow-left" data-size="15"></i> Undo step</button><button class="m-btn" data-go="giveup">Give up</button></div>
+    </div>
+
+    <!-- Solved, best -->
+    <div class="cx-result" data-when="best">
+      <h2>Solved in 2 steps. That's the best possible!</h2>
+      <p>Song Joong Ki is in the cast of the drama you picked, so the chain closed by itself.</p>
+      <div class="cx-path">
+        <div class="cx-node"><span class="m-avatar" style="background:#7a2f55">PB</span>Park Bo Young</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node drama"><div class="poster"><img src="../posters/nOzye6_4f.webp" alt=""></div>Gold Land</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node"><span class="m-avatar" style="background:#5a6b3c">KS</span>Kim Sung Cheol</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node drama"><div class="poster"><img src="../posters/23m6wf.webp" alt=""></div>Arthdal Chronicles 3</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node"><span class="m-avatar" style="background:#2f4f7a">SJ</span>Song Joong Ki</div>
+      </div>
+      <div class="cx-sq"><span></span><span></span></div>
+      <div class="m-row"><button class="m-btn primary small"><i data-icon="share" data-size="14"></i> Share</button><button class="m-btn small" data-go="play">Replay (mock)</button></div>
+    </div>
+
+    <!-- Solved, longer -->
+    <div class="cx-result meh" data-when="longer">
+      <h2>Solved in 3 steps.</h2>
+      <p>Nice! The shortest chain was 2 steps; it's shown below.</p>
+      <div class="cx-path">
+        <div class="cx-node"><span class="m-avatar" style="background:#7a2f55">PB</span>Park Bo Young</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node drama"><div class="poster"><img src="../posters/bvp1Vf.webp" alt=""></div>Oh My Ghost</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node"><span class="m-avatar" style="background:#3c6b7a">JJ</span>Jo Jung Suk</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node drama"><div class="poster"><img src="../posters/RXXL6_4f.webp" alt=""></div>Hospital Playlist</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node"><span class="m-avatar" style="background:#6b3c7a">SH</span>Shin Hyun Been</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node drama"><div class="poster"><img src="../posters/Rqp66_4f.webp" alt=""></div>Reborn Rich</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node"><span class="m-avatar" style="background:#2f4f7a">SJ</span>Song Joong Ki</div>
+      </div>
+      <div class="cx-sq"><span></span><span></span><span class="y"></span></div>
+      <p class="cx-small">Shortest: Park Bo Young → Gold Land → Kim Sung Cheol → Arthdal Chronicles 3 → Song Joong Ki</p>
+      <div class="m-row"><button class="m-btn primary small"><i data-icon="share" data-size="14"></i> Share</button><button class="m-btn small" data-go="play">Replay (mock)</button></div>
+    </div>
+
+    <!-- Gave up -->
+    <div class="cx-result lost" data-when="giveup">
+      <h2>Here's the shortest chain</h2>
+      <p>2 steps. Your streak starts again tomorrow; free play is open any time.</p>
+      <div class="cx-path">
+        <div class="cx-node"><span class="m-avatar" style="background:#7a2f55">PB</span>Park Bo Young</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node drama"><div class="poster"><img src="../posters/nOzye6_4f.webp" alt=""></div>Gold Land</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node"><span class="m-avatar" style="background:#5a6b3c">KS</span>Kim Sung Cheol</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node drama"><div class="poster"><img src="../posters/23m6wf.webp" alt=""></div>Arthdal Chronicles 3</div><i data-icon="arrow-right" data-size="16"></i>
+        <div class="cx-node"><span class="m-avatar" style="background:#2f4f7a">SJ</span>Song Joong Ki</div>
+      </div>
+      <div class="m-row"><button class="m-btn small" data-go="play">Replay (mock)</button></div>
+    </div>
+  </div>
+
+  <aside class="cx-aside">
+    <div class="m-card">
+      <h3>Free play</h3>
+      <p>Any two actors, any time.</p>
+      <div class="cx-in"><small>From</small>Kim Go Eun</div>
+      <div class="cx-in"><small>To</small>Lee Min Ho</div>
+      <button class="m-btn dark block small" style="margin-top:4px">Find the shortest chain</button>
+      <div class="cx-free-res"><div class="poster"><img src="../posters/eoD8Wf.webp" alt=""></div><div><b>1 step</b>: both star in The King: Eternal Monarch (2020)</div></div>
+    </div>
+    <div class="m-card how">
+      <h3>How to play</h3>
+      <ul class="cx-how"><li>Pick a drama the current actor was in, then a co-star from its cast.</li><li>The lists only offer real links, so every step is valid. The puzzle is finding a short route.</li><li>If the target actor is in the drama you pick, you're done.</li><li>A new pair every day: actors with 5+ dramas, 2 to 4 steps apart.</li></ul>
+    </div>
+  </aside>
+</main>
+</body>
+</html>
