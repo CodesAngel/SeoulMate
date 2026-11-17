@@ -18,6 +18,11 @@ import type {
   UpdateCommentPayload,
   UpdatePostPayload,
 } from "@/lib/types";
+import type {
+  MyWrappedResponse,
+  PublicWrappedResponse,
+  WrappedShareInfo,
+} from "@/lib/wrapped";
 import { z } from "zod";
 import { IS_MOCK_MODE } from "@/lib/data-mode";
 import * as mock from "@/lib/mock-data";
@@ -56,6 +61,8 @@ const watchStatusSchema = z.enum(["planned", "watching", "completed", "paused", 
 const watchlistEntrySchema = z.object({
   drama: dramaSchema,
   status: watchStatusSchema,
+  episodes_watched: z.number().int().nonnegative().nullable().optional(),
+  completed_at: z.string().nullable().optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
 });
@@ -313,6 +320,59 @@ export async function saveMyWatchlistItem(
     body: JSON.stringify({ status }),
   });
   return { item: watchlistEntrySchema.parse(response.item) };
+}
+
+export async function saveMyEpisodeProgress(
+  accessToken: string,
+  dramaId: number,
+  episodesWatched: number,
+) {
+  if (IS_MOCK_MODE) throw new ApiError("Episode sync is not available in mock mode.", 501);
+  const response = await apiRequest<{ item: WatchlistEntry }>(
+    `/me/watchlist/${dramaId}/progress`,
+    {
+      method: "PATCH",
+      headers: bearerHeaders(accessToken),
+      body: JSON.stringify({ episodes_watched: episodesWatched }),
+    },
+  );
+  return { item: watchlistEntrySchema.parse(response.item) };
+}
+
+export function getMyWrapped(accessToken: string, year: number, signal?: AbortSignal) {
+  if (IS_MOCK_MODE) throw new ApiError("Wrapped is not available in mock mode.", 501);
+  return apiRequest<MyWrappedResponse>(`/me/wrapped?year=${year}`, {
+    headers: bearerHeaders(accessToken),
+    signal,
+  });
+}
+
+export function shareMyWrapped(accessToken: string, year: number, showName: boolean) {
+  return apiRequest<{ share: WrappedShareInfo }>("/me/wrapped/share", {
+    method: "POST",
+    headers: bearerHeaders(accessToken),
+    body: JSON.stringify({ year, show_name: showName }),
+  });
+}
+
+export function deleteMyWrappedShare(accessToken: string, year: number) {
+  return apiRequest<void>(`/me/wrapped/share?year=${year}`, {
+    method: "DELETE",
+    headers: bearerHeaders(accessToken),
+  });
+}
+
+/** Public snapshot; null when the link was deleted or never existed. */
+export async function getWrappedShare(id: string, cacheInit?: RequestInit) {
+  try {
+    return await apiRequest<PublicWrappedResponse>(
+      `/wrapped/shares/${encodeURIComponent(id)}`,
+      cacheInit,
+    );
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }
 
 export function removeMyWatchlistItem(accessToken: string, dramaId: number) {

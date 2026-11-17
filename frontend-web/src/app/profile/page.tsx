@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowRight,
   Award,
   Clapperboard,
   Clock,
@@ -18,7 +19,10 @@ import { useApp } from "@/components/app-provider";
 import { useAuth } from "@/components/auth-provider";
 import { StarRating } from "@/components/star-rating";
 import { TasteDNAChart } from "@/components/taste-dna-chart";
+import { PosterImage } from "@/components/poster-image";
 import { getProfile, rateDrama, resetProfile, searchDramas } from "@/lib/api";
+import type { WatchlistEntry } from "@/lib/types";
+import { WRAPPED_FIRST_YEAR, wrappedSeasonYear } from "@/lib/wrapped";
 
 function PreferenceList({
   title,
@@ -61,6 +65,44 @@ function PreferenceList({
         </p>
       )}
     </div>
+  );
+}
+
+/** From 1 December to 15 January: a link to the fan's Wrapped. */
+function WrappedBanner({ entries }: { entries: WatchlistEntry[] }) {
+  const year = wrappedSeasonYear();
+  if (!year || year < WRAPPED_FIRST_YEAR) return null;
+  const finished = entries.filter(
+    (entry) =>
+      entry.status === "completed" &&
+      entry.completed_at &&
+      new Date(entry.completed_at).getUTCFullYear() === year,
+  );
+  const left = 3 - finished.length;
+
+  return (
+    <Link className="wr-banner" href={`/wrapped/${year}`}>
+      {finished.length > 0 && (
+        <div className="wr-banner-stack" aria-hidden="true">
+          {finished.slice(0, 3).map((entry) => (
+            <div className="wr-poster" key={entry.drama.drama_id ?? entry.drama.Title}>
+              <PosterImage src={entry.drama.poster_thumbnail_url} alt="" sizes="46px" />
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="wr-banner-copy">
+        <b>{left > 0 ? `Your ${year} Wrapped is almost ready` : `Your ${year} Wrapped is ready`}</b>
+        <span>
+          {left > 0
+            ? `Finish ${left} more ${left === 1 ? "drama" : "dramas"} this year to unlock it.`
+            : `${finished.length} dramas, your top actor, and the trope you can't resist.`}
+        </span>
+      </div>
+      <span className="wr-next">
+        Open Wrapped <ArrowRight size={15} />
+      </span>
+    </Link>
   );
 }
 
@@ -162,6 +204,8 @@ export default function ProfilePage() {
       <div className="shell profile-layout">
         {/* Main Column */}
         <section className="profile-main-col">
+          {user && <WrappedBanner entries={watchlistEntries} />}
+
           {/* Persona Hero Card */}
           <div className="profile-card persona-hero-card">
             <div className="persona-hero-content">

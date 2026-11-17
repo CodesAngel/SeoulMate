@@ -1,5 +1,6 @@
 """Authenticated watchlist and rating routes backed by PostgreSQL."""
 
+from datetime import datetime, timezone
 from decimal import Decimal
 import json
 from pathlib import Path
@@ -24,6 +25,10 @@ router = APIRouter(prefix="/me", tags=["My library"])
 
 class WatchlistUpdate(BaseModel):
     status: WatchStatus = "planned"
+
+
+class EpisodeProgressUpdate(BaseModel):
+    episodes_watched: int = Field(ge=0, le=5000)
 
 
 class WatchlistMergeItem(WatchlistUpdate):
@@ -93,9 +98,27 @@ def _watchlist_payload(item: WatchlistItem, drama: Drama) -> dict:
     return {
         "drama": _drama_payload(drama),
         "status": item.status,
+        "episodes_watched": item.episodes_watched,
+        "completed_at": item.completed_at,
         "created_at": item.created_at,
         "updated_at": item.updated_at,
     }
+
+
+def _apply_status(item: WatchlistItem, drama: Drama, new_status: str) -> None:
+    """Sets the status and keeps `completed_at` / progress in step with it.
+
+    `completed_at` is when the drama was last marked finished (Wrapped counts
+    dramas by it); it is cleared when the drama leaves "completed".
+    """
+    if new_status == "completed":
+        if item.status != "completed" or item.completed_at is None:
+            item.completed_at = datetime.now(timezone.utc)
+        if drama.episodes:
+            item.episodes_watched = drama.episodes
+    elif item.status == "completed":
+        item.completed_at = None
+    item.status = new_status
 
 
 def _require_drama(db: Session, drama_id: int) -> Drama:
@@ -318,11 +341,36 @@ def save_watchlist_item(
         item = WatchlistItem(
             user_id=current_user.id,
             drama_id=drama_id,
-            status=update.status,
+            status="planned",
         )
         db.add(item)
-    else:
-        item.status = update.status
+    _apply_status(item, drama, update.status)
+    db.commit()
+    db.refresh(item)
+    return {"item": _watchlist_payload(item, drama)}
+
+
+@router.patch("/watchlist/{drama_id}/progress")
+def save_episode_progress(
+    drama_id: int,
+    update: EpisodeProgressUpdate,
+    current_user: AuthenticatedUser = Depends(require_user),
+    db: Session = Depends(get_db),
+):
+    drama = _require_drama(db, drama_id)
+    item = db.get(
+        WatchlistItem,
+        {"user_id": current_user.id, "drama_id": drama_id},
+    )
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Save this drama to your list first",
+        )
+    episodes = update.episodes_watched
+    if drama.episodes:
+        episodes = min(episodes, drama.episodes)
+    item.episodes_watched = episodes
     db.commit()
     db.refresh(item)
     return {"item": _watchlist_payload(item, drama)}
@@ -360,6 +408,11 @@ def merge_guest_watchlist(
                         user_id=current_user.id,
                         drama_id=drama_id,
                         status=watch_status,
+                        completed_at=(
+                            datetime.now(timezone.utc)
+                            if watch_status == "completed"
+                            else None
+                        ),
                     )
                 )
         db.commit()
@@ -440,11 +493,10 @@ def save_rating(
         watchlist_item = WatchlistItem(
             user_id=current_user.id,
             drama_id=drama_id,
-            status="completed",
+            status="planned",
         )
         db.add(watchlist_item)
-    else:
-        watchlist_item.status = "completed"
+    _apply_status(watchlist_item, drama, "completed")
 
     db.commit()
     db.refresh(rating)

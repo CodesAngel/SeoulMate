@@ -32,6 +32,8 @@ export type WatchStatus =
 export type WatchlistEntry = {
   drama: Drama;
   status: WatchStatus;
+  episodes_watched?: number | null;
+  completed_at?: string | null;
   created_at?: string;
   updated_at?: string;
 };

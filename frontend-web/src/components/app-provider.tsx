@@ -16,6 +16,7 @@ import {
   logInteraction,
   mergeMyWatchlist,
   removeMyWatchlistItem,
+  saveMyEpisodeProgress,
   saveMyRating,
   saveMyWatchlistItem,
 } from "@/lib/api";
@@ -40,6 +41,8 @@ type AppContextValue = {
   toggleSaved: (drama: Drama) => void;
   setWatchStatus: (drama: Drama, status: WatchStatus) => void;
   saveRating: (drama: Drama, rating: number) => Promise<void>;
+  /** Saves episode progress to the account; returns false when it isn't saved there. */
+  saveEpisodeProgress: (drama: Drama, episodes: number) => Promise<boolean>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -293,6 +296,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [getAccessToken, user],
   );
 
+  const saveEpisodeProgress = useCallback(
+    async (drama: Drama, episodes: number) => {
+      if (!user || !drama.drama_id) return false;
+      if (!accountWatchlist.some((entry) => sameDrama(entry.drama, drama))) return false;
+      try {
+        const accessToken = await getAccessToken();
+        if (!accessToken) throw new Error("Your session has expired. Please sign in again.");
+        const response = await saveMyEpisodeProgress(accessToken, drama.drama_id, episodes);
+        // Keep the list order; only the progress changes.
+        setAccountWatchlist((current) =>
+          current.map((entry) =>
+            sameDrama(entry.drama, drama)
+              ? { ...entry, episodes_watched: response.item.episodes_watched }
+              : entry,
+          ),
+        );
+        return true;
+      } catch (error) {
+        setNotice(errorMessage(error));
+        return false;
+      }
+    },
+    [accountWatchlist, getAccessToken, user],
+  );
+
   const value = useMemo(
     () => ({
       ready,
@@ -308,6 +336,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       toggleSaved,
       setWatchStatus,
       saveRating,
+      saveEpisodeProgress,
     }),
     [
       getRating,
@@ -316,6 +345,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       libraryError,
       ratingEntries,
       ready,
+      saveEpisodeProgress,
       saveRating,
       sessionId,
       setWatchStatus,
