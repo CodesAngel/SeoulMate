@@ -8,7 +8,7 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .58; }
 ::selection { background: rgba(198, 60, 109, 0.18); color: #151827; }
 :where(a, button, input, select):focus-visible { outline: 3px solid rgba(198, 60, 109, 0.35); outline-offset: 3px; }
-.skip-link { position: fixed; z-index: 200; top: 10px; left: 10px; transform: translateY(-150%); border-radius: 8px; background: var(--ink); color: white; padding: 10px 14px; font-weight: 800; }
+.skip-link { position: fixed; z-index: 200; top: 10px; left: 10px; transform: translateY(-150%); border-radius: 8px; background: var(--ink); color: var(--paper); padding: 10px 14px; font-weight: 800; }
 .skip-link:focus { transform: translateY(0); }
 .shell { width: min(1240px, calc(100% - 40px)); margin-inline: auto; }
 .display { font-family: var(--font-serif); font-weight: var(--heading-weight); letter-spacing: -.02em; }

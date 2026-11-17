@@ -8,6 +8,9 @@
   gap: 24px;
   flex-wrap: wrap;
 }
+.watchlist-hero-flex .text-link {
+  margin-top: 12px;
+}
 .view-toggle-group {
   display: inline-flex;
   border: 1px solid var(--line);
@@ -27,7 +30,7 @@
   padding: 8px 14px;
   font-size: 0.78rem;
   font-weight: 750;
-  color: #6a6b65;
+  color: var(--ink-soft);
   transition: all 160ms ease;
   cursor: pointer;
 }
@@ -36,7 +39,7 @@
 }
 .view-toggle-btn.active {
   background: var(--ink);
-  color: white;
+  color: var(--paper);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 .watchlist-filter-bar {

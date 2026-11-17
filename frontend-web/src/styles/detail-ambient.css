@@ -158,7 +158,7 @@
 }
 .tag-actor:hover {
   background: var(--ink);
-  color: white;
+  color: var(--paper);
 }
 .tag-director:hover {
   background: var(--lemon);
