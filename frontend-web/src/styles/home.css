@@ -64,3 +64,21 @@
 .mood-card p { font-size: .84rem; max-width: 260px; line-height: 1.5; margin: 0; color: rgba(255,255,255,.88); }
 .mood-card .arrow-disc { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: #FFFFFF; color: #151827; align-self: flex-end; box-shadow: 0 4px 14px rgba(0,0,0,.2); transition: transform 180ms ease; }
 .mood-card:hover .arrow-disc { transform: scale(1.08); }
+
+/* "Tonight's match" opens the drama page. The link sits exactly over the art area
+   without its own stacking, so the poster stays under the fade; only the poster and
+   the label take clicks. */
+.hero-feature-link { position: absolute; inset: 0; pointer-events: none; color: inherit; }
+.hero-feature-link .hero-poster-main,
+.hero-feature-link .hero-feature-label { pointer-events: auto; cursor: pointer; }
+.hero-feature-link .hero-poster-main { transition: transform 260ms ease, box-shadow 260ms ease; }
+.hero-feature-link:hover .hero-poster-main { transform: rotate(4deg) translateY(-8px); box-shadow: 0 38px 80px rgba(0,0,0,.6); }
+.hero-feature-link:focus-visible { outline: none; }
+.hero-feature-link:focus-visible .hero-poster-main { outline: 3px solid var(--lemon); outline-offset: 4px; }
+.hero-feature-label .hero-feature-cta { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,.85); font-style: normal; font-size: .82rem; font-weight: 700; letter-spacing: 0; text-transform: none; opacity: 0; transform: translateY(4px); transition: opacity 200ms ease, transform 200ms ease; }
+.hero-feature-cta svg { display: block; }
+.hero-feature-link:hover .hero-feature-cta,
+.hero-feature-link:focus-visible .hero-feature-cta { opacity: 1; transform: none; }
+.hero-feature-link:hover h2 { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+/* Touch screens have no hover: always show the cue. */
+@media (hover: none) { .hero-feature-label .hero-feature-cta { opacity: 1; transform: none; } }

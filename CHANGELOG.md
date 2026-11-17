@@ -2,6 +2,29 @@
 
 Important project history reconstructed from Git commits and project documentation.
 
+## 2026-11-17
+
+### Drama pages: extra posters, real trailers and cast photos from TMDB
+
+Drama pages now use [TMDB](https://www.themoviedb.org) (The Movie Database) for things the catalog doesn't have. Everything is loaded from TMDB's and YouTube's servers when a page renders; no TMDB images or text are stored in the repository, Supabase or Vercel. The site's footer carries TMDB's attribution and logo, as TMDB's API terms require.
+
+- **Matching dramas to TMDB** (`scripts/match_tmdb.py`): for each drama, TMDB's TV search is tried with the English title, the Korean title (from "Also Known As") and the year, keeping only Korean shows. The best candidate is then checked against the episode count. A match is kept when the name agrees and the year is the same, or when the year is one off and the episode count also agrees. Result: **1,830 of 2,130 dramas matched** (1,644 high, 186 medium confidence). 257 aren't on TMDB (mostly short specials and new 2026 shows); 43 doubtful matches were left out. Every borderline match was checked by hand; one wrong match (*Dangerous Love*, a 2006 one-episode special matched to a 2005 daily drama) led to the stricter year rule. Only the IDs are saved, in `frontend-web/src/data/tmdb-ids.json`; the review report goes to `data/tmdb/` (gitignored). Seasons that TMDB files under the first season (e.g. *The Player 2*) are skipped.
+- **One request per drama page** (`lib/tmdb.ts`): the server asks TMDB once for the show's images, videos and cast, and caches the answer for a week (TMDB allows up to six months). It needs a `TMDB_API_KEY` server variable; without it, or for unmatched dramas, the page looks as before.
+- **Poster gallery** (`components/poster-gallery.tsx`): a "Posters" strip between the drama details and "More like …" with up to 12 portrait posters (Korean and English, best-voted first). Tapping one opens a full-size viewer with arrows, arrow keys and Escape. Shown when TMDB has at least 2 posters (about 1,700 dramas). The main poster is unchanged.
+- **Real trailers** (`components/trailer-modal.tsx`): "Watch Trailer" used to embed a YouTube *search*, which YouTube no longer supports. It now plays the drama's official trailer from TMDB: Trailer before Teaser, official first, English (usually subtitled) before Korean, then the earliest. About 60% of matched dramas have one (120 of a 200-drama sample). Without one, the box says so and offers a YouTube search link.
+- **Cast with photos** (`components/cast-section.tsx`): a new "Cast" section after "At a glance" with a round photo of each actor and the character they play ("Hyun Bin, as Ri Jeong-hyeok"). Names, order and spelling stay the catalog's own, and a card still searches for that actor. The catalog's names are paired with TMDB's cast *of the same drama*, with Korean romanisation variants treated as equal (eo/u, oo/u, k/g, l/r, ch/j…), so same-name actors in other dramas can't be mixed up: **86% of names paired** in a test on 50 random dramas (e.g. "Yoo Chea Myung" ↔ "Yoo Jae-myung"). Missing or broken photos show the actor's initials. "Full cast · N more" opens the rest of TMDB's cast (the catalog keeps only the top 6 billed), up to 30, with a link to TMDB for the rest. When the section is shown, "Cast & Production" becomes "Production"; dramas without a TMDB match keep the name tags.
+- On phones the cast row scrolls sideways like the home picks; the poster strip and viewer fit 360 px screens.
+
+### Home: "Tonight's match" opens its drama
+
+The large hero poster and its title were not links. They now open the drama page as one link, with a hover lift, an underlined title and a "View drama →" cue (always visible on touch screens), a visible keyboard focus ring, and a label for screen readers. The faded poster behind it stays decoration. No link is shown while the picks are loading.
+
+### Dark mode: unreadable selected buttons
+
+In dark mode `--ink` turns near-white, but several elements put white text on an `--ink` background, so the text vanished. Fixed by using `--paper` for the text: the selected **Board View / Grid View** button on My list (also the inactive button colour now follows the theme, and the "Sign in to sync your library" link has more space above it), pop-up **toasts**, the **skip link**, and the hover state of **actor tags**.
+
+**Checked**: Playwright screenshots at 390 and 1280 px in light and dark on several drama pages and the home page: no page errors, no sideways scroll; gallery viewer, trailer, full-cast toggle and hero link clicked through; lazy cast photos load when scrolled to. tsc, eslint and `next build` clean. No search or ranking change, so the evaluator was not re-run.
+
 ## 2026-11-16
 
 ### Mobile layout fixes on the home page (issue #5)

@@ -49,6 +49,11 @@ SeoulMate understands moods, tropes, settings, actors and titles. It learns from
 - Typo-tolerant title matching, plus genre, year and rating filters
 - "More like this" recommendations on every drama page
 
+**Drama pages**
+- Cast with photos and character names, plus the full cast one tap away
+- The official trailer, and a gallery of extra Korean and English posters
+- Story tags, director and a spoiler-free summary built from the drama's data
+
 **Your taste**
 - Recommendations that adapt to your ratings, saves and clicks
 - Watchlist with viewing statuses (Planned, Watching, Completed, On hold, Dropped) and personal 1–10 ratings
@@ -127,6 +132,7 @@ These numbers describe this benchmark, not every possible search. Precision@3 ca
 | Search | Sentence Transformers, FAISS, BM25Plus, RapidFuzz, cross-encoder reranker |
 | Data and accounts | Supabase (PostgreSQL, Auth, Storage), SQLAlchemy, Alembic |
 | Training and data | PyTorch, pandas, NumPy; MyDramaList scraper |
+| Extra media | TMDB API (posters, trailers, cast photos), loaded live and never stored |
 | Hosting | Vercel, Azure, Supabase |
 
 ## Quick start
@@ -185,6 +191,13 @@ To check search quality while the API is running: `.\scripts\run_accuracy.ps1`.
 - Nightly catalog updates, so new dramas appear automatically
 - Moving taste profiles and preference learning fully into the database
 - Community phase 2: replies, more reactions and moderation
+
+## Data sources
+
+- The drama catalog (titles, synopses, casts, tags, ratings) comes from [MyDramaList](https://mydramalist.com).
+- Extra posters, trailers and cast photos come from [TMDB](https://www.themoviedb.org). Each drama is matched to its TMDB show once (`scripts/match_tmdb.py`, which saves only the IDs); the drama page then loads the media from TMDB's and YouTube's servers and caches TMDB's answer for a week. Re-run the script after a catalog release so new dramas get matched.
+
+<img src="frontend-web/public/tmdb-logo.svg" alt="TMDB" height="12"> This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 ## License
 

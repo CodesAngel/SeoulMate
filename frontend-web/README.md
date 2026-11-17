@@ -41,7 +41,7 @@ Then start this frontend:
 
 Open `http://localhost:3000`. Local confirmation and password-reset emails are captured at `http://127.0.0.1:54324`; they are not sent externally.
 
-The frontend uses `http://127.0.0.1:8001` by default. To use another API address, copy `.env.example` to `.env.local` and change `NEXT_PUBLIC_API_URL` before building or starting the app. Set `NEXT_PUBLIC_SITE_URL` to the public frontend origin so canonical and social metadata use the deployed URL.
+The frontend uses `http://127.0.0.1:8001` by default. To use another API address, copy `.env.example` to `.env.local` and change `NEXT_PUBLIC_API_URL` before building or starting the app. Set `NEXT_PUBLIC_SITE_URL` to the public frontend origin so canonical and social metadata use the deployed URL. Set `TMDB_API_KEY` (a TMDB v3 API key, server-only, no `NEXT_PUBLIC_` prefix) to show extra posters, official trailers and cast photos on drama pages; without it those pages show the catalog's own data only. Drama-to-TMDB IDs live in `src/data/tmdb-ids.json` and are rebuilt with `scripts/match_tmdb.py` from the repository root.
 
 ### Data modes
 
@@ -72,7 +72,7 @@ npm run start
 
 ## Production
 
-Live at **https://seoulmate-azure.vercel.app**. Vercel builds this folder (Root Directory `frontend-web`) on every push to `main`. Its environment variables are `NEXT_PUBLIC_API_URL` (the live API, `https://seoulmate.indiasouthcentral.cloudapp.azure.com`), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL`. All `NEXT_PUBLIC_` values are compiled into the bundle, so redeploy after changing one. The API only accepts requests from the origin set as `FRONTEND_URL` on the server. See [docs/deployment/DEPLOYMENT_ARCHITECTURE.md](../docs/deployment/DEPLOYMENT_ARCHITECTURE.md).
+Live at **https://seoulmate-azure.vercel.app**. Vercel builds this folder (Root Directory `frontend-web`) on every push to `main`. Its environment variables are `NEXT_PUBLIC_API_URL` (the live API, `https://seoulmate.indiasouthcentral.cloudapp.azure.com`), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` and `TMDB_API_KEY` (server-only). All `NEXT_PUBLIC_` values are compiled into the bundle, so redeploy after changing one. The API only accepts requests from the origin set as `FRONTEND_URL` on the server. See [docs/deployment/DEPLOYMENT_ARCHITECTURE.md](../docs/deployment/DEPLOYMENT_ARCHITECTURE.md).
 
 ## Routes
 

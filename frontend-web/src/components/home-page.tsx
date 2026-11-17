@@ -165,23 +165,42 @@ export function HomePage({
             <div className="hero-poster-back">
               <PosterImage src={backdrop?.poster_thumbnail_url ?? backdrop?.Image} alt={backdrop?.Title || "Featured drama"} sizes="(max-width: 950px) 50vw, 360px" />
             </div>
-            <div className="hero-poster-main">
-              {/* The hero poster is far larger than a card, so it uses the original
-                  image instead of the 480px thumbnail. */}
-              <PosterImage
-                src={feature?.poster_original_url ?? feature?.poster_thumbnail_url ?? feature?.Image}
-                alt={feature?.Title || "Featured drama"}
-                priority
-                sizes="(max-width: 950px) 60vw, 420px"
-                quality={90}
-              />
-            </div>
-            {feature && (
-              <div className="hero-feature-label">
-                <span>Tonight&apos;s match</span>
-                <h2>{feature.Title}</h2>
-              </div>
-            )}
+            {(() => {
+              const poster = (
+                <div className="hero-poster-main">
+                  {/* The hero poster is far larger than a card, so it uses the original
+                      image instead of the 480px thumbnail. */}
+                  <PosterImage
+                    src={feature?.poster_original_url ?? feature?.poster_thumbnail_url ?? feature?.Image}
+                    alt={feature?.Title || "Featured drama"}
+                    priority
+                    sizes="(max-width: 950px) 60vw, 420px"
+                    quality={90}
+                  />
+                </div>
+              );
+              // While the picks load there is no drama to open, so no link.
+              if (!feature) return poster;
+              // Poster and title open the drama page as one link. The link covers
+              // the art area but only the poster and the label take clicks, so the
+              // faded poster behind stays decoration.
+              return (
+                <Link
+                  className="hero-feature-link"
+                  href={dramaHref(feature)}
+                  aria-label={`Tonight's match: ${feature.Title}`}
+                >
+                  {poster}
+                  <div className="hero-feature-label">
+                    <span>Tonight&apos;s match</span>
+                    <h2>{feature.Title}</h2>
+                    <em className="hero-feature-cta">
+                      View drama <ArrowRight size={15} />
+                    </em>
+                  </div>
+                </Link>
+              );
+            })()}
           </div>
         </div>
         <div className="shell trust-strip">
