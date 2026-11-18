@@ -58,7 +58,7 @@ export function CastSection({
         <a className="tmdb-credit" href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">
           <span>Photos from</span>
           {/* Official TMDB logo, unmodified (TMDB attribution rules). */}
-          <Image src="/tmdb-logo.svg" alt="TMDB" width={78} height={10} unoptimized />
+          <Image src="/tmdb-logo.svg" alt="TMDB" width={78} height={10} unoptimized style={{ width: "auto", height: 10 }} />
         </a>
       </div>
 

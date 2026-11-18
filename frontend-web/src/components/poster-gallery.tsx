@@ -50,7 +50,7 @@ export function PosterGallery({ gallery, title }: { gallery: TmdbGallery; title:
         >
           <span>Posters from</span>
           {/* Official TMDB logo, unmodified (TMDB attribution rules). */}
-          <Image src="/tmdb-logo.svg" alt="TMDB" width={78} height={10} unoptimized />
+          <Image src="/tmdb-logo.svg" alt="TMDB" width={78} height={10} unoptimized style={{ width: "auto", height: 10 }} />
         </a>
       </div>
 
