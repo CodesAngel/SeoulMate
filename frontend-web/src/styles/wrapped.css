@@ -2,28 +2,42 @@
    The story card is always dark (plum), whatever the site theme; the page
    around it follows the theme. */
 
-.wr-page { display: flex; align-items: center; justify-content: center; gap: 22px; padding: 26px 16px 34px; }
-.wr-stage { display: flex; flex-direction: column; align-items: center; }
-.wr-arrow { width: 46px; height: 46px; flex: 0 0 auto; border-radius: 50%; border: 1px solid var(--line); background: var(--cream); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+/* Full screen on every size: a dark backdrop over the site header and footer. */
+.wr-page {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 20px 16px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: radial-gradient(120% 90% at 50% 0%, #2c1838 0%, #140f1c 58%, #0b0a10 100%);
+}
+.wr-stage { display: flex; flex-direction: column; align-items: center; margin: auto 0; }
+.wr-arrow { width: 48px; height: 48px; flex: 0 0 auto; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .2); background: rgba(255, 255, 255, .08); color: #fff; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background 150ms ease; }
 .wr-arrow svg { display: block; }
-.wr-arrow[disabled] { opacity: .35; cursor: default; }
-.wr-help { text-align: center; font-size: .8rem; color: var(--ink-soft); margin: 14px 0 0; }
+.wr-arrow:not([disabled]):hover { background: rgba(255, 255, 255, .18); }
+.wr-arrow[disabled] { opacity: .3; cursor: default; }
+.wr-help { text-align: center; font-size: .8rem; color: rgba(255, 255, 255, .55); margin: 14px 0 0; }
 
 .wr-story {
   --wr-pink: #f3a8c6;
   --wr-hot: #ff8db8;
-  width: 400px;
-  height: min(720px, calc(100dvh - 150px));
-  min-height: 600px;
+  width: 420px;
+  height: min(820px, calc(100dvh - 92px));
+  min-height: 540px;
   border-radius: 26px;
   position: relative;
   overflow: hidden;
   color: #fff;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 30px 60px rgba(30, 10, 40, .35);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
   user-select: none;
-  transition: background 300ms ease;
+  transition: background 300ms ease, width 300ms ease;
 }
 .wr-theme-plum { background: linear-gradient(165deg, #43195a 0%, #251433 45%, #12141f 100%); }
 .wr-theme-rose { background: linear-gradient(165deg, #6b1c43 0%, #2b1230 50%, #12141f 100%); }
@@ -64,6 +78,8 @@
 /* Slide 1: totals over a tilted wall of the year's posters */
 .wr-body-totals { justify-content: flex-start; }
 .wr-mosaic { position: absolute; inset: -40px -60px auto -60px; height: 330px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; transform: rotate(-8deg); opacity: .32; z-index: 1; pointer-events: none; }
+/* Fade the wall out under the top bar so "Wrapped 2026" and the close button stay readable. */
+.wr-mosaic { -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent 70px, #000 170px); mask-image: linear-gradient(180deg, transparent 0, transparent 70px, #000 170px); }
 .wr-mosaic .wr-poster { border-radius: 8px; }
 .wr-mosaic::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, #251433 92%); }
 .wr-stats { position: relative; z-index: 2; display: grid; gap: 10px; margin-top: auto; padding-bottom: 6px; }
@@ -116,6 +132,27 @@
 .wr-link-row a { color: #fff; text-decoration: underline; }
 .wr-link-row button { border: 0; background: none; color: rgba(255, 255, 255, .75); display: inline-flex; align-items: center; gap: 4px; font-size: .78rem; cursor: pointer; }
 .wr-link-row button svg { display: block; }
+.wr-share-intro { display: none; }
+
+/* Computer: the share slide widens; card on the left, words and buttons on the right. */
+@media (min-width: 781px) {
+  .wr-story.wr-wide { width: min(860px, calc(100vw - 180px)); }
+  .wr-body-share {
+    display: grid;
+    grid-template-columns: minmax(0, min(340px, calc((100dvh - 230px) * .8))) minmax(0, 1fr);
+    /* Rows 2-3 hold the words + buttons; rows 1 and 4 share the spare height, so they sit centred next to the card. */
+    grid-template-rows: 1fr auto auto 1fr;
+    column-gap: clamp(24px, 4vw, 44px);
+    padding: 12px clamp(24px, 4vw, 40px) 28px;
+  }
+  .wr-body-share > .wr-eyebrow { grid-column: 2; grid-row: 2; margin-bottom: 8px; }
+  .wr-body-share > .wr-card { grid-column: 1; grid-row: 1 / -1; align-self: center; }
+  .wr-share-side { grid-column: 2; grid-row: 3; min-width: 0; }
+  .wr-share-intro { display: block; }
+  .wr-share-intro .wr-big { margin-bottom: 10px; }
+  .wr-share-intro .wr-text { margin-bottom: 4px; }
+  .wr-share-side .wr-share { max-width: 360px; margin-top: 18px; }
+}
 
 /* Share card (same layout as the downloadable image) */
 .wr-card { background: #fffcf8; color: #151827; border-radius: 16px; overflow: hidden; aspect-ratio: 4 / 5; display: flex; flex-direction: column; box-shadow: 0 16px 40px rgba(0, 0, 0, .4); flex: 0 0 auto; }
@@ -157,6 +194,30 @@
 .wr-banner-copy b { display: block; font-family: var(--font-serif); font-size: 1.35rem; font-weight: 500; }
 .wr-banner-copy span { font-size: .85rem; color: rgba(255, 255, 255, .8); }
 .wr-banner .wr-next { margin-left: auto; flex: 0 0 auto; }
+/* On the profile page the banner is a grid item above the main column; the sidebar spans both rows. */
+.profile-layout:has(> .wr-banner) { grid-template-rows: auto 1fr; }
+.profile-layout > .wr-banner { grid-column: 1; margin: 0 0 -14px; }
+.profile-layout > .wr-banner ~ .profile-main-col { grid-column: 1; }
+.profile-layout > .wr-banner ~ .profile-sidebar { grid-column: 2; grid-row: 1 / span 2; }
+@media (max-width: 780px) {
+  .profile-layout:has(> .wr-banner) { grid-template-rows: none; }
+  .profile-layout > .wr-banner { order: -2; margin: 0; }
+  .profile-layout > .wr-banner ~ .profile-sidebar { grid-column: auto; grid-row: auto; }
+}
+
+/* Outside the December season: a slimmer "so far" version. */
+.wr-banner-quiet { padding: 12px 16px; gap: 14px; border-radius: 16px; margin-bottom: 20px; }
+.wr-banner-quiet .wr-banner-stack .wr-poster { width: 34px; margin-left: -10px; }
+.wr-banner-quiet .wr-banner-copy b { font-size: 1.1rem; }
+.wr-banner-quiet .wr-banner-copy span { font-size: .8rem; }
+.wr-banner-quiet .wr-next { padding: 7px 13px; font-size: .8rem; }
+
+/* Account page link */
+.account-wrapped-link { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 14px 16px; border-radius: 14px; color: #fff; background: linear-gradient(120deg, #43195a, #6b1c43); text-decoration: none; font-size: .82rem; line-height: 1.4; }
+.account-wrapped-link svg { display: block; flex: 0 0 auto; }
+.account-wrapped-link span { flex: 1; min-width: 0; color: rgba(255, 255, 255, .82); }
+.account-wrapped-link b { display: block; color: #fff; font-family: var(--font-serif); font-weight: 500; font-size: 1.05rem; }
+.account-wrapped-link:hover { filter: brightness(1.08); }
 
 /* Public snapshot page */
 .wr-public { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: center; padding: clamp(28px, 5vw, 64px) 0; }
@@ -168,7 +229,7 @@
 
 @media (max-width: 780px) {
   /* Phone: the story fills the screen, over the site header. */
-  .wr-page { padding: 0; display: block; }
+  .wr-page { padding: 0; display: block; overflow: hidden; }
   .wr-arrow, .wr-help { display: none; }
   .wr-story { position: fixed; inset: 0; z-index: 60; width: 100%; height: 100dvh; min-height: 0; border-radius: 0; box-shadow: none; }
   .wr-banner { flex-wrap: wrap; }

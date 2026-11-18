@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { Activity, KeyRound, LogOut, Trash2, UserRound } from "lucide-react";
+import { Activity, ArrowRight, KeyRound, LogOut, Sparkles, Trash2, UserRound } from "lucide-react";
+import { defaultWrappedYear } from "@/lib/wrapped";
 import { useAuth } from "@/components/auth-provider";
 import {
   deleteMyAccount,
@@ -29,6 +31,7 @@ export function AccountPanel({
 }) {
   const router = useRouter();
   const { user, supabase, signOut, getAccessToken } = useAuth();
+  const wrappedYear = defaultWrappedYear();
   const [account, setAccount] = useState<AccountProfileResponse | null>(null);
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -305,6 +308,11 @@ export function AccountPanel({
             <div className="stat-box"><strong>{statistics.average_rating ?? "—"}</strong><span>average rating</span></div>
           </div>
         )}
+        <Link className="account-wrapped-link" href={`/wrapped/${wrappedYear}`}>
+          <Sparkles size={16} />
+          <span><b>Your {wrappedYear} Wrapped</b> Your year in K-dramas, as a story you can share.</span>
+          <ArrowRight size={16} />
+        </Link>
       </section>
 
       <section className="account-section account-danger">

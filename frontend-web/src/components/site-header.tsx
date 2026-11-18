@@ -9,6 +9,7 @@ import { useApp } from "@/components/app-provider";
 import { useAuth } from "@/components/auth-provider";
 import { IS_MOCK_MODE } from "@/lib/data-mode";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { defaultWrappedYear } from "@/lib/wrapped";
 
 const navItems = [
   { href: "/discover", label: "Discover" },
@@ -24,6 +25,7 @@ export function SiteHeader() {
   const { watchlist } = useApp();
   const { user, loading: authLoading } = useAuth();
   const [query, setQuery] = useState("");
+  const wrappedYear = defaultWrappedYear();
   const [menuOpenedAt, setMenuOpenedAt] = useState<string | null>(null);
   const menuOpen = menuOpenedAt === pathname;
 
@@ -124,6 +126,15 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          {user && (
+            <Link
+              href={`/wrapped/${wrappedYear}`}
+              onClick={() => setMenuOpenedAt(null)}
+              aria-current={pathname.startsWith("/wrapped") ? "page" : undefined}
+            >
+              Wrapped {wrappedYear}
+            </Link>
+          )}
           <Link
             href={user ? "/account" : "/auth/login"}
             onClick={() => setMenuOpenedAt(null)}

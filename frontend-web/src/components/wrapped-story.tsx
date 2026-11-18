@@ -51,6 +51,7 @@ function Frame({
   year,
   theme = "plum",
   bars,
+  wide = false,
   children,
   footer,
   onClick,
@@ -58,12 +59,14 @@ function Frame({
   year: number;
   theme?: Theme;
   bars?: { count: number; index: number };
+  /** Desktop only: a wider card (the share slide puts the card and buttons side by side). */
+  wide?: boolean;
   children: ReactNode;
   footer?: ReactNode;
   onClick?: (event: MouseEvent<HTMLDivElement>) => void;
 }) {
   return (
-    <div className={`wr-story wr-theme-${theme}`} onClick={onClick}>
+    <div className={`wr-story wr-theme-${theme}${wide ? " wr-wide" : ""}`} onClick={onClick}>
       <div className="wr-top">
         {bars && (
           <div
@@ -185,42 +188,50 @@ function ShareSlide({
     <div className="wr-body wr-body-share">
       <p className="wr-eyebrow">Share your year</p>
       <WrappedShareCard stats={preview} />
-      {data.display_name && (
-        <label className="wr-check">
-          <input
-            type="checkbox"
-            checked={showName}
-            onChange={(event) => setShowName(event.target.checked)}
-          />
-          Show my name ({data.display_name}) on the card
-        </label>
-      )}
-      <div className="wr-share">
-        <button type="button" className="wr-btn wr-btn-main" onClick={saveImage} disabled={Boolean(busy)}>
-          <Download size={15} /> {busy === "image" ? "Making image…" : "Save image"}
-        </button>
-        <button type="button" className="wr-btn" onClick={copyLink} disabled={Boolean(busy)}>
-          <Link2 size={15} /> {busy === "link" ? "Saving…" : shareUrl ? "Update link" : "Copy link"}
-        </button>
-        <button type="button" className="wr-btn wr-btn-wide" onClick={onReplay}>
-          <Play size={12} /> Watch again
-        </button>
-      </div>
-      {status && (
-        <p className="wr-status" role="status">
-          {status}
-        </p>
-      )}
-      {shareUrl && (
-        <p className="wr-link-row">
-          <Link href={shareUrl} target="_blank">
-            Open your public page
-          </Link>
-          <button type="button" onClick={removeLink} disabled={Boolean(busy)}>
-            <Trash2 size={13} /> Remove link
+      <div className="wr-share-side">
+        <div className="wr-share-intro">
+          <h2 className="wr-big wr-big-sm">That&apos;s your {data.year}.</h2>
+          <p className="wr-text">
+            Save the card as an image, or make a link that shows these numbers only.
+          </p>
+        </div>
+        {data.display_name && (
+          <label className="wr-check">
+            <input
+              type="checkbox"
+              checked={showName}
+              onChange={(event) => setShowName(event.target.checked)}
+            />
+            Show my name ({data.display_name}) on the card
+          </label>
+        )}
+        <div className="wr-share">
+          <button type="button" className="wr-btn wr-btn-main" onClick={saveImage} disabled={Boolean(busy)}>
+            <Download size={15} /> {busy === "image" ? "Making image…" : "Save image"}
           </button>
-        </p>
-      )}
+          <button type="button" className="wr-btn" onClick={copyLink} disabled={Boolean(busy)}>
+            <Link2 size={15} /> {busy === "link" ? "Saving…" : shareUrl ? "Update link" : "Copy link"}
+          </button>
+          <button type="button" className="wr-btn wr-btn-wide" onClick={onReplay}>
+            <Play size={12} /> Watch again
+          </button>
+        </div>
+        {status && (
+          <p className="wr-status" role="status">
+            {status}
+          </p>
+        )}
+        {shareUrl && (
+          <p className="wr-link-row">
+            <Link href={shareUrl} target="_blank">
+              Open your public page
+            </Link>
+            <button type="button" onClick={removeLink} disabled={Boolean(busy)}>
+              <Trash2 size={13} /> Remove link
+            </button>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -445,6 +456,7 @@ function Unlocked({ data }: { data: MyWrappedResponse }) {
           year={data.year}
           theme={slide.theme}
           bars={{ count: slides.length, index: current }}
+          wide={slide.key === "share"}
           onClick={onStoryClick}
           footer={
             current < last ? (

@@ -22,7 +22,7 @@ import { TasteDNAChart } from "@/components/taste-dna-chart";
 import { PosterImage } from "@/components/poster-image";
 import { getProfile, rateDrama, resetProfile, searchDramas } from "@/lib/api";
 import type { WatchlistEntry } from "@/lib/types";
-import { WRAPPED_FIRST_YEAR, wrappedSeasonYear } from "@/lib/wrapped";
+import { WRAPPED_FIRST_YEAR, defaultWrappedYear, wrappedSeasonYear } from "@/lib/wrapped";
 
 function PreferenceList({
   title,
@@ -68,10 +68,12 @@ function PreferenceList({
   );
 }
 
-/** From 1 December to 15 January: a link to the fan's Wrapped. */
+/** A link to the fan's Wrapped: large from 1 December to 15 January, smaller ("so far") the rest of the year. */
 function WrappedBanner({ entries }: { entries: WatchlistEntry[] }) {
-  const year = wrappedSeasonYear();
-  if (!year || year < WRAPPED_FIRST_YEAR) return null;
+  const season = wrappedSeasonYear();
+  const year = season ?? defaultWrappedYear();
+  if (year < WRAPPED_FIRST_YEAR) return null;
+  const quiet = !season;
   const finished = entries.filter(
     (entry) =>
       entry.status === "completed" &&
@@ -81,7 +83,7 @@ function WrappedBanner({ entries }: { entries: WatchlistEntry[] }) {
   const left = 3 - finished.length;
 
   return (
-    <Link className="wr-banner" href={`/wrapped/${year}`}>
+    <Link className={quiet ? "wr-banner wr-banner-quiet" : "wr-banner"} href={`/wrapped/${year}`}>
       {finished.length > 0 && (
         <div className="wr-banner-stack" aria-hidden="true">
           {finished.slice(0, 3).map((entry) => (
@@ -92,15 +94,25 @@ function WrappedBanner({ entries }: { entries: WatchlistEntry[] }) {
         </div>
       )}
       <div className="wr-banner-copy">
-        <b>{left > 0 ? `Your ${year} Wrapped is almost ready` : `Your ${year} Wrapped is ready`}</b>
+        <b>
+          {quiet
+            ? left > 0
+              ? `Your ${year} Wrapped`
+              : `Your ${year} Wrapped so far`
+            : left > 0
+              ? `Your ${year} Wrapped is almost ready`
+              : `Your ${year} Wrapped is ready`}
+        </b>
         <span>
           {left > 0
             ? `Finish ${left} more ${left === 1 ? "drama" : "dramas"} this year to unlock it.`
-            : `${finished.length} dramas, your top actor, and the trope you can't resist.`}
+            : quiet
+              ? `${finished.length} dramas finished this year. The full story arrives in December.`
+              : `${finished.length} dramas, your top actor, and the trope you can't resist.`}
         </span>
       </div>
       <span className="wr-next">
-        Open Wrapped <ArrowRight size={15} />
+        {quiet ? "Take a look" : "Open Wrapped"} <ArrowRight size={15} />
       </span>
     </Link>
   );
@@ -202,9 +214,11 @@ export default function ProfilePage() {
       </section>
 
       <div className="shell profile-layout">
+        {/* Outside the main column so it can come first on phones (the sidebar moves up there). */}
+        {user && <WrappedBanner entries={watchlistEntries} />}
+
         {/* Main Column */}
         <section className="profile-main-col">
-          {user && <WrappedBanner entries={watchlistEntries} />}
 
           {/* Persona Hero Card */}
           <div className="profile-card persona-hero-card">
