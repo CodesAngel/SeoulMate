@@ -68,12 +68,27 @@ function PreferenceList({
   );
 }
 
-/** A link to the fan's Wrapped: large from 1 December to 15 January, smaller ("so far") the rest of the year. */
-function WrappedBanner({ entries }: { entries: WatchlistEntry[] }) {
+/** A link to the fan's Wrapped: large from 1 December to 15 January, smaller ("so far") the rest of the year.
+ *  Until the library has loaded it shows neutral text, so it doesn't flip from "finish 3 more" to the real count. */
+function WrappedBanner({ entries, ready }: { entries: WatchlistEntry[]; ready: boolean }) {
   const season = wrappedSeasonYear();
   const year = season ?? defaultWrappedYear();
   if (year < WRAPPED_FIRST_YEAR) return null;
   const quiet = !season;
+
+  if (!ready) {
+    return (
+      <Link className={quiet ? "wr-banner wr-banner-quiet" : "wr-banner"} href={`/wrapped/${year}`}>
+        <div className="wr-banner-copy">
+          <b>Your {year} Wrapped</b>
+          <span>Your year in K-dramas, as a story you can share.</span>
+        </div>
+        <span className="wr-next">
+          {quiet ? "Take a look" : "Open Wrapped"} <ArrowRight size={15} />
+        </span>
+      </Link>
+    );
+  }
   const finished = entries.filter(
     (entry) =>
       entry.status === "completed" &&
@@ -180,11 +195,11 @@ export default function ProfilePage() {
   }
 
   const data = profile.data;
-  const personas = Array.isArray(data?.persona)
-    ? data.persona
-    : data?.persona
-      ? [data.persona]
-      : ["K-Drama Explorer"];
+  // The API can send an empty list; keep the default then, so the card doesn't lose its name after loading.
+  const apiPersonas = (Array.isArray(data?.persona) ? data.persona : [data?.persona]).filter(
+    (persona): persona is string => typeof persona === "string" && persona.trim() !== "",
+  );
+  const personas = apiPersonas.length ? apiPersonas : ["K-Drama Explorer"];
 
   // Calculate watching statistics
   const completedCount = watchlistEntries.filter((e) => e.status === "completed").length;
@@ -215,7 +230,7 @@ export default function ProfilePage() {
 
       <div className="shell profile-layout">
         {/* Outside the main column so it can come first on phones (the sidebar moves up there). */}
-        {user && <WrappedBanner entries={watchlistEntries} />}
+        {user && <WrappedBanner entries={watchlistEntries} ready={ready} />}
 
         {/* Main Column */}
         <section className="profile-main-col">

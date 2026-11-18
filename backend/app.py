@@ -3304,7 +3304,10 @@ def get_user_profile(user_id: str):
                 "directors": top_directors,
                 "themes": top_themes,
             },
-            "persona": user_profile.get("persona", []),
+            # Stored profiles have no "persona" field, so this used to be [] for everyone;
+            # fall back to the label worked out from the top genre ("Romance Fan", "New Viewer"...).
+            "persona": user_profile.get("persona")
+            or profile_manager._determine_persona(user_profile),
             "statistics": user_profile.get("statistics", {}),
         }
     except Exception as e:

@@ -202,7 +202,16 @@
 @media (max-width: 780px) {
   .profile-layout:has(> .wr-banner) { grid-template-rows: none; }
   .profile-layout > .wr-banner { order: -2; margin: 0; }
+  /* On phones the posters took a row of their own and made the banner jump in height after loading. */
+  .wr-banner-stack { display: none; }
+  .wr-banner.wr-banner-quiet { min-height: 146px; align-content: center; }
   .profile-layout > .wr-banner ~ .profile-sidebar { grid-column: auto; grid-row: auto; }
+}
+
+/* Room for the poster stack from the start, so the banner doesn't grow when the posters arrive. */
+@media (min-width: 781px) {
+  .wr-banner { min-height: 109px; }
+  .wr-banner.wr-banner-quiet { min-height: 79px; }
 }
 
 /* Outside the December season: a slimmer "so far" version. */
