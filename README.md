@@ -57,7 +57,8 @@ SeoulMate understands moods, tropes, settings, actors and titles. It learns from
 **Your taste**
 - Recommendations that adapt to your ratings, saves and clicks
 - Watchlist with viewing statuses (Planned, Watching, Completed, On hold, Dropped) and personal 1–10 ratings
-- Taste profile, episode tracker and *Watch Together*: find dramas two people will both enjoy
+- Taste profile, an episode tracker saved to your account, and *Watch Together*: find dramas two people will both enjoy
+- **K-drama Wrapped**: your year in review (dramas, hours, favourite actor, top trope, fan type), with a shareable card and public link
 - Home picks and a "Tonight's match" that change every day, mixing your taste with popular discoveries
 
 **Community**
@@ -67,6 +68,7 @@ SeoulMate understands moods, tropes, settings, actors and titles. It learns from
 
 **Accounts**
 - Email sign-up and login, password recovery, profile and avatar
+- Confirmation and reset links that work on any device, with resend and clear error messages
 - Guest saves merge into your account when you sign in
 
 ## How it works

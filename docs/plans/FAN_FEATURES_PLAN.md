@@ -1,6 +1,6 @@
 # Fan features plan: beyond recommendations
 
-Status: **proposal, nothing built** (2026-11-16). Six features that give fans something to do on SeoulMate besides searching. Each one uses data the project already has; none needs an LLM.
+Status: proposed 2026-11-16. **Feature 2 (K-drama Wrapped) is built and live** (2026-11-17, see the CHANGELOG); the other five are proposals. Six features that give fans something to do on SeoulMate besides searching. Each one uses data the project already has; none needs an LLM.
 
 Mockups: open `design/fan-features/index.html`. One page per feature shows today's site next to the proposed design (phone and computer, light and dark, every state), with what changes and open questions.
 
@@ -9,7 +9,7 @@ Suggested build order (reasons in the summary at the end):
 | # | Feature | Size | Needs first |
 |---|---|---|---|
 | 1 | Actor and writer pages | M | Fix issue #4 item 2 (duplicate actor spellings) |
-| 2 | K-drama Wrapped | M | Episode tracker saved to the database |
+| 2 | K-drama Wrapped | M | **Built** (2026-11-17) |
 | 3 | Daily "Guess the drama" | M | Quiz labels checked (`quiz/README.md`, Phase 0) |
 | 4 | Six degrees of K-drama | S | Feature 1 (reuses its people data and links) |
 | 5 | Fan lists | M | Nothing |
@@ -17,7 +17,7 @@ Suggested build order (reasons in the summary at the end):
 
 Sizes: S = about one working session, M = two to three, L = four or more.
 
-What the data already holds (checked 2026-11-16): 2,130 dramas with `actors` (main cast first), `directors`, `screenwriters`, `episodes`, `duration` ("1 hr. 10 min."), `aired` ("Aug 19, 2009 - Oct 8, 2009"), `publisher` (network; blank for 534), `keywords`, `watchers`. In Postgres: `people` (4,577), `drama_credits` (role `actor` / `director` / `screenwriter`, `billing_order`), `watchlist_items` (status `planned` / `watching` / `completed` / `paused` / `dropped`, with `updated_at`), `ratings`. 3,327 actors, 1,363 of them in 3 or more dramas. The episode tracker on drama pages saves progress in the browser only (`localStorage`).
+What the data already holds (checked 2026-11-16): 2,130 dramas with `actors` (main cast first), `directors`, `screenwriters`, `episodes`, `duration` ("1 hr. 10 min."), `aired` ("Aug 19, 2009 - Oct 8, 2009"), `publisher` (network; blank for 534), `keywords`, `watchers`. In Postgres: `people` (4,577), `drama_credits` (role `actor` / `director` / `screenwriter`, `billing_order`), `watchlist_items` (status `planned` / `watching` / `completed` / `paused` / `dropped`, with `updated_at`), `ratings`. 3,327 actors, 1,363 of them in 3 or more dramas. The episode tracker on drama pages saved progress in the browser only (`localStorage`); since Wrapped it saves to `watchlist_items.episodes_watched` for signed-in users.
 
 ---
 
@@ -82,6 +82,8 @@ Add people with 3 or more dramas (about 1,400) to `sitemap.ts`, with `Person` JS
 ## 2. K-drama Wrapped (year in review)
 
 **What fans get:** a personal summary of their year in K-dramas, shown as a few swipeable "slides", that ends with a shareable image card.
+
+> **Built 2026-11-17** (CHANGELOG 2026-11-17 and 2026-11-18). Differences from this plan: progress is saved through a new `PATCH /me/watchlist/{id}/progress` instead of the watchlist `PUT`; a new `completed_at` column decides which year a drama counts for; slides with nothing to show (actor, trope, top-rated) are skipped; the top trope weights keywords by rarity and leaves out non-trope keywords; fan types are genre-share rules (e.g. "The Thrill Seeker") with "The Binger" and "The Explorer" as fallbacks; the share card has a "Show my name" checkbox; the Profile banner shows all year (a quieter "so far" version outside 1 December – 15 January). The text below is the original proposal.
 
 ### Screens
 
@@ -308,7 +310,7 @@ Public lists with at least 5 dramas and 3 likes go into the sitemap. Pages like 
 ### API and reminders
 
 - **Endpoints:** `GET /airing?week=` and `GET /airing/upcoming` read from the catalog.
-- **Calendar feed:** `GET /me/calendar.ics?token=` is a private feed with expected episode dates for the fan's `watching` and `planned` dramas, and works in Google or Apple Calendar. The token is a random per-user secret (new column `profiles.calendar_token`) that can be reset. It doesn't need email (custom SMTP isn't set up).
+- **Calendar feed:** `GET /me/calendar.ics?token=` is a private feed with expected episode dates for the fan's `watching` and `planned` dramas, and works in Google or Apple Calendar. The token is a random per-user secret (new column `profiles.calendar_token`) that can be reset. It doesn't need email (account emails now use custom SMTP, but reminders by email would need a proper sending service).
 - **Badge:** the watchlist badge uses `episodes_watched` (see feature 2) to show "1 new episode" when the expected count is ahead of the fan's progress.
 
 ### Why L
@@ -320,7 +322,7 @@ It needs a scraper change, a regular refresh, a schema change and date logic, an
 ## Summary and recommended order
 
 1. **Actor and writer pages** go first: the data is ready, fans browse by actor more than anything else, and about 1,400 new pages help Google traffic. Fix the duplicate actor spellings (issue #4 item 2) before or alongside it.
-2. **K-drama Wrapped** goes next, so it's live by 1 December. It needs the episode tracker moved to the database first, which also helps feature 6.
+2. **K-drama Wrapped**: built and live (2026-11-17), with the episode tracker moved to the database, which feature 6 can now use.
 3. **Daily quiz** is the best feature for bringing people back every day. Poster zoom questions solve the small image supply.
 4. **Six degrees** is a small add-on once actor pages exist.
 5. **Fan lists** add community content and search pages, and need no other feature first.
